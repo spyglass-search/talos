@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import axios, { AxiosRequestConfig } from "axios";
+import axios from "axios";
 import {
   ArrowDownIcon,
   ArrowUpCircleIcon,
@@ -31,7 +31,7 @@ import { loadWorkflow, saveWorkflow } from "./workflows/utils";
 import { cancelExecution, executeNode } from "./workflows/executor";
 import { ModalType } from "./types";
 import AddNodeModal from "./components/modal/AddNodeModal";
-import mixpanel from 'mixpanel-browser';
+import { track } from "./utils/metrics";
 
 function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
   return (
@@ -84,9 +84,11 @@ function App() {
   };
 
   let runWorkflow = async () => {
-    mixpanel.track('run workflow', {
-      numNodes: workflow.length
-    });
+    if (process.env.NODE_ENV === 'production') {
+      track('run workflow', {
+        numNodes: workflow.length
+      });
+    }
 
     setIsRunning(true);
     setEndResult(null);
