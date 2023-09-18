@@ -187,7 +187,7 @@ function App() {
     <main className="flex min-h-screen flex-col gap-8 items-center py-8">
       <div className="navbar w-fit mx-auto fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg">
         <div className="navbar-center flex flex-row gap-2 place-content-center">
-          <img src={`${process.env.PUBLIC_URL}/logo@2x.png`} className="w-14 ml-6" />
+          <img src={`${process.env.PUBLIC_URL}/logo@2x.png`} className="w-14 ml-6" alt="Spyglass Logo" />
           <div className="divider divider-horizontal"></div>
           <button
             className="btn btn-primary"
