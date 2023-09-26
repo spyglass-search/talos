@@ -97,9 +97,11 @@ function App() {
       setCurrentNodeRunning(idx);
       let node = workflow[idx];
       let startTimestamp = new Date();
-      console.log(`executing node ${idx} w/ input =`, lastResult);
+
+      console.debug(`executing node ${idx} w/ input =`, lastResult);
       lastResult = await executeNode(lastResult, node);
-      console.log("output = ", lastResult);
+      console.debug("output = ", lastResult);
+
       setNodeResults(
         new Map(
           nodeResults.set(node.uuid, {
@@ -109,6 +111,11 @@ function App() {
           }),
         ),
       );
+
+      // Early exit if we run into an error.
+      if(lastResult.error) {
+        break;
+      }
     }
 
     setEndResult(lastResult);
