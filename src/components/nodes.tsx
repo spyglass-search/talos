@@ -55,6 +55,8 @@ export interface NodeIconProps {
   className?: string;
 }
 
+const BASE_CARD_STYLE = 'card shadow-xl w-full md:w-[480px]';
+
 export function NodeIcon({ nodeType, className }: NodeIconProps) {
   let icon = <TableCellsIcon className={className} />;
   if (nodeType === NodeType.Extract) {
@@ -133,7 +135,7 @@ export function WorkflowResult({
   }
 
   return (
-    <div className={`card shadow-xl w-[480px] ${className}`}>
+    <div className={`${BASE_CARD_STYLE} ${className}`}>
       <div className="card-body p-2">
         <pre className="text-xs p-4 rounded-lg overflow-auto">{content}</pre>
         {hideButton && (
@@ -205,7 +207,7 @@ export function NodeComponent({
 
   return (
     <div
-      className={`card bg-neutral border-2 shadow-xl w-[480px] ${borderColor}`}
+      className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}
     >
       <figure className="bg-base-100 p-2 border-inherit">
         <div className="flex flex-row w-full justify-between items-center">

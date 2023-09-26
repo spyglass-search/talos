@@ -269,7 +269,7 @@ function App() {
           </div>
         </div>
       </div>
-      <div className="md:my-32">
+      <div className="md:my-32 px-8">
         <div className="flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
