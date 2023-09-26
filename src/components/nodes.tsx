@@ -55,7 +55,7 @@ export interface NodeIconProps {
   className?: string;
 }
 
-const BASE_CARD_STYLE = 'card shadow-xl w-full md:w-[480px]';
+const BASE_CARD_STYLE = 'card shadow-xl w-full md:w-[480px] lg:w-[640px]';
 
 export function NodeIcon({ nodeType, className }: NodeIconProps) {
   let icon = <TableCellsIcon className={className} />;
