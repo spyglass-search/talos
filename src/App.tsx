@@ -63,30 +63,35 @@ function App() {
   // Initialize workflow
   useEffect(() => {
     const fetchInitialData = async () => {
-      await axios.get<Array<NodeDef>>(`${process.env.PUBLIC_URL}/workflow-examples/initial.json`)
-        .then(resp => resp.data)
-        .then(workflow => setWorkflow(workflow as Array<NodeDef>));
+      await axios
+        .get<Array<NodeDef>>(
+          `${process.env.PUBLIC_URL}/workflow-examples/initial.json`,
+        )
+        .then((resp) => resp.data)
+        .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
     };
 
-    fetchInitialData()
-      .catch(console.error);
+    fetchInitialData().catch(console.error);
   }, []);
 
   let loadExample = async () => {
     if (exampleSelection.current) {
       let value = (exampleSelection.current as HTMLSelectElement).value;
-      if (value && value.length > 0 && value.endsWith('.json')) {
-        await axios.get<Array<NodeDef>>(`${process.env.PUBLIC_URL}/workflow-examples/${value}`)
-          .then(resp => resp.data)
-          .then(workflow => setWorkflow(workflow as Array<NodeDef>));
+      if (value && value.length > 0 && value.endsWith(".json")) {
+        await axios
+          .get<Array<NodeDef>>(
+            `${process.env.PUBLIC_URL}/workflow-examples/${value}`,
+          )
+          .then((resp) => resp.data)
+          .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
       }
     }
   };
 
   let runWorkflow = async () => {
-    if (process.env.NODE_ENV === 'production') {
-      track('run workflow', {
-        numNodes: workflow.length
+    if (process.env.NODE_ENV === "production") {
+      track("run workflow", {
+        numNodes: workflow.length,
       });
     }
 
@@ -99,9 +104,14 @@ function App() {
       let startTimestamp = new Date();
 
       console.debug(`executing node ${idx} w/ input =`, lastResult);
+      // Clear any existing results from a node before running it.
+      setNodeResults((nodeResults) => {
+        nodeResults.delete(node.uuid);
+        return new Map(nodeResults);
+      });
       lastResult = await executeNode(lastResult, node);
       console.debug("output = ", lastResult);
-
+      // Set the new node result
       setNodeResults(
         new Map(
           nodeResults.set(node.uuid, {
@@ -113,7 +123,7 @@ function App() {
       );
 
       // Early exit if we run into an error.
-      if(lastResult.error) {
+      if (lastResult.error) {
         break;
       }
     }
@@ -194,7 +204,11 @@ function App() {
     <main className="flex min-h-screen flex-col gap-8 items-center md:py-8">
       <div className="navbar md:w-fit mx-auto md:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
         <div className="navbar-center flex flex-col md:flex-row gap-2 place-content-center items-center w-full">
-          <img src={`${process.env.PUBLIC_URL}/logo@2x.png`} className="w-14 ml-6" alt="Spyglass Logo" />
+          <img
+            src={`${process.env.PUBLIC_URL}/logo@2x.png`}
+            className="w-14 ml-6"
+            alt="Spyglass Logo"
+          />
           <div className="divider divider-horizontal"></div>
           <div className="flex flex-row gap-2">
             <button
@@ -266,12 +280,16 @@ function App() {
                 }}
               />
             </button>
-            <select ref={exampleSelection} className="select w-48" onChange={loadExample}>
-                <option>Load Example</option>
-                <option disabled>────────────</option>
-                <option value="sentiment-analysis.json">
-                  Yelp Review - Sentiment Analysis
-                </option>
+            <select
+              ref={exampleSelection}
+              className="select w-48"
+              onChange={loadExample}
+            >
+              <option>Load Example</option>
+              <option disabled>────────────</option>
+              <option value="sentiment-analysis.json">
+                Yelp Review - Sentiment Analysis
+              </option>
             </select>
           </div>
         </div>

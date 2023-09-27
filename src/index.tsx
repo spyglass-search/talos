@@ -3,12 +3,12 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import mixpanel from 'mixpanel-browser';
+import mixpanel from "mixpanel-browser";
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   mixpanel.init("2e014175348a6e12109a2213f4744ce3", {
     track_pageview: true,
-    persistence: 'localStorage'
+    persistence: "localStorage",
   });
 }
 

@@ -55,7 +55,7 @@ export interface NodeIconProps {
   className?: string;
 }
 
-const BASE_CARD_STYLE = 'card shadow-xl w-full md:w-[480px] lg:w-[640px]';
+const BASE_CARD_STYLE = "card shadow-xl w-full md:w-[480px] lg:w-[640px]";
 
 export function NodeIcon({ nodeType, className }: NodeIconProps) {
   let icon = <TableCellsIcon className={className} />;
@@ -206,9 +206,7 @@ export function NodeComponent({
   }
 
   return (
-    <div
-      className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}
-    >
+    <div className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}>
       <figure className="bg-base-100 p-2 border-inherit">
         <div className="flex flex-row w-full justify-between items-center">
           <div className="text-neutral-600 px-2 text-xs">id: {uuid}</div>
