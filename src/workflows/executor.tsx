@@ -1,5 +1,5 @@
 import Handlebars from "handlebars";
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import { executeSummarizeTask } from "./task-executor";
 import { Subject } from "rxjs";
 import {
@@ -111,6 +111,12 @@ async function _handleExtractNode(
       return {
         status: response.status,
         data: response.result.jsonResponse,
+      } as NodeResult;
+    })
+    .catch((err: AxiosError) => {
+      return {
+        status: "error",
+        error: err.message,
       } as NodeResult;
     })
     .catch((err) => {

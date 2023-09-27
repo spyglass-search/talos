@@ -63,30 +63,35 @@ function App() {
   // Initialize workflow
   useEffect(() => {
     const fetchInitialData = async () => {
-      await axios.get<Array<NodeDef>>(`${process.env.PUBLIC_URL}/workflow-examples/initial.json`)
-        .then(resp => resp.data)
-        .then(workflow => setWorkflow(workflow as Array<NodeDef>));
+      await axios
+        .get<Array<NodeDef>>(
+          `${process.env.PUBLIC_URL}/workflow-examples/initial.json`,
+        )
+        .then((resp) => resp.data)
+        .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
     };
 
-    fetchInitialData()
-      .catch(console.error);
+    fetchInitialData().catch(console.error);
   }, []);
 
   let loadExample = async () => {
     if (exampleSelection.current) {
       let value = (exampleSelection.current as HTMLSelectElement).value;
-      if (value && value.length > 0 && value.endsWith('.json')) {
-        await axios.get<Array<NodeDef>>(`${process.env.PUBLIC_URL}/workflow-examples/${value}`)
-          .then(resp => resp.data)
-          .then(workflow => setWorkflow(workflow as Array<NodeDef>));
+      if (value && value.length > 0 && value.endsWith(".json")) {
+        await axios
+          .get<Array<NodeDef>>(
+            `${process.env.PUBLIC_URL}/workflow-examples/${value}`,
+          )
+          .then((resp) => resp.data)
+          .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
       }
     }
   };
 
   let runWorkflow = async () => {
-    if (process.env.NODE_ENV === 'production') {
-      track('run workflow', {
-        numNodes: workflow.length
+    if (process.env.NODE_ENV === "production") {
+      track("run workflow", {
+        numNodes: workflow.length,
       });
     }
 
@@ -97,9 +102,16 @@ function App() {
       setCurrentNodeRunning(idx);
       let node = workflow[idx];
       let startTimestamp = new Date();
-      console.log(`executing node ${idx} w/ input =`, lastResult);
+
+      console.debug(`executing node ${idx} w/ input =`, lastResult);
+      // Clear any existing results from a node before running it.
+      setNodeResults((nodeResults) => {
+        nodeResults.delete(node.uuid);
+        return new Map(nodeResults);
+      });
       lastResult = await executeNode(lastResult, node);
-      console.log("output = ", lastResult);
+      console.debug("output = ", lastResult);
+      // Set the new node result
       setNodeResults(
         new Map(
           nodeResults.set(node.uuid, {
@@ -109,6 +121,11 @@ function App() {
           }),
         ),
       );
+
+      // Early exit if we run into an error.
+      if (lastResult.error) {
+        break;
+      }
     }
 
     setEndResult(lastResult);
@@ -184,88 +201,100 @@ function App() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col gap-8 items-center py-8">
-      <div className="navbar w-fit mx-auto fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg">
-        <div className="navbar-center flex flex-row gap-2 place-content-center">
-          <img src={`${process.env.PUBLIC_URL}/logo@2x.png`} className="w-14 ml-6" alt="Spyglass Logo" />
+    <main className="flex min-h-screen flex-col gap-8 items-center md:py-8">
+      <div className="navbar md:w-fit mx-auto md:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
+        <div className="navbar-center flex flex-col md:flex-row gap-2 place-content-center items-center w-full">
+          <img
+            src={`${process.env.PUBLIC_URL}/logo@2x.png`}
+            className="w-14 ml-6"
+            alt="Spyglass Logo"
+          />
           <div className="divider divider-horizontal"></div>
-          <button
-            className="btn btn-primary"
-            disabled={isRunning}
-            onClick={() => runWorkflow()}
-          >
-            <PlayIcon className="w-4" />
-            Run Workflow
-          </button>
-          <button
-            className="btn btn-neutral"
-            disabled={isRunning}
-            onClick={() => clearWorkflow()}
-          >
-            <TrashIcon className="w-4" />
-            Clear
-          </button>
-          <button
-            className="btn btn-error"
-            disabled={!isRunning}
-            onClick={() => cancelWorkflow()}
-          >
-            Cancel
-          </button>
-          <div className="divider divider-horizontal"></div>
-          <button
-            className="btn btn-accent"
-            disabled={isRunning}
-            onClick={() => saveWorkflow(workflow)}
-          >
-            <DocumentArrowDownIcon className="w-4" />
-            Save
-          </button>
-          <button
-            className="btn btn-neutral"
-            disabled={isRunning || isLoading}
-            onClick={async () => {
-              if (fileInput.current) {
-                (fileInput.current as HTMLInputElement).click();
-              }
-            }}
-          >
-            {isLoading ? (
-              <div className="loading loading-spinner text-info"></div>
-            ) : (
-              <ArrowUpCircleIcon className="w-4" />
-            )}
-            Load
-            <input
-              ref={fileInput}
-              type="file"
-              className="join-item input form-input bg-neutral hidden"
-              accept=".json"
-              onChange={async () => {
+          <div className="flex flex-row gap-2">
+            <button
+              className="btn btn-primary"
+              disabled={isRunning}
+              onClick={() => runWorkflow()}
+            >
+              <PlayIcon className="w-4" />
+              Run Workflow
+            </button>
+            <button
+              className="btn btn-neutral"
+              disabled={isRunning}
+              onClick={() => clearWorkflow()}
+            >
+              <TrashIcon className="w-4" />
+              Clear
+            </button>
+            <button
+              className="btn btn-error"
+              disabled={!isRunning}
+              onClick={() => cancelWorkflow()}
+            >
+              Cancel
+            </button>
+          </div>
+          <div className="divider md:divider-horizontal"></div>
+          <div className="flex flex-row gap-2">
+            <button
+              className="btn btn-accent"
+              disabled={isRunning}
+              onClick={() => saveWorkflow(workflow)}
+            >
+              <DocumentArrowDownIcon className="w-4" />
+              Save
+            </button>
+            <button
+              className="btn btn-neutral"
+              disabled={isRunning || isLoading}
+              onClick={async () => {
                 if (fileInput.current) {
-                  setIsLoading(true);
-                  return await loadWorkflow(
-                    fileInput.current as HTMLInputElement,
-                  ).then((workflow) => {
-                    setWorkflow(workflow);
-                    setIsLoading(false);
-                    setNodeResults(new Map());
-                    setEndResult(null);
-                  });
+                  (fileInput.current as HTMLInputElement).click();
                 }
               }}
-            />
-          </button>
-          <select ref={exampleSelection} className="select w-48" onChange={loadExample}>
+            >
+              {isLoading ? (
+                <div className="loading loading-spinner text-info"></div>
+              ) : (
+                <ArrowUpCircleIcon className="w-4" />
+              )}
+              Load
+              <input
+                ref={fileInput}
+                type="file"
+                className="join-item input form-input bg-neutral hidden"
+                accept=".json"
+                onChange={async () => {
+                  if (fileInput.current) {
+                    setIsLoading(true);
+                    return await loadWorkflow(
+                      fileInput.current as HTMLInputElement,
+                    ).then((workflow) => {
+                      setWorkflow(workflow);
+                      setIsLoading(false);
+                      setNodeResults(new Map());
+                      setEndResult(null);
+                    });
+                  }
+                }}
+              />
+            </button>
+            <select
+              ref={exampleSelection}
+              className="select w-48"
+              onChange={loadExample}
+            >
               <option>Load Example</option>
               <option disabled>────────────</option>
               <option value="sentiment-analysis.json">
                 Yelp Review - Sentiment Analysis
               </option>
-          </select>
+            </select>
+          </div>
         </div>
       </div>
-      <div className="my-32">
+      <div className="md:my-32 px-8">
         <div className="flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
