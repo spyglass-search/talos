@@ -5,7 +5,10 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import mixpanel from "mixpanel-browser";
 
-if (process.env.NODE_ENV === "production" && process.env.REACT_APP_MIXPANEL_ID) {
+if (
+  process.env.NODE_ENV === "production" &&
+  process.env.REACT_APP_MIXPANEL_ID
+) {
   mixpanel.init(process.env.REACT_APP_MIXPANEL_ID, {
     track_pageview: true,
     persistence: "localStorage",

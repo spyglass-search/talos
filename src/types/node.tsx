@@ -13,6 +13,7 @@ export interface ExtractNodeDef {
 export interface DataNodeDef {
   content?: string;
   url?: string;
+  file?: File;
   type: DataNodeType;
 }
 
@@ -33,6 +34,7 @@ export type NodeDataTypes =
   | SummaryDataDef;
 
 export enum DataNodeType {
+  File = "File",
   Text = "Text",
   Url = "Url",
 }
