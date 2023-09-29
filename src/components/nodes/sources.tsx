@@ -130,8 +130,8 @@ export function DataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <div className="text-xs uppercase font-semibold pb-2">Data Source</div>
-        <div className="join">
+        <div className="text-xs uppercase font-semibold pb-2">Choose a Data Source</div>
+        <div className="join join-horizontal">
           {[DataNodeType.Text, DataNodeType.Url, DataNodeType.File].map(
             (nodeType) => {
               let btnClass = type === nodeType ? "btn-accent" : "";
