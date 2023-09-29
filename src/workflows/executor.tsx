@@ -1,6 +1,6 @@
 import Handlebars from "handlebars";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
-import { executeSummarizeTask } from "./task-executor";
+import { executeParseFile, executeSummarizeTask } from "./task-executor";
 import { Subject } from "rxjs";
 import {
   DataNodeDef,
@@ -44,26 +44,33 @@ export function cancelExecution() {
 
 async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   let data = node.data as DataNodeDef;
-  if (data.type) {
-    if (data.type === DataNodeType.Url && data.url) {
-      return await axios
-        .get(data.url)
-        .then((resp) => {
-          let response = resp.data;
-          return {
-            status: "Ok",
-            data: {
-              content: response as string,
-            } as DataNodeDef,
-          } as NodeResult;
-        })
-        .catch((err) => {
-          return {
-            status: "error",
-            error: err.toString(),
-          };
-        });
-    }
+  if (data.type === DataNodeType.File && data.file) {
+    return await executeParseFile(data.file);
+  } else if (data.type === DataNodeType.Url && data.url) {
+    return await axios
+      .get(data.url)
+      .then((resp) => {
+        let response = resp.data;
+        return {
+          status: "Ok",
+          data: {
+            content: response as string,
+          } as DataNodeDef,
+        } as NodeResult;
+      })
+      .catch((err) => {
+        return {
+          status: "error",
+          error: err.toString(),
+        };
+      });
+  } else if (data.type === DataNodeType.Text) {
+    return {
+      status: "Ok",
+      data: {
+        content: data.content ?? "",
+      } as DataNodeDef,
+    };
   }
 
   return {

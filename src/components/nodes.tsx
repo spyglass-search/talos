@@ -135,7 +135,7 @@ export function WorkflowResult({
   }
 
   return (
-    <div className={`${BASE_CARD_STYLE} ${className}`}>
+    <div className={`${BASE_CARD_STYLE} ${className} max-h-[512px] overflow-y-auto`}>
       <div className="card-body p-2">
         <pre className="text-xs p-4 rounded-lg overflow-auto">{content}</pre>
         {hideButton && (

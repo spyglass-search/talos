@@ -2,10 +2,11 @@ import axios, { AxiosRequestConfig } from "axios";
 import {
   ApiError,
   ApiResponse,
+  ParseResponse,
   SummaryResponse,
   TaskResponse,
 } from "../types/spyglassApi";
-import { NodeResult, SummaryDataDef } from "../types/node";
+import { DataNodeDef, NodeResult, SummaryDataDef } from "../types/node";
 import {
   interval,
   mergeMap,
@@ -20,6 +21,33 @@ import {
 } from "rxjs";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
+
+export async function executeParseFile(
+  file: File,
+): Promise<NodeResult | ApiError> {
+  let config: AxiosRequestConfig = {
+    headers: { Authorization: `Bearer ${API_TOKEN}` },
+  };
+
+  let formData = new FormData();
+  formData.append("file", file);
+  console.log(file);
+  return await axios
+    .post<ApiResponse<ParseResponse>>(`${API_ENDPOINT}/parse`, formData, config)
+    .then((resp) => {
+      let { parsed } = resp.data.result;
+      return {
+        status: "Ok",
+        data: { content: parsed } as DataNodeDef,
+      } as NodeResult;
+    })
+    .catch((err) => {
+      return {
+        status: "error",
+        error: err.toString(),
+      };
+    });
+}
 
 export async function executeSummarizeTask(
   input: NodeResult | null,

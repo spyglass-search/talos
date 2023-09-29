@@ -16,6 +16,7 @@ export function DataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
   let fileInput = useRef(null);
 
   useEffect(() => {
+    setType(nodeData.type);
     if (nodeData.type === DataNodeType.Text) {
       setDataValue(nodeData.content ?? "");
     } else if (nodeData.type === DataNodeType.Url) {
@@ -38,7 +39,7 @@ export function DataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
     } else if (nodeType === DataNodeType.Url) {
       setDataValue(nodeData.url ?? "");
     } else if (nodeType === DataNodeType.File) {
-      setDataValue("");
+      setDataValue(nodeData.file?.name ?? "");
     }
   };
 
