@@ -25,6 +25,7 @@ import TemplateNode from "./nodes/template";
 import SummarizeNode from "./nodes/summarize";
 import { DataNode } from "./nodes/sources";
 import { EditableText } from "./editable";
+import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -125,18 +126,28 @@ export function WorkflowResult({
   hideButton = false,
   onHide = () => {},
 }: WorkflowResultProps) {
+  let [isCopying, setIsCopying] = useState(false);
+
   // Pull out text based content to display by itself, otherwise
   // render data as a pretty printed JSON blob.
-  let content = null;
+  let content: string | null | undefined = null;
   if (result.data && "content" in result.data) {
     content = result.data["content"];
   } else {
     content = JSON.stringify(result.data, null, 2);
   }
 
+  let handleCopy = () => {
+    setIsCopying(true);
+    setTimeout(() => setIsCopying(false), 512);
+    if (content) {
+      navigator.clipboard.writeText(content)
+    }
+  };
+
   return (
-    <div className={`${BASE_CARD_STYLE} ${className} max-h-[512px] overflow-y-auto`}>
-      <div className="card-body p-2">
+    <div className={`${BASE_CARD_STYLE} ${className}`}>
+      <div className="card-body p-2 max-h-[512px] overflow-y-auto">
         <pre className="text-xs p-4 rounded-lg overflow-auto">{content}</pre>
         {hideButton && (
           <button
@@ -146,6 +157,20 @@ export function WorkflowResult({
             Hide
           </button>
         )}
+      </div>
+      <div className="card-actions p-2 place-content-end">
+        <button
+          className="btn disabled:btn-info"
+          disabled={isCopying}
+          onClick={() => handleCopy()}
+        >
+          {
+            isCopying
+            ? <span className="loading loading-spinner loading-sm"></span>
+            : <ClipboardDocumentListIcon className="w-6 h-6" />
+          }
+          Copy
+        </button>
       </div>
     </div>
   );
