@@ -146,13 +146,13 @@ async function _handleSummarizeNode(node: NodeDef, input: NodeResult | null) {
 }
 
 export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
-  let context: HandlebarsTemplates = {};
+  let context: any = {};
   let templateData = node.data as TemplateNodeDef;
   if (input?.data) {
     Object.keys(templateData.varMapping).forEach((key) => {
       let value = templateData.varMapping[key as keyof object];
       if (input.data && input.data[value as keyof object]) {
-        context[key] = input.data[value as keyof object];
+        context[key] = new Handlebars.SafeString(input.data[value as keyof object]);
       }
     });
 
