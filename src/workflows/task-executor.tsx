@@ -127,7 +127,7 @@ export function waitForTaskCompletion(
       .pipe(
         tap((val) => {
           if (
-            val.result.status === "Completed" ||
+            val.result.status.startsWith("Complete") ||
             val.result.status === "Failed"
           ) {
             finished.next(true);

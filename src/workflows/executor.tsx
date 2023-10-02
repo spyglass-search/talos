@@ -152,7 +152,13 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
     Object.keys(templateData.varMapping).forEach((key) => {
       let value = templateData.varMapping[key as keyof object];
       if (input.data && input.data[value as keyof object]) {
-        context[key] = new Handlebars.SafeString(input.data[value as keyof object]);
+        let data: any = input.data[value as keyof object];
+        // Use SafeString here so that html is correctly embedded.
+        if (typeof data === 'string') {
+          context[key] = new Handlebars.SafeString(data);
+        } else {
+          context[key] = data;
+        }
       }
     });
 
