@@ -202,8 +202,8 @@ function App() {
 
   return (
     <main className="flex min-h-screen flex-col gap-8 items-center md:py-8">
-      <div className="navbar md:w-fit mx-auto md:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
-        <div className="navbar-center flex flex-col md:flex-row gap-2 place-content-center items-center w-full">
+      <div className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
+        <div className="navbar-center flex flex-col lg:flex-row gap-2 place-content-center items-center w-full">
           <img
             src={`${process.env.PUBLIC_URL}/logo@2x.png`}
             className="w-14 ml-6"
@@ -235,7 +235,7 @@ function App() {
               Cancel
             </button>
           </div>
-          <div className="divider md:divider-horizontal"></div>
+          <div className="divider lg:divider-horizontal"></div>
           <div className="flex flex-row gap-2">
             <button
               className="btn btn-accent"
@@ -294,7 +294,7 @@ function App() {
           </div>
         </div>
       </div>
-      <div className="md:my-32 px-8">
+      <div className="lg:my-32 px-8">
         <div className="flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
