@@ -37,7 +37,7 @@ export async function executeParseFile(
     .then((resp) => {
       let { parsed } = resp.data.result;
       return {
-        status: "Ok",
+        status: "ok",
         data: { content: parsed } as DataNodeDef,
       } as NodeResult;
     })
@@ -78,7 +78,7 @@ export async function executeSummarizeTask(
       };
     });
 
-  if (response.status === "Ok" && "result" in response) {
+  if (response.status.toLowerCase() === "ok" && "result" in response) {
     let taskResponse = await waitForTaskCompletion(
       response.result,
       cancelListener,

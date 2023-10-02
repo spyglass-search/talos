@@ -87,7 +87,7 @@ export function NodeHeader({
 }
 
 function LastRunSummary({ lastRun }: { lastRun: LastRunDetails }) {
-  if (lastRun.nodeResult.status === "Ok") {
+  if (lastRun.nodeResult.status.toLowerCase() === "ok") {
     let duration = DateTime.fromJSDate(lastRun.endTimestamp).diff(
       DateTime.fromJSDate(lastRun.startTimestamp),
       "seconds",
@@ -223,7 +223,7 @@ export function NodeComponent({
 
   let borderColor = isRunning ? "border-info" : "border-neutral";
   if (!isRunning && lastRun) {
-    if (lastRun.nodeResult.status === "Ok") {
+    if (lastRun.nodeResult.status.toLowerCase() === "ok") {
       borderColor = "border-success";
     } else {
       borderColor = "border-error";

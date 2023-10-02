@@ -52,7 +52,7 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
       .then((resp) => {
         let response = resp.data;
         return {
-          status: "Ok",
+          status: "ok",
           data: {
             content: response as string,
           } as DataNodeDef,
@@ -66,7 +66,7 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
       });
   } else if (data.type === DataNodeType.Text) {
     return {
-      status: "Ok",
+      status: "ok",
       data: {
         content: data.content ?? "",
       } as DataNodeDef,
@@ -74,7 +74,7 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   }
 
   return {
-    status: "Ok",
+    status: "ok",
     data: node.data,
   };
 }
@@ -158,7 +158,7 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
 
     let template = Handlebars.compile(templateData.template);
     return {
-      status: "Ok",
+      status: "ok",
       data: {
         content: template(context),
       } as DataNodeDef,
