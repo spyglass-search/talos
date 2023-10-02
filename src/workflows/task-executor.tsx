@@ -79,10 +79,24 @@ export async function executeSummarizeTask(
     });
 
   if (response.status.toLowerCase() === "ok" && "result" in response) {
+    let taskId: any = response.result;
+    if (taskId instanceof Object) {
+      taskId = taskId.taskId;
+    }
+
+    console.log(`waiting for task "${taskId}" to finish`)
     let taskResponse = await waitForTaskCompletion(
-      response.result,
+      taskId,
       cancelListener,
     );
+
+    if (!taskResponse.result) {
+      return {
+        status: "error",
+        error: "Invalid response"
+      };
+    }
+
     return {
       status: taskResponse.status,
       data: {
@@ -113,8 +127,8 @@ export function waitForTaskCompletion(
       .pipe(
         tap((val) => {
           if (
-            val.result.status === "'Complete'" ||
-            val.result.status === "'Failed'"
+            val.result.status === "Completed" ||
+            val.result.status === "Failed"
           ) {
             finished.next(true);
             finished.complete();
