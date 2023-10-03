@@ -59,7 +59,7 @@ export async function executeParseFile(
   let formData = new FormData();
   formData.append("file", file);
   return await axios
-    .post<ApiResponse<ParseResponse>>(`${API_ENDPOINT}/parse`, formData, config)
+    .post<ApiResponse<ParseResponse>>(`${API_ENDPOINT}/fetch/parse`, formData, config)
     .then((resp) => {
       let { parsed } = resp.data.result;
       return {
