@@ -201,7 +201,7 @@ function App() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col gap-8 items-center md:py-8">
+    <main className="flex w-screen min-h-screen flex-col gap-8 items-center md:py-8">
       <div className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
         <div className="navbar-center flex flex-col lg:flex-row gap-2 place-content-center items-center w-full">
           <img
@@ -294,8 +294,8 @@ function App() {
           </div>
         </div>
       </div>
-      <div className="lg:my-32 px-8">
-        <div className="flex flex-col gap-4 z-0">
+      <div className="w-full lg:my-32 px-8">
+        <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
               <div key={`node-${idx}`}>

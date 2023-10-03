@@ -141,7 +141,7 @@ export function WorkflowResult({
     setIsCopying(true);
     setTimeout(() => setIsCopying(false), 512);
     if (content) {
-      navigator.clipboard.writeText(content)
+      navigator.clipboard.writeText(content);
     }
   };
 
@@ -164,11 +164,11 @@ export function WorkflowResult({
           disabled={isCopying}
           onClick={() => handleCopy()}
         >
-          {
-            isCopying
-            ? <span className="loading loading-spinner loading-sm"></span>
-            : <ClipboardDocumentListIcon className="w-6 h-6" />
-          }
+          {isCopying ? (
+            <span className="loading loading-spinner loading-sm"></span>
+          ) : (
+            <ClipboardDocumentListIcon className="w-6 h-6" />
+          )}
           Copy
         </button>
       </div>
@@ -307,7 +307,7 @@ export function ShowNodeResult({
     );
   } else {
     return (
-      <div className="mt-4 mx-auto flex flex-col w-fit items-center">
+      <div className="mt-4 mx-auto flex flex-col w-full items-center">
         {result ? (
           <div className="btn" onClick={() => setShowResult(true)}>
             View Results

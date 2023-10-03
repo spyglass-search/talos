@@ -1,6 +1,10 @@
 import Handlebars from "handlebars";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
-import { executeParseFile, executeSummarizeTask } from "./task-executor";
+import {
+  executeFetchUrl,
+  executeParseFile,
+  executeSummarizeTask,
+} from "./task-executor";
 import { Subject } from "rxjs";
 import {
   DataNodeDef,
@@ -47,23 +51,7 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   if (data.type === DataNodeType.File && data.file) {
     return await executeParseFile(data.file);
   } else if (data.type === DataNodeType.Url && data.url) {
-    return await axios
-      .get(data.url)
-      .then((resp) => {
-        let response = resp.data;
-        return {
-          status: "ok",
-          data: {
-            content: response as string,
-          } as DataNodeDef,
-        } as NodeResult;
-      })
-      .catch((err) => {
-        return {
-          status: "error",
-          error: err.toString(),
-        };
-      });
+    return await executeFetchUrl(data.url);
   } else if (data.type === DataNodeType.Text) {
     return {
       status: "ok",
@@ -154,7 +142,7 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
       if (input.data && input.data[value as keyof object]) {
         let data: any = input.data[value as keyof object];
         // Use SafeString here so that html is correctly embedded.
-        if (typeof data === 'string') {
+        if (typeof data === "string") {
           context[key] = new Handlebars.SafeString(data);
         } else {
           context[key] = data;

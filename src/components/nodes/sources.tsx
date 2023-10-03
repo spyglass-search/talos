@@ -78,7 +78,9 @@ export function DataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
               <DocumentTextIcon className="w-14 h-14 stroke-1" />
               {dataValue}
             </div>
-          ) : "Choose a file to upload"}
+          ) : (
+            "Choose a file to upload"
+          )}
         </div>
         <button
           className="btn w-full"
@@ -97,7 +99,7 @@ export function DataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
             accept=".pdf"
             onChange={async () => {
               if (fileInput.current) {
-                let current = (fileInput.current as HTMLInputElement);
+                let current = fileInput.current as HTMLInputElement;
                 if (current.files && current.files.length > 0) {
                   console.log(current.files[0]);
                   updateData(current.files[0]);
@@ -130,7 +132,9 @@ export function DataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <div className="text-xs uppercase font-semibold pb-2">Choose a Data Source</div>
+        <div className="text-xs uppercase font-semibold pb-2">
+          Choose a Data Source
+        </div>
         <div className="join join-horizontal">
           {[DataNodeType.Text, DataNodeType.Url, DataNodeType.File].map(
             (nodeType) => {

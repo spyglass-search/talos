@@ -27,3 +27,7 @@ export interface SummaryResponse {
 export interface ParseResponse {
   parsed: string;
 }
+
+export interface FetchResponse {
+  content: string;
+}

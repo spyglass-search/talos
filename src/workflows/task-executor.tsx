@@ -1,7 +1,8 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import {
   ApiError,
   ApiResponse,
+  FetchResponse,
   ParseResponse,
   SummaryResponse,
   TaskResponse,
@@ -22,6 +23,32 @@ import {
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 
+export async function executeFetchUrl(
+  url: string,
+): Promise<NodeResult | ApiError> {
+  let config: AxiosRequestConfig = {
+    headers: { Authorization: `Bearer ${API_TOKEN}` },
+    params: {
+      url,
+    },
+  };
+  return await axios
+    .get<ApiResponse<FetchResponse>>(`${API_ENDPOINT}/fetch`, config)
+    .then((resp) => {
+      let { content } = resp.data.result;
+      return {
+        status: "ok",
+        data: { content } as DataNodeDef,
+      } as NodeResult;
+    })
+    .catch((err) => {
+      return {
+        status: "error",
+        error: err.toString(),
+      };
+    });
+}
+
 export async function executeParseFile(
   file: File,
 ): Promise<NodeResult | ApiError> {
@@ -31,7 +58,6 @@ export async function executeParseFile(
 
   let formData = new FormData();
   formData.append("file", file);
-  console.log(file);
   return await axios
     .post<ApiResponse<ParseResponse>>(`${API_ENDPOINT}/parse`, formData, config)
     .then((resp) => {
@@ -84,16 +110,13 @@ export async function executeSummarizeTask(
       taskId = taskId.taskId;
     }
 
-    console.log(`waiting for task "${taskId}" to finish`)
-    let taskResponse = await waitForTaskCompletion(
-      taskId,
-      cancelListener,
-    );
+    console.log(`waiting for task "${taskId}" to finish`);
+    let taskResponse = await waitForTaskCompletion(taskId, cancelListener);
 
     if (!taskResponse.result) {
       return {
         status: "error",
-        error: "Invalid response"
+        error: "Invalid response",
       };
     }
 
