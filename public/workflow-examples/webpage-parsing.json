@@ -1,0 +1,56 @@
+[
+  {
+    "uuid": "55f2859f-8fe6-4d5e-b060-5a9255157ed9",
+    "label": "Fetch Webpage",
+    "nodeType": "Data",
+    "data": {
+      "url": "https://en.wikipedia.org/wiki/Katalin_Karik%C3%B3",
+      "content": "Fireball\nLvl 3 Evocation\n\nCasting Time: 1 action\nRange: 150 feet\nTarget: A point you choose within range\nComponents: V S M (A tiny ball of bat guano and sulfur)\nDuration: Instantaneous\nClasses: Sorcerer, Wizard\nA bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame. Each creature in a 20-foot-radius sphere centered on that point must make a Dexterity saving throw. A target takes 8d6 fire damage on a failed save, or half as much damage on a successful one. The fire spreads around corners. It ignites flammable objects in the area that aren’t being worn or carried.\nAt Higher Levels: When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.",
+      "type": "Url"
+    }
+  },
+  {
+    "uuid": "ae63ce1a-80f6-4660-8998-913db769d58c",
+    "label": "Parse Page",
+    "nodeType": "Extract",
+    "data": {
+      "query": "extract the page name and any topics talked about ont he page and create a summary",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "pageTitle": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "pageTitle",
+          "summary",
+          "topics"
+        ]
+      }
+    }
+  },
+  {
+    "uuid": "f4fc8611-0207-4fed-949d-e41a21e37727",
+    "label": "Template node",
+    "nodeType": "Template",
+    "data": {
+      "template": "This page is about: {{ pageTitle}}\n\nHere is a summary:\n{{ summary }}\n\nAnd the topics that are discussed\n{{#each topics}}\n- {{.}}\n{{/each}}",
+      "varMapping": {
+        "pageTitle": "pageTitle",
+        "summary": "summary",
+        "topics": "topics"
+      }
+    }
+  }
+]

@@ -1,6 +1,6 @@
 [
   {
-    "uuid": "initial",
+    "uuid": "f55f17e4-61bd-40b4-8ea9-f07103193ea5",
     "label": "Initial Data",
     "nodeType": "Data",
     "data": {
@@ -9,7 +9,7 @@
     }
   },
   {
-    "uuid": "action39414",
+    "uuid": "5c1ea745-b9e4-44c3-a059-6a83f3bada6a",
     "label": "Extract Spell Data",
     "nodeType": "Extract",
     "data": {

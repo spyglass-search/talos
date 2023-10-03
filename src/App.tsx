@@ -114,7 +114,7 @@ function App() {
             }),
           ),
         );
-      }
+      },
     );
 
     setEndResult(lastResult);
@@ -276,6 +276,7 @@ function App() {
             >
               <option>Load Example</option>
               <option disabled>────────────</option>
+              <option value="webpage-parsing.json">Webpage Analysis</option>
               <option value="sentiment-analysis.json">
                 Yelp Review - Sentiment Analysis
               </option>

@@ -22,15 +22,18 @@ import {
 } from "rxjs";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
+const API_CONFIG: AxiosRequestConfig = {
+  headers: { Authorization: `Bearer ${API_TOKEN}` },
+};
 
 export async function executeFetchUrl(
   url: string,
 ): Promise<NodeResult | ApiError> {
   let config: AxiosRequestConfig = {
-    headers: { Authorization: `Bearer ${API_TOKEN}` },
     params: {
       url,
     },
+    ...API_CONFIG,
   };
   return await axios
     .get<ApiResponse<FetchResponse>>(`${API_ENDPOINT}/fetch`, config)
@@ -52,14 +55,14 @@ export async function executeFetchUrl(
 export async function executeParseFile(
   file: File,
 ): Promise<NodeResult | ApiError> {
-  let config: AxiosRequestConfig = {
-    headers: { Authorization: `Bearer ${API_TOKEN}` },
-  };
-
   let formData = new FormData();
   formData.append("file", file);
   return await axios
-    .post<ApiResponse<ParseResponse>>(`${API_ENDPOINT}/fetch/parse`, formData, config)
+    .post<ApiResponse<ParseResponse>>(
+      `${API_ENDPOINT}/fetch/parse`,
+      formData,
+      API_CONFIG,
+    )
     .then((resp) => {
       let { parsed } = resp.data.result;
       return {
@@ -81,8 +84,8 @@ export async function executeSummarizeTask(
   cancelListener: Observable<boolean>,
 ): Promise<NodeResult | ApiError> {
   let config: AxiosRequestConfig = {
-    headers: { Authorization: `Bearer ${API_TOKEN}` },
     signal: controller.signal,
+    ...API_CONFIG,
   };
 
   let text = "";
@@ -164,14 +167,10 @@ export function waitForTaskCompletion(
 function getTaskResult(
   task_uuid: string,
 ): Promise<ApiResponse<TaskResponse<SummaryResponse>>> {
-  let config: AxiosRequestConfig = {
-    headers: { Authorization: `Bearer ${API_TOKEN}` },
-  };
-
   return axios
     .get<ApiResponse<TaskResponse<any>>>(
       `${API_ENDPOINT}/tasks/${task_uuid}`,
-      config,
+      API_CONFIG,
     )
     .then((resp) => resp.data);
 }
