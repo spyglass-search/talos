@@ -20,18 +20,18 @@ import {
   ExtractNodeDef,
   SummaryDataDef,
   TemplateNodeDef,
-} from "./types/node";
+} from "@talos/components";
 import {
   NodeComponent,
   ShowNodeResult,
   WorkflowResult,
-} from "./components/nodes";
+} from "@talos/components";
 import { useState } from "react";
-import { loadWorkflow, saveWorkflow } from "./workflows/utils";
-import { cancelExecution, executeNode } from "./workflows/executor";
-import { ModalType } from "./types";
-import AddNodeModal from "./components/modal/AddNodeModal";
-import { track } from "./utils/metrics";
+import { loadWorkflow, saveWorkflow } from "@talos/components";
+import { cancelExecution, executeNode } from "@talos/components";
+import { ModalType } from "@talos/components";
+import { AddNodeModal } from "@talos/components";
+import { track } from "@talos/components";
 
 function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
   return (

@@ -1,5 +1,7 @@
 import { MutableRefObject } from "react";
 
+export { default as AddNodeModal } from "./AddNodeModal";
+
 export interface ModalProps {
   children: React.ReactNode;
   modalRef: MutableRefObject<null>;

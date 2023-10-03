@@ -16,5 +16,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "packages/components/components/modal/AddNodeModal.tsx", "packages/components/components", "packages/components/components/nodes/extract.tsx", "packages/components/types/index.tsx", "packages/components/utils/metrics.tsx", "packages/components/workflows/executor.tsx"]
+  "include": ["src"]
 }
