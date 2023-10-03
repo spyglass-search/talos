@@ -314,17 +314,15 @@ export function ShowNodeResult({
     return <ArrowDownIcon className="mt-4 mx-auto w-4" />;
   } else if (showResult && result) {
     return (
-      <div className="w-full mt-8 mb-4">
-        <WorkflowResult
-          result={result.nodeResult}
-          hideButton={true}
-          onHide={() => setShowResult(false)}
-        />
-      </div>
+      <WorkflowResult
+        result={result.nodeResult}
+        hideButton={true}
+        onHide={() => setShowResult(false)}
+      />
     );
   } else {
     return (
-      <div className="mt-4 mx-auto flex flex-col w-full items-center">
+      <div className="mx-auto flex flex-col w-fit items-center">
         {result ? (
           <div className="btn" onClick={() => setShowResult(true)}>
             View Results

@@ -312,7 +312,7 @@ function App() {
           />
         </div>
         {endResult ? (
-          <div className="flex flex-col gap-4 items-center">
+          <div className="flex flex-col gap-4 items-center mt-4">
             <ArrowDownIcon className="w-4 mx-auto" />
             <WorkflowResult
               result={endResult}
