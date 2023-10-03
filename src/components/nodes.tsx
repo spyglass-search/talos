@@ -148,7 +148,9 @@ export function WorkflowResult({
   return (
     <div className={`${BASE_CARD_STYLE} ${className}`}>
       <div className="card-body p-2 max-h-[512px] overflow-y-auto">
-        <pre className="text-xs p-4 rounded-lg overflow-auto">{content}</pre>
+        <pre className="text-xs p-4 rounded-lg overflow-auto">{
+          content ? content : (<span className="italic">Result is empty</span>)
+        }</pre>
         {hideButton && (
           <button
             className="btn btn-block btn-neutral btn-sm"
@@ -297,7 +299,7 @@ export function ShowNodeResult({
     return <ArrowDownIcon className="mt-4 mx-auto w-4" />;
   } else if (showResult && result) {
     return (
-      <div className="mt-8 mb-4">
+      <div className="w-full mt-8 mb-4">
         <WorkflowResult
           result={result.nodeResult}
           hideButton={true}

@@ -298,8 +298,9 @@ function App() {
         <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
-              <div key={`node-${idx}`}>
+              <>
                 <NodeComponent
+                  key={`node-${idx}`}
                   {...node}
                   isRunning={idx === currentNodeRunning}
                   lastRun={nodeResults.get(node.uuid)}
@@ -311,7 +312,7 @@ function App() {
                 ) : (
                   <ArrowDownIcon className="mt-4 w-4 mx-auto" />
                 )}
-              </div>
+              </>
             );
           })}
           <AddAction
@@ -322,7 +323,7 @@ function App() {
           />
         </div>
         {endResult ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 items-center">
             <ArrowDownIcon className="w-4 mx-auto" />
             <WorkflowResult
               result={endResult}
