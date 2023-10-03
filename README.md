@@ -46,7 +46,7 @@ To start running `talos` locally, install the dependencies
 > npm run start
 ```
 
-The UI will be available at [https://localhost:3000/playground](https://localhost:3000/playground).
+The UI will be available at [http://localhost:3000/playground](http://localhost:3000/playground).
 
 Now we need to start the backend.
 
