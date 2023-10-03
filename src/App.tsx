@@ -28,10 +28,10 @@ import {
 } from "./components/nodes";
 import { useState } from "react";
 import { loadWorkflow, saveWorkflow } from "./workflows/utils";
-import { cancelExecution, executeNode } from "./workflows/executor";
+import { cancelExecution } from "./workflows/executor";
 import { ModalType } from "./types";
 import AddNodeModal from "./components/modal/AddNodeModal";
-import { track } from "./utils/metrics";
+import { runWorkflow } from "./workflows";
 
 function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
   return (
@@ -52,7 +52,7 @@ function App() {
   );
   let [isRunning, setIsRunning] = useState<boolean>(false);
   let [isLoading, setIsLoading] = useState<boolean>(false);
-  let [currentNodeRunning, setCurrentNodeRunning] = useState<number | null>(
+  let [currentNodeRunning, setCurrentNodeRunning] = useState<string | null>(
     null,
   );
   let [endResult, setEndResult] = useState<NodeResult | null>(null);
@@ -88,45 +88,34 @@ function App() {
     }
   };
 
-  let runWorkflow = async () => {
-    if (process.env.NODE_ENV === "production") {
-      track("run workflow", {
-        numNodes: workflow.length,
-      });
-    }
-
+  let handleRunWorkflow = async () => {
     setIsRunning(true);
     setEndResult(null);
-    let lastResult: NodeResult | null = null;
-    for (var idx = 0; idx < workflow.length; idx++) {
-      setCurrentNodeRunning(idx);
-      let node = workflow[idx];
-      let startTimestamp = new Date();
 
-      console.debug(`executing node ${idx} w/ input =`, lastResult);
-      // Clear any existing results from a node before running it.
-      setNodeResults((nodeResults) => {
-        nodeResults.delete(node.uuid);
-        return new Map(nodeResults);
-      });
-      lastResult = await executeNode(lastResult, node);
-      console.debug("output = ", lastResult);
-      // Set the new node result
-      setNodeResults(
-        new Map(
-          nodeResults.set(node.uuid, {
-            startTimestamp,
-            endTimestamp: new Date(),
-            nodeResult: lastResult,
-          }),
-        ),
-      );
-
-      // Early exit if we run into an error.
-      if (lastResult.error) {
-        break;
+    let lastResult = await runWorkflow(
+      workflow,
+      nodeResults,
+      (uuid) => {
+        setCurrentNodeRunning(uuid);
+      },
+      (uuid) => {
+        setNodeResults((nodeResults) => {
+          nodeResults.delete(uuid);
+          return new Map(nodeResults);
+        });
+      },
+      (uuid, startTimestamp, nodeResult) => {
+        setNodeResults(
+          new Map(
+            nodeResults.set(uuid, {
+              startTimestamp,
+              endTimestamp: new Date(),
+              nodeResult,
+            }),
+          ),
+        );
       }
-    }
+    );
 
     setEndResult(lastResult);
     setIsRunning(false);
@@ -201,9 +190,9 @@ function App() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col gap-8 items-center md:py-8">
-      <div className="navbar md:w-fit mx-auto md:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
-        <div className="navbar-center flex flex-col md:flex-row gap-2 place-content-center items-center w-full">
+    <main className="flex w-screen min-h-screen flex-col gap-8 items-center md:py-8">
+      <div className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
+        <div className="navbar-center flex flex-col lg:flex-row gap-2 place-content-center items-center w-full">
           <img
             src={`${process.env.PUBLIC_URL}/logo@2x.png`}
             className="w-14 ml-6"
@@ -214,7 +203,7 @@ function App() {
             <button
               className="btn btn-primary"
               disabled={isRunning}
-              onClick={() => runWorkflow()}
+              onClick={() => handleRunWorkflow()}
             >
               <PlayIcon className="w-4" />
               Run Workflow
@@ -235,7 +224,7 @@ function App() {
               Cancel
             </button>
           </div>
-          <div className="divider md:divider-horizontal"></div>
+          <div className="divider lg:divider-horizontal"></div>
           <div className="flex flex-row gap-2">
             <button
               className="btn btn-accent"
@@ -294,14 +283,15 @@ function App() {
           </div>
         </div>
       </div>
-      <div className="md:my-32 px-8">
-        <div className="flex flex-col gap-4 z-0">
+      <div className="w-full lg:my-32 px-8">
+        <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
-              <div key={`node-${idx}`}>
+              <>
                 <NodeComponent
+                  key={`node-${idx}`}
                   {...node}
-                  isRunning={idx === currentNodeRunning}
+                  isRunning={node.uuid === currentNodeRunning}
                   lastRun={nodeResults.get(node.uuid)}
                   onDelete={() => deleteWorkflowNode(node.uuid)}
                   onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
@@ -311,7 +301,7 @@ function App() {
                 ) : (
                   <ArrowDownIcon className="mt-4 w-4 mx-auto" />
                 )}
-              </div>
+              </>
             );
           })}
           <AddAction
@@ -322,7 +312,7 @@ function App() {
           />
         </div>
         {endResult ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 items-center mt-4">
             <ArrowDownIcon className="w-4 mx-auto" />
             <WorkflowResult
               result={endResult}

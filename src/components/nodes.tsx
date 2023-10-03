@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DateTime } from "luxon";
 import {
   LastRunDetails,
@@ -25,6 +25,7 @@ import TemplateNode from "./nodes/template";
 import SummarizeNode from "./nodes/summarize";
 import { DataNode } from "./nodes/sources";
 import { EditableText } from "./editable";
+import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -86,13 +87,19 @@ export function NodeHeader({
 }
 
 function LastRunSummary({ lastRun }: { lastRun: LastRunDetails }) {
-  if (lastRun.nodeResult.status === "Ok") {
+  let scrollToRef = useRef(null);
+
+  if (lastRun.nodeResult.status.toLowerCase() === "ok") {
+    if (scrollToRef.current) {
+      (scrollToRef.current as HTMLElement).scrollIntoView();
+    }
+
     let duration = DateTime.fromJSDate(lastRun.endTimestamp).diff(
       DateTime.fromJSDate(lastRun.startTimestamp),
       "seconds",
     );
     return (
-      <div className="flex flex-row gap-2 text-xs w-full">
+      <div ref={scrollToRef} className="flex flex-row gap-2 text-xs w-full">
         <CheckBadgeIcon className="w-4 text-success" />
         <div className="text-neutral-500">{duration.seconds.toFixed(3)}s</div>
         <div className="text-neutral-500 ml-auto">
@@ -125,19 +132,31 @@ export function WorkflowResult({
   hideButton = false,
   onHide = () => {},
 }: WorkflowResultProps) {
+  let [isCopying, setIsCopying] = useState(false);
+
   // Pull out text based content to display by itself, otherwise
   // render data as a pretty printed JSON blob.
-  let content = null;
+  let content: string | null | undefined = null;
   if (result.data && "content" in result.data) {
     content = result.data["content"];
   } else {
     content = JSON.stringify(result.data, null, 2);
   }
 
+  let handleCopy = () => {
+    setIsCopying(true);
+    setTimeout(() => setIsCopying(false), 512);
+    if (content) {
+      navigator.clipboard.writeText(content);
+    }
+  };
+
   return (
     <div className={`${BASE_CARD_STYLE} ${className}`}>
-      <div className="card-body p-2">
-        <pre className="text-xs p-4 rounded-lg overflow-auto">{content}</pre>
+      <div className="card-body p-2 max-h-[512px] overflow-y-auto">
+        <pre className="text-xs p-4 rounded-lg overflow-auto">{
+          content ? content : (<span className="italic">Result is empty</span>)
+        }</pre>
         {hideButton && (
           <button
             className="btn btn-block btn-neutral btn-sm"
@@ -146,6 +165,20 @@ export function WorkflowResult({
             Hide
           </button>
         )}
+      </div>
+      <div className="card-actions p-2 place-content-end">
+        <button
+          className="btn disabled:btn-info"
+          disabled={isCopying}
+          onClick={() => handleCopy()}
+        >
+          {isCopying ? (
+            <span className="loading loading-spinner loading-sm"></span>
+          ) : (
+            <ClipboardDocumentListIcon className="w-6 h-6" />
+          )}
+          Copy
+        </button>
       </div>
     </div>
   );
@@ -161,6 +194,8 @@ export function NodeComponent({
   onUpdate = () => {},
   onDelete = () => {},
 }: BaseNodeProps) {
+  let scrollToRef = useRef(null);
+
   let [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   let [error, setError] = useState<string | null>(null);
 
@@ -171,6 +206,13 @@ export function NodeComponent({
       setError(null);
     }
   }, [lastRun]);
+
+  useEffect(() => {
+    if (isRunning && scrollToRef.current) {
+      (scrollToRef.current as HTMLElement).scrollIntoView();
+    }
+  }, [isRunning]);
+
   let renderNodeBody = () => {
     if (nodeType === NodeType.Extract) {
       return (
@@ -198,7 +240,7 @@ export function NodeComponent({
 
   let borderColor = isRunning ? "border-info" : "border-neutral";
   if (!isRunning && lastRun) {
-    if (lastRun.nodeResult.status === "Ok") {
+    if (lastRun.nodeResult.status.toLowerCase() === "ok") {
       borderColor = "border-success";
     } else {
       borderColor = "border-error";
@@ -206,7 +248,7 @@ export function NodeComponent({
   }
 
   return (
-    <div className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}>
+    <div ref={scrollToRef} className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}>
       <figure className="bg-base-100 p-2 border-inherit">
         <div className="flex flex-row w-full justify-between items-center">
           <div className="text-neutral-600 px-2 text-xs">id: {uuid}</div>
@@ -272,17 +314,15 @@ export function ShowNodeResult({
     return <ArrowDownIcon className="mt-4 mx-auto w-4" />;
   } else if (showResult && result) {
     return (
-      <div className="mt-8 mb-4">
-        <WorkflowResult
-          result={result.nodeResult}
-          hideButton={true}
-          onHide={() => setShowResult(false)}
-        />
-      </div>
+      <WorkflowResult
+        result={result.nodeResult}
+        hideButton={true}
+        onHide={() => setShowResult(false)}
+      />
     );
   } else {
     return (
-      <div className="mt-4 mx-auto flex flex-col w-fit items-center">
+      <div className="mx-auto flex flex-col w-fit items-center">
         {result ? (
           <div className="btn" onClick={() => setShowResult(true)}>
             View Results

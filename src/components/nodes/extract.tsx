@@ -48,6 +48,7 @@ export default function ExtractNode({
     if (actionData.schema) {
       try {
         ajv.compile(actionData.schema);
+        setSchemaError(null);
       } catch (err) {
         let error = err as Error;
         setSchemaError(error.toString());

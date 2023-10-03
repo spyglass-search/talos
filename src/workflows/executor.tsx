@@ -1,6 +1,10 @@
 import Handlebars from "handlebars";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
-import { executeSummarizeTask } from "./task-executor";
+import {
+  executeFetchUrl,
+  executeParseFile,
+  executeSummarizeTask,
+} from "./task-executor";
 import { Subject } from "rxjs";
 import {
   DataNodeDef,
@@ -44,30 +48,21 @@ export function cancelExecution() {
 
 async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   let data = node.data as DataNodeDef;
-  if (data.type) {
-    if (data.type === DataNodeType.Url && data.url) {
-      return await axios
-        .get(data.url)
-        .then((resp) => {
-          let response = resp.data;
-          return {
-            status: "Ok",
-            data: {
-              content: response as string,
-            } as DataNodeDef,
-          } as NodeResult;
-        })
-        .catch((err) => {
-          return {
-            status: "error",
-            error: err.toString(),
-          };
-        });
-    }
+  if (data.type === DataNodeType.File && data.file) {
+    return await executeParseFile(data.file);
+  } else if (data.type === DataNodeType.Url && data.url) {
+    return await executeFetchUrl(data.url);
+  } else if (data.type === DataNodeType.Text) {
+    return {
+      status: "ok",
+      data: {
+        content: data.content ?? "",
+      } as DataNodeDef,
+    };
   }
 
   return {
-    status: "Ok",
+    status: "ok",
     data: node.data,
   };
 }
@@ -139,19 +134,25 @@ async function _handleSummarizeNode(node: NodeDef, input: NodeResult | null) {
 }
 
 export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
-  let context: HandlebarsTemplates = {};
+  let context: any = {};
   let templateData = node.data as TemplateNodeDef;
   if (input?.data) {
     Object.keys(templateData.varMapping).forEach((key) => {
       let value = templateData.varMapping[key as keyof object];
       if (input.data && input.data[value as keyof object]) {
-        context[key] = input.data[value as keyof object];
+        let data: any = input.data[value as keyof object];
+        // Use SafeString here so that html is correctly embedded.
+        if (typeof data === "string") {
+          context[key] = new Handlebars.SafeString(data);
+        } else {
+          context[key] = data;
+        }
       }
     });
 
     let template = Handlebars.compile(templateData.template);
     return {
-      status: "Ok",
+      status: "ok",
       data: {
         content: template(context),
       } as DataNodeDef,

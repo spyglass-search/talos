@@ -23,3 +23,11 @@ export interface SummaryResponse {
   paragraph: string;
   bullets: string;
 }
+
+export interface ParseResponse {
+  parsed: string;
+}
+
+export interface FetchResponse {
+  content: string;
+}
