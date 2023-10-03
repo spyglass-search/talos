@@ -154,9 +154,9 @@ export function WorkflowResult({
   return (
     <div className={`${BASE_CARD_STYLE} ${className}`}>
       <div className="card-body p-2 max-h-[512px] overflow-y-auto">
-        <pre className="text-xs p-4 rounded-lg overflow-auto">{
-          content ? content : (<span className="italic">Result is empty</span>)
-        }</pre>
+        <pre className="text-xs p-4 rounded-lg overflow-auto">
+          {content ? content : <span className="italic">Result is empty</span>}
+        </pre>
         {hideButton && (
           <button
             className="btn btn-block btn-neutral btn-sm"
@@ -248,7 +248,10 @@ export function NodeComponent({
   }
 
   return (
-    <div ref={scrollToRef} className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}>
+    <div
+      ref={scrollToRef}
+      className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}
+    >
       <figure className="bg-base-100 p-2 border-inherit">
         <div className="flex flex-row w-full justify-between items-center">
           <div className="text-neutral-600 px-2 text-xs">id: {uuid}</div>

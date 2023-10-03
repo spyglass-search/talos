@@ -7,7 +7,11 @@ export async function runWorkflow(
   lastRun: Map<string, LastRunDetails>,
   setCurrentNode: (uuid: string) => void,
   clearNode: (uuid: string) => void,
-  updateNode: (uuid: string, startTimestamp: Date, nodeResult: NodeResult) => void
+  updateNode: (
+    uuid: string,
+    startTimestamp: Date,
+    nodeResult: NodeResult,
+  ) => void,
 ): Promise<NodeResult | null> {
   if (process.env.NODE_ENV === "production") {
     track("run workflow", {
@@ -20,8 +24,8 @@ export async function runWorkflow(
     let node = workflow[idx];
 
     setCurrentNode(node.uuid);
-    let lastRunResult = lastRun.get(node.uuid)
-    if (lastRunResult && idx !== (workflow.length - 1)) {
+    let lastRunResult = lastRun.get(node.uuid);
+    if (lastRunResult && idx !== workflow.length - 1) {
       lastResult = lastRunResult.nodeResult;
       continue;
     }
