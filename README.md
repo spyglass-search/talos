@@ -10,6 +10,8 @@ Think [Zapier](https://en.wikipedia.org/wiki/Zapier) but with language model mag
 
 ### Extract data from a web page.
 
+[View workflow](./docs/examples/webpage-extract.png)
+
 1. Fetch this wikipedia page.
 2. Extract who the page is about, give a summary, and extract any topics discussed.
 3. Put into a template.
