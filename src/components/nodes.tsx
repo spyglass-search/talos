@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DateTime } from "luxon";
 import {
   LastRunDetails,
@@ -87,13 +87,19 @@ export function NodeHeader({
 }
 
 function LastRunSummary({ lastRun }: { lastRun: LastRunDetails }) {
+  let scrollToRef = useRef(null);
+
   if (lastRun.nodeResult.status.toLowerCase() === "ok") {
+    if (scrollToRef.current) {
+      (scrollToRef.current as HTMLElement).scrollIntoView();
+    }
+
     let duration = DateTime.fromJSDate(lastRun.endTimestamp).diff(
       DateTime.fromJSDate(lastRun.startTimestamp),
       "seconds",
     );
     return (
-      <div className="flex flex-row gap-2 text-xs w-full">
+      <div ref={scrollToRef} className="flex flex-row gap-2 text-xs w-full">
         <CheckBadgeIcon className="w-4 text-success" />
         <div className="text-neutral-500">{duration.seconds.toFixed(3)}s</div>
         <div className="text-neutral-500 ml-auto">
@@ -188,6 +194,8 @@ export function NodeComponent({
   onUpdate = () => {},
   onDelete = () => {},
 }: BaseNodeProps) {
+  let scrollToRef = useRef(null);
+
   let [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   let [error, setError] = useState<string | null>(null);
 
@@ -198,6 +206,13 @@ export function NodeComponent({
       setError(null);
     }
   }, [lastRun]);
+
+  useEffect(() => {
+    if (isRunning && scrollToRef.current) {
+      (scrollToRef.current as HTMLElement).scrollIntoView();
+    }
+  }, [isRunning]);
+
   let renderNodeBody = () => {
     if (nodeType === NodeType.Extract) {
       return (
@@ -233,7 +248,7 @@ export function NodeComponent({
   }
 
   return (
-    <div className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}>
+    <div ref={scrollToRef} className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}>
       <figure className="bg-base-100 p-2 border-inherit">
         <div className="flex flex-row w-full justify-between items-center">
           <div className="text-neutral-600 px-2 text-xs">id: {uuid}</div>
