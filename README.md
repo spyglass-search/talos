@@ -11,8 +11,7 @@ Think [Zapier](https://en.wikipedia.org/wiki/Zapier) but with language model mag
       <img src="http://img.youtube.com/vi/wDnmEqclsBY/0.jpg">
    </a>
 </p>
-
-Note: the summarization step is sped up (~1 minute).
+Click to play video. Note: the summarization step is sped up (~1 minute).
 
 ## Example Workflows
 
