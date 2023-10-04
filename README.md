@@ -6,9 +6,20 @@ types of content and push it to other APIs/databases/etc.
 
 Think [Zapier](https://en.wikipedia.org/wiki/Zapier) but with language model magic 🪄.
 
+<p align="center">
+   <iframe
+      width="560"
+      height="315"
+      src="https://www.youtube.com/embed/wDnmEqclsBY?si=UAYENFXorZ1w7VIx"
+      title="YouTube video player" frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>
+   </iframe>
+</p>
+Note: the summarization step is sped up (~1 minute).
+
 ## Example Workflows
 
-### Extract data from a web page.
+### Read this Wikipedia page & extract some data from it.
 
 [View workflow](./docs/examples/webpage-extract.png)
 
@@ -16,7 +27,7 @@ Think [Zapier](https://en.wikipedia.org/wiki/Zapier) but with language model mag
 2. Extract who the page is about, give a summary, and extract any topics discussed.
 3. Put into a template.
 
-### Read a Yelp review and tell me about it.
+### Read a Yelp review & tell me about it.
 
 1. Read this Yelp review
 2. Extract the sentiment and give me a list of complaints and/or praises
