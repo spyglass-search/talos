@@ -7,14 +7,11 @@ types of content and push it to other APIs/databases/etc.
 Think [Zapier](https://en.wikipedia.org/wiki/Zapier) but with language model magic 🪄.
 
 <p align="center">
-   <iframe
-      width="560"
-      height="315"
-      src="https://www.youtube.com/embed/wDnmEqclsBY?si=UAYENFXorZ1w7VIx"
-      title="YouTube video player" frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>
-   </iframe>
+   <a href="http://www.youtube.com/watch?v=wDnmEqclsBY">
+      <img src="http://img.youtube.com/vi/wDnmEqclsBY/0.jpg">
+   </a>
 </p>
+
 Note: the summarization step is sped up (~1 minute).
 
 ## Example Workflows
