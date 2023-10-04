@@ -41,6 +41,7 @@ const getEsmConfig = (format) => ({
   output: {
     file: format === 'js' ? pkg.module : pkg.module.replace('.js', '.mjs'),
     format: 'esm',
+    sourcemap: true
   },
   onwarn,
   plugins: [
@@ -66,6 +67,7 @@ export const umdConfig = defineConfig({
   output: {
     file: pkg.main,
     format: 'umd',
+    sourcemap: true,
     exports: 'named',
     name: pkg.rollup?.name || 'Talos',
     globals,
@@ -83,4 +85,4 @@ export const umdConfig = defineConfig({
   ],
 });
 
-export default isProd ? [esmJsConfig, esmMjsConfig] : [esmMjsConfig];
+export default isProd ? [esmJsConfig, esmMjsConfig, umdConfig] : [esmMjsConfig];
