@@ -8,7 +8,7 @@ Think [Zapier](https://en.wikipedia.org/wiki/Zapier) but with language model mag
 
 <p align="center">
    <a href="http://www.youtube.com/watch?v=wDnmEqclsBY">
-      <img src="http://img.youtube.com/vi/wDnmEqclsBY/0.jpg">
+      <img src="./docs/example.gif" width="640">
    </a>
 </p>
 Click to play video. Note: the summarization step is sped up (~1 minute).
