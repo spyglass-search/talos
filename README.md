@@ -57,8 +57,11 @@ Now we need to start the backend.
 
 ### Using w/ memex
 
-[memex](https://github.com/spyglass-search/memex) is a self-hosted LLM backend & memory store
-that exposes a bunch of basic functionality as a RESTful API.
+[memex](https://github.com/spyglass-search/memex) is a self-hosted LLM backend &
+memory store that exposes basic LLM functionality as a RESTful API.
+
+You will need to either download a local LLM model to use or add your OpenAI to
+the `.env.template` file to get started.
 
 ```bash
 > git clone https://github.com/spyglass-search/memex
