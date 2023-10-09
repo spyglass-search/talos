@@ -25,7 +25,8 @@ export async function runWorkflow(
 
     setCurrentNode(node.uuid);
     let lastRunResult = lastRun.get(node.uuid);
-    if (lastRunResult && idx !== workflow.length - 1) {
+    // skip over nodes we've successfully run already.
+    if (lastRunResult && idx !== workflow.length - 1 && !lastRunResult.nodeResult.error) {
       lastResult = lastRunResult.nodeResult;
       continue;
     }
