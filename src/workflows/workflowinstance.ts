@@ -1,5 +1,6 @@
 import {
   LastRunDetails,
+  MultiNodeDataResult,
   NodeDef,
   NodeResult,
   NodeType,
@@ -41,6 +42,38 @@ export class WorkflowContext implements WorkflowRunContext {
       startTimestamp,
       endTimestamp: new Date(),
       nodeResult,
+    };
+
+    this.nodeResults.set(uuid, newResult);
+    this.onResultChange(new Map(this.nodeResults));
+  }
+
+  public updateLoopNode(
+    uuid: string,
+    startTimestamp: Date,
+    nodeResult: NodeResult,
+  ): void {
+    let newNodeResult: NodeResult;
+    let currentResult = this.nodeResults.get(uuid);
+    if (currentResult) {
+      let currentData = currentResult.nodeResult.data as MultiNodeDataResult;
+      newNodeResult = {
+        status: nodeResult.status,
+        error: nodeResult.error,
+        data: [...currentData, nodeResult],
+      };
+    } else {
+      newNodeResult = {
+        status: nodeResult.status,
+        error: nodeResult.error,
+        data: [nodeResult],
+      };
+    }
+
+    const newResult = {
+      startTimestamp,
+      endTimestamp: new Date(),
+      nodeResult: newNodeResult,
     };
 
     this.nodeResults.set(uuid, newResult);
@@ -111,12 +144,19 @@ export class WorkflowContext implements WorkflowRunContext {
     let startTimestamp = new Date();
     console.debug(`executing node ${node.uuid} w/ input =`, lastResult);
     // Clear any existing results from a node before running it.
-    this.clearNode(node.uuid);
+    if (!this.isInLoop(node.uuid)) {
+      this.clearNode(node.uuid);
+    }
 
     lastResult = await executeNode(lastResult, node, this);
     console.debug("output = ", lastResult);
     // Set the new node result
-    this.updateNode(node.uuid, startTimestamp, lastResult);
+    if (this.isInLoop(node.uuid)) {
+      this.updateLoopNode(node.uuid, startTimestamp, lastResult);
+    } else {
+      this.updateNode(node.uuid, startTimestamp, lastResult);
+    }
+
     return lastResult;
   }
 }

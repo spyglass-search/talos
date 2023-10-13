@@ -206,10 +206,7 @@ async function _executeLoop(
   for (let i = 0; i < length; i++) {
     let subNode = (node.data as ParentDataDef).actions[i];
     lastResult = await executeContext.runNode(subNode, lastResult);
-    executeContext.updateNode(node.uuid, new Date(), lastResult);
-    if (lastResult.data) {
-      multiResult.push(lastResult.data);
-    }
+    multiResult.push(lastResult);
   }
 
   loopResult.loopResults.push(multiResult);
@@ -218,7 +215,6 @@ async function _executeLoop(
 export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
   let context: any = {};
   let templateData = node.data as TemplateNodeDef;
-  console.error("input data ", input);
   if (input?.data) {
     Object.keys(templateData.varMapping).forEach((key) => {
       let value = templateData.varMapping[key as keyof object];
@@ -231,8 +227,6 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
         } else {
           context[key] = data;
         }
-
-        console.error(" context ", context);
       }
     });
 

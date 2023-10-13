@@ -48,7 +48,7 @@ export type NodeDataResultTypes =
   | SummaryDataDef
   | any[];
 
-export type MultiNodeDataResult = NodeDataResultTypes[];
+export type MultiNodeDataResult = NodeResult[];
 
 export interface LoopNodeDataResult {
   loopResults: MultiNodeDataResult[];

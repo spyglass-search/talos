@@ -320,13 +320,10 @@ function App() {
                                 updateWorkflow(childNode.uuid, updates)
                               }
                             />
-                            {idx < workflow.length - 1 ? (
-                              <ShowNodeResult
-                                result={nodeResults.get(childNode.uuid)}
-                              />
-                            ) : (
-                              <ArrowDownIcon className="mt-4 w-4 mx-auto" />
-                            )}
+
+                            <ShowNodeResult
+                              result={nodeResults.get(childNode.uuid)}
+                            />
                           </div>
                         );
                       },

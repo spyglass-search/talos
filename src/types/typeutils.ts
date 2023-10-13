@@ -41,5 +41,7 @@ export function getValue(data: NodeDataResultTypes): any {
     return data.extractedData;
   } else if (isSummaryResult(data)) {
     return data;
+  } else if (Array.isArray(data)) {
+    return data;
   }
 }
