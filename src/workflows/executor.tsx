@@ -171,6 +171,7 @@ async function _handleLoopNode(
 
     return {
       status: NodeResultStatus.Ok,
+      data: loopResult,
     };
   }
 
