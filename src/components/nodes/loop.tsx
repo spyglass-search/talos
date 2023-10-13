@@ -38,6 +38,7 @@ export default function Loop({ data, onUpdateData }: NodeBodyProps) {
         modalRef={addNodeModal}
         lastNode={null}
         onClick={onAddNode}
+        inLoop={true}
       />
     </>
   );

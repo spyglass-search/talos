@@ -6,6 +6,7 @@ import { NodeDef, NodeType } from "../../types/node";
 interface AddNodeModalProps {
   lastNode: NodeDef | null;
   modalRef: MutableRefObject<null>;
+  inLoop: boolean;
   onClick?: (nodeType: NodeType) => void;
 }
 
@@ -29,6 +30,7 @@ function nodeTypeLabel(nType: NodeType): string {
 export default function AddNodeModal({
   lastNode,
   modalRef,
+  inLoop,
   onClick = (type: NodeType) => {},
 }: AddNodeModalProps) {
   let allowedList = [];
@@ -63,21 +65,25 @@ export default function AddNodeModal({
             );
           })}
         </div>
-        <h2 className="text-xl font-bold mb-4 mt-4">Flow Control</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {flowControl.map((nodeType) => {
-            return (
-              <button
-                key={nodeType}
-                className="btn btn-neutral flex flex-row items-center gap-2"
-                onClick={() => onClick(nodeType)}
-              >
-                <NodeIcon nodeType={nodeType} className="w-6" />
-                <div>{nodeTypeLabel(nodeType)}</div>
-              </button>
-            );
-          })}
-        </div>
+        {!inLoop ? (
+          <>
+            <h2 className="text-xl font-bold mb-4 mt-4">Flow Control</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {flowControl.map((nodeType) => {
+                return (
+                  <button
+                    key={nodeType}
+                    className="btn btn-neutral flex flex-row items-center gap-2"
+                    onClick={() => onClick(nodeType)}
+                  >
+                    <NodeIcon nodeType={nodeType} className="w-6" />
+                    <div>{nodeTypeLabel(nodeType)}</div>
+                  </button>
+                );
+              })}
+            </div>{" "}
+          </>
+        ) : null}
       </div>
     </Modal>
   );

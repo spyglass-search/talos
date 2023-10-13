@@ -356,6 +356,7 @@ function App() {
         modalRef={addNodeModal}
         lastNode={workflow.length > 0 ? workflow[workflow.length] : null}
         onClick={onAddNode}
+        inLoop={false}
       />
     </main>
   );
