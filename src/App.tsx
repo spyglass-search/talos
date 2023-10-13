@@ -38,7 +38,7 @@ function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
     <div className="mx-auto">
       <button className="btn" onClick={onAdd}>
         <PlusCircleIcon className="w-8 h-auto" />
-        Add Action
+        Add Step
       </button>
     </div>
   );
@@ -180,7 +180,7 @@ function App() {
 
     let newNode: NodeDef = {
       uuid: crypto.randomUUID(),
-      label: `${nodeType} node`,
+      label: `Untitled node`,
       nodeType: nodeType,
       data: nodeData,
     };

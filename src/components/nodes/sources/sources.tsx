@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { DataNodeDef, DataNodeType } from "../../types/node";
-import { NodeBodyProps } from "../nodes";
+import { DataNodeDef, DataNodeType } from "../../../types/node";
+import { NodeBodyProps } from "../../nodes";
 import {
   ArrowUpCircleIcon,
   ArrowUpOnSquareIcon,
   GlobeAltIcon,
 } from "@heroicons/react/20/solid";
 import { DocumentTextIcon } from "@heroicons/react/24/outline";
-import { EditableTextarea, EditableText } from "../editable";
+import { EditableTextarea, EditableText } from "../../editable";
 
 export function DataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
   let nodeData = data as DataNodeDef;

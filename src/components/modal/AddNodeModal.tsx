@@ -54,7 +54,6 @@ export default function AddNodeModal({
 
   return (
     <Modal modalRef={modalRef}>
-      <h2 className="text-xl font-bold mb-4">Add Action</h2>
       <div className="tabs tabs-boxed">
         {nodeList.map((nodeType, idx) => (
           <a

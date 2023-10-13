@@ -26,9 +26,11 @@ import {
 import ExtractNode from "./nodes/extract";
 import TemplateNode from "./nodes/template";
 import SummarizeNode from "./nodes/summarize";
-import { DataNode } from "./nodes/sources";
+import { DataNode } from "./nodes/sources/sources";
+import { StaticDataNode } from "./nodes/sources/static";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
+import { FetchedDataNode } from "./nodes/sources/fetch";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -227,7 +229,17 @@ export function NodeComponent({
       return (
         <ExtractNode data={data} onUpdateData={(data) => onUpdate({ data })} />
       );
-    } else if (nodeType === NodeType.DataStatic || nodeType === NodeType.DataConnection || nodeType === NodeType.DataFetched) {
+    } else if (nodeType === NodeType.DataStatic) {
+      // todo: handle other data node types
+      return (
+        <StaticDataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
+      );
+    } else if (nodeType === NodeType.DataFetched) {
+      // todo: handle other data node types
+      return (
+        <FetchedDataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
+      );
+    } else if (nodeType === NodeType.DataConnection) {
       // todo: handle other data node types
       return (
         <DataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
