@@ -9,6 +9,7 @@ import {
 } from "../types/node";
 import {
   ArrowDownIcon,
+  ArrowPathIcon,
   BoltIcon,
   BookOpenIcon,
   CheckBadgeIcon,
@@ -26,6 +27,7 @@ import SummarizeNode from "./nodes/summarize";
 import { DataNode } from "./nodes/sources";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
+import Loop from "./nodes/loop";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -66,6 +68,8 @@ export function NodeIcon({ nodeType, className }: NodeIconProps) {
     icon = <CodeBracketIcon className={className} />;
   } else if (nodeType === NodeType.Summarize) {
     icon = <BookOpenIcon className={className} />;
+  } else if (nodeType === NodeType.Loop) {
+    icon = <ArrowPathIcon className={className} />;
   }
   return icon;
 }
@@ -234,6 +238,8 @@ export function NodeComponent({
           onUpdateData={(data) => onUpdate({ data })}
         />
       );
+    } else if (nodeType === NodeType.Loop) {
+      return <Loop data={data} onUpdateData={(data) => onUpdate({ data })} />;
     }
     return null;
   };

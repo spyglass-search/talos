@@ -5,18 +5,23 @@ import {
   executeParseFile,
   executeSummarizeTask,
 } from "./task-executor";
-import { Subject } from "rxjs";
+import { Subject, last } from "rxjs";
 import {
   DataNodeDef,
   DataNodeType,
   ExtractNodeDef,
+  LoopNodeDataResult,
+  MultiNodeDataResult,
   NodeDef,
   NodeResult,
+  NodeResultStatus,
   NodeType,
+  ParentDataDef,
   RenameInput,
   StringToListConversion,
   TemplateNodeDef,
 } from "../types/node";
+import { WorkflowContext } from "./workflowinstance";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 
@@ -54,7 +59,7 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
     return await executeFetchUrl(data.url);
   } else if (data.type === DataNodeType.Text) {
     return {
-      status: "ok",
+      status: NodeResultStatus.Ok,
       data: {
         content: data.content ?? "",
       } as DataNodeDef,
@@ -62,7 +67,7 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   }
 
   return {
-    status: "ok",
+    status: NodeResultStatus.Ok,
     data: node.data,
   };
 }
@@ -110,13 +115,13 @@ async function _handleExtractNode(
     })
     .catch((err: AxiosError) => {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: err.message,
       } as NodeResult;
     })
     .catch((err) => {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: err.toString(),
       } as NodeResult;
     });
@@ -133,6 +138,58 @@ async function _handleSummarizeNode(node: NodeDef, input: NodeResult | null) {
   return response;
 }
 
+async function _handleLoopNode(
+  node: NodeDef,
+  input: NodeResult | null,
+  executeContext: WorkflowContext,
+): Promise<NodeResult> {
+  if (input) {
+    const loopResult = {
+      loopResults: [],
+    } as LoopNodeDataResult;
+
+    if (typeof input.data === "object") {
+      for (const [key, value] of Object.entries(input.data)) {
+        let data: { [key: string]: any } = {};
+        data[key] = value;
+        let inputData = {
+          status: NodeResultStatus.Ok,
+          data: data,
+        };
+
+        await _executeLoop(node, inputData, executeContext, loopResult);
+      }
+    }
+
+    return {
+      status: NodeResultStatus.Ok,
+    };
+  }
+
+  return {
+    status: NodeResultStatus.Error,
+    error: "Invalid template node input",
+  };
+}
+
+async function _executeLoop(
+  node: NodeDef,
+  lastResult: NodeResult | null,
+  executeContext: WorkflowContext,
+  loopResult: LoopNodeDataResult,
+) {
+  let length = (node.data as ParentDataDef).actions.length;
+  const multiResult = [] as MultiNodeDataResult;
+  for (let i = 0; i < length; i++) {
+    let subNode = (node.data as ParentDataDef).actions[i];
+    lastResult = await executeContext.runNode(subNode, lastResult);
+    executeContext.updateNode(node.uuid, new Date(), lastResult);
+    multiResult.push(lastResult);
+  }
+
+  loopResult.loopResults.push(multiResult);
+}
+
 export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
   let context: any = {};
   let templateData = node.data as TemplateNodeDef;
@@ -141,6 +198,7 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
       let value = templateData.varMapping[key as keyof object];
       if (input.data && input.data[value as keyof object]) {
         let data: any = input.data[value as keyof object];
+
         // Use SafeString here so that html is correctly embedded.
         if (typeof data === "string") {
           context[key] = new Handlebars.SafeString(data);
@@ -152,7 +210,7 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
 
     let template = Handlebars.compile(templateData.template);
     return {
-      status: "ok",
+      status: NodeResultStatus.Ok,
       data: {
         content: template(context),
       } as DataNodeDef,
@@ -160,7 +218,7 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
   }
 
   return {
-    status: "error",
+    status: NodeResultStatus.Error,
     error: "Invalid template node input",
   };
 }
@@ -168,6 +226,7 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
 export async function executeNode(
   input: NodeResult | null,
   node: NodeDef,
+  executeContext: WorkflowContext,
 ): Promise<NodeResult> {
   let updatedInput = input;
   if (node.mapping) {
@@ -183,10 +242,12 @@ export async function executeNode(
     return _handleSummarizeNode(node, updatedInput);
   } else if (node.nodeType === NodeType.Template) {
     return _handleTemplateNode(node, input);
+  } else if (node.nodeType === NodeType.Loop) {
+    return _handleLoopNode(node, input, executeContext);
   }
 
   return {
-    status: "error",
+    status: NodeResultStatus.Error,
     error: "Invalid node type",
   };
 }

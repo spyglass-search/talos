@@ -3,6 +3,7 @@ export enum NodeType {
   Data = "Data",
   Template = "Template",
   Summarize = "Summarize",
+  Loop = "Loop",
 }
 
 export interface ExtractNodeDef {
@@ -27,11 +28,29 @@ export interface SummaryDataDef {
   bulletSummary: string;
 }
 
+export interface ParentDataDef {
+  actions: NodeDef[];
+}
+
 export type NodeDataTypes =
   | ExtractNodeDef
   | DataNodeDef
   | TemplateNodeDef
-  | SummaryDataDef;
+  | SummaryDataDef
+  | ParentDataDef
+  | ObjectResult;
+
+export type NodeDataResultTypes =
+  | ObjectResult
+  | LoopNodeDataResult
+  | MultiNodeDataResult
+  | any[];
+
+export type MultiNodeDataResult = NodeDataResultTypes[];
+
+export interface LoopNodeDataResult {
+  loopResults: MultiNodeDataResult[];
+}
 
 export enum DataNodeType {
   File = "File",
@@ -39,11 +58,16 @@ export enum DataNodeType {
   Url = "Url",
 }
 
+export interface ObjectResult {
+  [key: string]: any;
+}
+
 export interface NodeDef {
   uuid: string;
   label: string;
   nodeType: NodeType;
   data: NodeDataTypes;
+  parentNode: boolean;
   mapping?: NodeInputMapping[];
 }
 
@@ -77,8 +101,13 @@ export interface LastRunDetails {
   nodeResult: NodeResult;
 }
 
+export enum NodeResultStatus {
+  Ok = "ok",
+  Error = "error",
+}
+
 export interface NodeResult {
-  status: string;
-  data?: NodeDataTypes;
+  status: NodeResultStatus;
+  data?: NodeDataResultTypes;
   error?: string;
 }

@@ -7,7 +7,12 @@ import {
   SummaryResponse,
   TaskResponse,
 } from "../types/spyglassApi";
-import { DataNodeDef, NodeResult, SummaryDataDef } from "../types/node";
+import {
+  DataNodeDef,
+  NodeResult,
+  NodeResultStatus,
+  SummaryDataDef,
+} from "../types/node";
 import {
   interval,
   mergeMap,
@@ -26,9 +31,7 @@ const API_CONFIG: AxiosRequestConfig = {
   headers: { Authorization: `Bearer ${API_TOKEN}` },
 };
 
-export async function executeFetchUrl(
-  url: string,
-): Promise<NodeResult | ApiError> {
+export async function executeFetchUrl(url: string): Promise<NodeResult> {
   let config: AxiosRequestConfig = {
     params: {
       url,
@@ -40,21 +43,19 @@ export async function executeFetchUrl(
     .then((resp) => {
       let { content } = resp.data.result;
       return {
-        status: "ok",
+        status: NodeResultStatus.Ok,
         data: { content } as DataNodeDef,
       } as NodeResult;
     })
     .catch((err) => {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: err.toString(),
       };
     });
 }
 
-export async function executeParseFile(
-  file: File,
-): Promise<NodeResult | ApiError> {
+export async function executeParseFile(file: File): Promise<NodeResult> {
   let formData = new FormData();
   formData.append("file", file);
   return await axios
@@ -66,15 +67,15 @@ export async function executeParseFile(
     .then((resp) => {
       let { parsed } = resp.data.result;
       return {
-        status: "ok",
+        status: NodeResultStatus.Ok,
         data: { content: parsed } as DataNodeDef,
       } as NodeResult;
     })
     .catch((err) => {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: err.toString(),
-      };
+      } as NodeResult;
     });
 }
 
@@ -82,7 +83,7 @@ export async function executeSummarizeTask(
   input: NodeResult | null,
   controller: AbortController,
   cancelListener: Observable<boolean>,
-): Promise<NodeResult | ApiError> {
+): Promise<NodeResult> {
   let config: AxiosRequestConfig = {
     signal: controller.signal,
     ...API_CONFIG,
@@ -102,7 +103,7 @@ export async function executeSummarizeTask(
     .then((resp) => resp.data)
     .catch((err) => {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: err.toString(),
       };
     });
@@ -118,7 +119,7 @@ export async function executeSummarizeTask(
 
     if (!taskResponse.result) {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: "Invalid response",
       };
     }
@@ -133,7 +134,7 @@ export async function executeSummarizeTask(
   } else {
     let res = await lastValueFrom(of(response));
     return {
-      status: "error",
+      status: NodeResultStatus.Error,
       error: "error" in res ? res.error : JSON.stringify(res),
     };
   }

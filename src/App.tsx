@@ -20,6 +20,7 @@ import {
   ExtractNodeDef,
   SummaryDataDef,
   TemplateNodeDef,
+  ParentDataDef,
 } from "./types/node";
 import {
   NodeComponent,
@@ -32,6 +33,8 @@ import { cancelExecution } from "./workflows/executor";
 import { ModalType } from "./types";
 import AddNodeModal from "./components/modal/AddNodeModal";
 import { runWorkflow } from "./workflows";
+import { createNodeDefFromType } from "./utils/nodeUtils";
+import { WorkflowContext } from "./workflows/workflowinstance";
 
 function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
   return (
@@ -50,6 +53,7 @@ function App() {
   let [nodeResults, setNodeResults] = useState<Map<string, LastRunDetails>>(
     new Map(),
   );
+  let [workflowRun, setWorkflowRun] = useState<WorkflowContext | null>();
   let [isRunning, setIsRunning] = useState<boolean>(false);
   let [isLoading, setIsLoading] = useState<boolean>(false);
   let [currentNodeRunning, setCurrentNodeRunning] = useState<string | null>(
@@ -94,26 +98,11 @@ function App() {
 
     let lastResult = await runWorkflow(
       workflow,
-      nodeResults,
       (uuid) => {
         setCurrentNodeRunning(uuid);
       },
-      (uuid) => {
-        setNodeResults((nodeResults) => {
-          nodeResults.delete(uuid);
-          return new Map(nodeResults);
-        });
-      },
-      (uuid, startTimestamp, nodeResult) => {
-        setNodeResults(
-          new Map(
-            nodeResults.set(uuid, {
-              startTimestamp,
-              endTimestamp: new Date(),
-              nodeResult,
-            }),
-          ),
-        );
+      (currentResults) => {
+        setNodeResults(currentResults);
       },
     );
 
@@ -125,6 +114,17 @@ function App() {
   let deleteWorkflowNode = (uuid: string) => {
     setWorkflow(
       workflow.flatMap((node) => {
+        if (node.parentNode) {
+          (node.data as ParentDataDef).actions = (
+            node.data as ParentDataDef
+          ).actions.flatMap((node) => {
+            if (node.uuid === uuid) {
+              return [];
+            } else {
+              return node;
+            }
+          });
+        }
         if (node.uuid === uuid) {
           return [];
         } else {
@@ -137,6 +137,21 @@ function App() {
   let updateWorkflow = (uuid: string, updates: NodeUpdates) => {
     setWorkflow(
       workflow.map((node) => {
+        if (node.parentNode) {
+          (node.data as ParentDataDef).actions = (
+            node.data as ParentDataDef
+          ).actions.flatMap((node) => {
+            if (node.uuid === uuid) {
+              return {
+                ...node,
+                label: updates.label ?? node.label,
+                data: updates.data ?? node.data,
+              };
+            } else {
+              return node;
+            }
+          });
+        }
         if (node.uuid === uuid) {
           return {
             ...node,
@@ -167,26 +182,12 @@ function App() {
   };
 
   let onAddNode = (nodeType: NodeType) => {
-    let nodeData: NodeDataTypes;
-    if (nodeType === NodeType.Data) {
-      nodeData = { type: DataNodeType.Text } as DataNodeDef;
-    } else if (nodeType === NodeType.Extract) {
-      nodeData = { query: "", schema: {} } as ExtractNodeDef;
-    } else if (nodeType === NodeType.Summarize) {
-      nodeData = { summary: "", bulletSummary: "" } as SummaryDataDef;
-    } else {
-      nodeData = { template: "", varMapping: {} } as TemplateNodeDef;
+    let newNode = createNodeDefFromType(nodeType);
+
+    if (newNode) {
+      let newWorkflow = [...workflow, newNode];
+      setWorkflow(newWorkflow);
     }
-
-    let newNode: NodeDef = {
-      uuid: crypto.randomUUID(),
-      label: `${nodeType} node`,
-      nodeType: nodeType,
-      data: nodeData,
-    };
-
-    let newWorkflow = [...workflow, newNode];
-    setWorkflow(newWorkflow);
   };
 
   return (
@@ -302,6 +303,35 @@ function App() {
                 ) : (
                   <ArrowDownIcon className="mt-4 w-4 mx-auto" />
                 )}
+                {node.parentNode
+                  ? (node.data as ParentDataDef).actions.map(
+                      (childNode, childIdx) => {
+                        return (
+                          <div className="ml-16">
+                            <NodeComponent
+                              key={`node-${idx}-${childIdx}`}
+                              {...childNode}
+                              isRunning={childNode.uuid === currentNodeRunning}
+                              lastRun={nodeResults.get(childNode.uuid)}
+                              onDelete={() =>
+                                deleteWorkflowNode(childNode.uuid)
+                              }
+                              onUpdate={(updates) =>
+                                updateWorkflow(childNode.uuid, updates)
+                              }
+                            />
+                            {idx < workflow.length - 1 ? (
+                              <ShowNodeResult
+                                result={nodeResults.get(childNode.uuid)}
+                              />
+                            ) : (
+                              <ArrowDownIcon className="mt-4 w-4 mx-auto" />
+                            )}
+                          </div>
+                        );
+                      },
+                    )
+                  : null}
               </>
             );
           })}
