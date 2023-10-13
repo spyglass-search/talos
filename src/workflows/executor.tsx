@@ -148,7 +148,15 @@ async function _handleLoopNode(
       loopResults: [],
     } as LoopNodeDataResult;
 
-    if (typeof input.data === "object") {
+    if (Array.isArray(input.data)) {
+      for (const item of input.data as any[]) {
+        let inputData = {
+          status: NodeResultStatus.Ok,
+          data: item,
+        };
+        await _executeLoop(node, inputData, executeContext, loopResult);
+      }
+    } else if (typeof input.data === "object") {
       for (const [key, value] of Object.entries(input.data)) {
         let data: { [key: string]: any } = {};
         data[key] = value;
