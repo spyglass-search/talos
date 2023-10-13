@@ -60,6 +60,8 @@ function App() {
     null,
   );
   let [endResult, setEndResult] = useState<NodeResult | null>(null);
+  let [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  let [draggedNode, setDraggedNode] = useState<string | null>(null);
   let fileInput = useRef(null);
   let exampleSelection = useRef(null);
   let addNodeModal = useRef(null);
@@ -190,6 +192,44 @@ function App() {
     }
   };
 
+  const nodeDropped = (before: boolean, dropUUID: string) => {
+    const newWorkflow = [...workflow];
+    const dragIndex: number = newWorkflow.findIndex(
+      (node) => node.uuid === draggedNode,
+    );
+
+    const dragNode = newWorkflow.splice(dragIndex, 1);
+
+    const dropIndex: number = newWorkflow.findIndex(
+      (node) => node.uuid === dropUUID,
+    );
+
+    if (before) {
+      newWorkflow.splice(dropIndex, 0, dragNode[0]);
+    } else {
+      newWorkflow.splice(dropIndex + 1, 0, dragNode[0]);
+    }
+
+    setDragOverIndex(null);
+    setDraggedNode(null);
+    setWorkflow(newWorkflow);
+  };
+
+  const isValidDropSpot = (
+    dropAfter: boolean,
+    spotUUID: string,
+    idx: number,
+  ) => {
+    let dragIndex: number = workflow.findIndex(
+      (node) => node.uuid === draggedNode,
+    );
+    return (
+      idx === dragOverIndex &&
+      spotUUID !== draggedNode &&
+      (!dropAfter || (dropAfter && dragIndex !== idx + 1))
+    );
+  };
+
   return (
     <main className="flex w-screen min-h-screen flex-col gap-8 items-center md:py-8">
       <div className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
@@ -286,6 +326,18 @@ function App() {
         </div>
       </div>
       <div className="w-full lg:my-32 px-8">
+        <div className="items-center flex flex-col">
+          {workflow.length > 0 ? (
+            <DropArea
+              uuid={workflow[0].uuid}
+              index={-1}
+              dropAfter={false}
+              isValidDropSpot={isValidDropSpot}
+              setDragOverIndex={setDragOverIndex}
+              nodeDropped={nodeDropped}
+            ></DropArea>
+          ) : null}
+        </div>
         <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
@@ -297,6 +349,7 @@ function App() {
                   lastRun={nodeResults.get(node.uuid)}
                   onDelete={() => deleteWorkflowNode(node.uuid)}
                   onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
+                  dragUpdate={(uuid) => setDraggedNode(uuid)}
                 />
                 {idx < workflow.length - 1 ? (
                   <ShowNodeResult result={nodeResults.get(node.uuid)} />
@@ -330,6 +383,20 @@ function App() {
                       },
                     )
                   : null}
+                <DropArea
+                  uuid={node.uuid}
+                  index={idx}
+                  dropAfter={true}
+                  isValidDropSpot={isValidDropSpot}
+                  setDragOverIndex={setDragOverIndex}
+                  nodeDropped={nodeDropped}
+                >
+                  {idx < workflow.length - 1 ? (
+                    <ShowNodeResult result={nodeResults.get(node.uuid)} />
+                  ) : (
+                    <ArrowDownIcon className="mt-4 w-4 mx-auto" />
+                  )}
+                </DropArea>
               </>
             );
           })}
@@ -357,6 +424,49 @@ function App() {
         inLoop={false}
       />
     </main>
+  );
+}
+
+interface DropAreaProperties {
+  uuid: string;
+  index: number;
+  dropAfter: boolean;
+  isValidDropSpot: (
+    dropAfter: boolean,
+    spotUUID: string,
+    spotIndex: number,
+  ) => boolean;
+  setDragOverIndex: (index: number | null) => void;
+  nodeDropped: (before: boolean, dropUUID: string) => void;
+}
+
+function DropArea(props: React.PropsWithChildren<DropAreaProperties>) {
+  const style = props.isValidDropSpot(props.dropAfter, props.uuid, props.index)
+    ? "border-t-4 border-solid border-base-content"
+    : "";
+
+  return (
+    <div
+      className={`${style} w-full md:w-[480px] lg:w-[640px] min-h-6`}
+      onDragOver={(event) => {
+        if (props.isValidDropSpot(props.dropAfter, props.uuid, props.index)) {
+          event.preventDefault();
+        }
+
+        props.setDragOverIndex(props.index);
+      }}
+      onDragLeave={(event) => {
+        event.preventDefault();
+        props.setDragOverIndex(null);
+      }}
+      onDrop={(dropEvent) => {
+        dropEvent.preventDefault();
+        props.nodeDropped(!props.dropAfter, props.uuid);
+        props.setDragOverIndex(null);
+      }}
+    >
+      {props.children}
+    </div>
   );
 }
 

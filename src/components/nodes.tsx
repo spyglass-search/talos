@@ -10,6 +10,7 @@ import {
 import {
   ArrowDownIcon,
   ArrowPathIcon,
+  Bars3Icon,
   BoltIcon,
   BookOpenIcon,
   CheckBadgeIcon,
@@ -41,6 +42,7 @@ export interface BaseNodeProps {
   onDelete?: () => void;
   // Request node update
   onUpdate?: (nodeUpdates: NodeUpdates) => void;
+  dragUpdate: (uuid: string | null) => void;
 }
 
 export interface NodeBodyProps {
@@ -200,11 +202,13 @@ export function NodeComponent({
   lastRun,
   onUpdate = () => {},
   onDelete = () => {},
+  dragUpdate,
 }: BaseNodeProps) {
   let scrollToRef = useRef(null);
 
   let [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   let [error, setError] = useState<string | null>(null);
+  let [canDrag, setCanDrag] = useState<boolean>(false);
 
   useEffect(() => {
     if (lastRun?.nodeResult.status === "error") {
@@ -260,10 +264,23 @@ export function NodeComponent({
     <div
       ref={scrollToRef}
       className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}
+      draggable={canDrag}
+      onDragStart={() => dragUpdate(uuid)}
+      onDragEnd={() => {
+        setCanDrag(false);
+        dragUpdate(null);
+      }}
     >
       <figure className="bg-base-100 p-2 border-inherit">
         <div className="flex flex-row w-full justify-between items-center">
-          <div className="text-neutral-600 px-2 text-xs">id: {uuid}</div>
+          <div className="flex flex-row gap-2">
+            <Bars3Icon
+              className="w-4 h-4 cursor-pointer"
+              onMouseDown={() => setCanDrag(true)}
+              onMouseUp={() => setCanDrag(false)}
+            ></Bars3Icon>
+            <div className="text-neutral-600 px-2 text-xs">id: {uuid}</div>
+          </div>
           <div className="flex flex-row gap-2">
             <button
               className="btn btn-circle btn-xs btn-neutral btn-outline"
