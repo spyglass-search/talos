@@ -10,6 +10,7 @@ import {
   DataNodeDef,
   DataNodeType,
   ExtractNodeDef,
+  ExtractResponse,
   LoopNodeDataResult,
   MultiNodeDataResult,
   NodeDef,
@@ -18,6 +19,7 @@ import {
   NodeType,
   ParentDataDef,
   RenameInput,
+  StringContentResult,
   StringToListConversion,
   TemplateNodeDef,
 } from "../types/node";
@@ -62,13 +64,17 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
       status: NodeResultStatus.Ok,
       data: {
         content: data.content ?? "",
-      } as DataNodeDef,
+        type: "string",
+      } as StringContentResult,
     };
   }
 
   return {
     status: NodeResultStatus.Ok,
-    data: node.data,
+    data: {
+      content: data.content,
+      type: "string",
+    } as StringContentResult,
   };
 }
 
@@ -110,7 +116,10 @@ async function _handleExtractNode(
       let response = resp.data;
       return {
         status: response.status,
-        data: response.result.jsonResponse,
+        data: {
+          extractedData: response.result.jsonResponse,
+          schema: nodeData.schema,
+        },
       } as NodeResult;
     })
     .catch((err: AxiosError) => {
@@ -162,7 +171,9 @@ async function _handleLoopNode(
         data[key] = value;
         let inputData = {
           status: NodeResultStatus.Ok,
-          data: data,
+          data: {
+            extractedData: data,
+          } as ExtractResponse,
         };
 
         await _executeLoop(node, inputData, executeContext, loopResult);
@@ -193,7 +204,9 @@ async function _executeLoop(
     let subNode = (node.data as ParentDataDef).actions[i];
     lastResult = await executeContext.runNode(subNode, lastResult);
     executeContext.updateNode(node.uuid, new Date(), lastResult);
-    multiResult.push(lastResult);
+    if (lastResult.data) {
+      multiResult.push(lastResult.data);
+    }
   }
 
   loopResult.loopResults.push(multiResult);
@@ -202,6 +215,7 @@ async function _executeLoop(
 export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
   let context: any = {};
   let templateData = node.data as TemplateNodeDef;
+  console.error("input data ", input);
   if (input?.data) {
     Object.keys(templateData.varMapping).forEach((key) => {
       let value = templateData.varMapping[key as keyof object];
@@ -209,11 +223,13 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
         let data: any = input.data[value as keyof object];
 
         // Use SafeString here so that html is correctly embedded.
-        if (typeof data === "string") {
+        if ("content" in input.data) {
           context[key] = new Handlebars.SafeString(data);
         } else {
           context[key] = data;
         }
+
+        console.error(" context ", context);
       }
     });
 
@@ -222,7 +238,8 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
       status: NodeResultStatus.Ok,
       data: {
         content: template(context),
-      } as DataNodeDef,
+        type: "string",
+      } as StringContentResult,
     } as NodeResult;
   }
 

@@ -11,6 +11,7 @@ import {
   DataNodeDef,
   NodeResult,
   NodeResultStatus,
+  StringContentResult,
   SummaryDataDef,
 } from "../types/node";
 import {
@@ -44,7 +45,7 @@ export async function executeFetchUrl(url: string): Promise<NodeResult> {
       let { content } = resp.data.result;
       return {
         status: NodeResultStatus.Ok,
-        data: { content } as DataNodeDef,
+        data: { content, type: "string" } as StringContentResult,
       } as NodeResult;
     })
     .catch((err) => {
@@ -68,7 +69,7 @@ export async function executeParseFile(file: File): Promise<NodeResult> {
       let { parsed } = resp.data.result;
       return {
         status: NodeResultStatus.Ok,
-        data: { content: parsed } as DataNodeDef,
+        data: { content: parsed, type: "string" } as StringContentResult,
       } as NodeResult;
     })
     .catch((err) => {

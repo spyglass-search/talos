@@ -28,6 +28,7 @@ import { DataNode } from "./nodes/sources";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 import Loop from "./nodes/loop";
+import { getValue, isStringResult } from "../types/typeutils";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -141,10 +142,12 @@ export function WorkflowResult({
   // Pull out text based content to display by itself, otherwise
   // render data as a pretty printed JSON blob.
   let content: string | null | undefined = null;
-  if (result.data && "content" in result.data) {
-    content = result.data["content"];
+  if (result.data && isStringResult(result.data)) {
+    content = result.data.content;
+  } else if (result.data) {
+    content = JSON.stringify(getValue(result.data), null, 2);
   } else {
-    content = JSON.stringify(result.data, null, 2);
+    content = null;
   }
 
   let handleCopy = () => {

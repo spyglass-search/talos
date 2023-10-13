@@ -41,15 +41,27 @@ export type NodeDataTypes =
   | ObjectResult;
 
 export type NodeDataResultTypes =
-  | ObjectResult
+  | StringContentResult
   | LoopNodeDataResult
+  | ExtractResponse
   | MultiNodeDataResult
+  | SummaryDataDef
   | any[];
 
 export type MultiNodeDataResult = NodeDataResultTypes[];
 
 export interface LoopNodeDataResult {
   loopResults: MultiNodeDataResult[];
+}
+
+export interface ExtractResponse {
+  extractedData: any;
+  schema?: object;
+}
+
+export interface StringContentResult {
+  content: string;
+  type: "string";
 }
 
 export enum DataNodeType {
