@@ -85,7 +85,7 @@ export interface NodeDef {
 
 export interface NodeInputMapping {
   from: string;
-  to: string;
+  to?: string;
   conversion: NodeInputConversion;
 }
 

@@ -14,6 +14,8 @@ import {
   LoopNodeDataResult,
   MultiNodeDataResult,
   NodeDef,
+  NodeInputConversion,
+  NodeInputMapping,
   NodeResult,
   NodeResultStatus,
   NodeType,
@@ -24,6 +26,7 @@ import {
   TemplateNodeDef,
 } from "../types/node";
 import { WorkflowContext } from "./workflowinstance";
+import { MappedTypeNode } from "typescript";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 
@@ -40,9 +43,9 @@ interface AskApiResult {
 }
 
 export function isStringToListConversion(
-  object: any,
+  object: NodeInputConversion | undefined,
 ): object is StringToListConversion {
-  return object.type === "StringToListConversion";
+  return object ? object.type === "StringToListConversion" : false;
 }
 
 export function isRename(object: any): object is RenameInput {
@@ -269,7 +272,7 @@ export async function executeNode(
   } else if (node.nodeType === NodeType.Template) {
     return _handleTemplateNode(node, input);
   } else if (node.nodeType === NodeType.Loop) {
-    return _handleLoopNode(node, input, executeContext);
+    return _handleLoopNode(node, updatedInput, executeContext);
   }
 
   return {
@@ -288,14 +291,27 @@ function mapInput(node: NodeDef, input: NodeResult | null): NodeResult | null {
 
     if (input.data) {
       for (let mapping of node.mapping) {
-        if (isStringToListConversion(mapping)) {
+        let newData;
+        if (isStringToListConversion(mapping.conversion)) {
           let data = input.data[mapping.from as keyof object] as string;
-          newInput.data[mapping.to] = data.split(mapping.delimiter);
+          newData = data.split(mapping.conversion.delimiter).map((value) => {
+            return {
+              content: value,
+              type: "string",
+            } as StringContentResult;
+          });
         } else if (isRename(mapping)) {
-          newInput.data[mapping.to] = input.data[mapping.from as keyof object];
+          newData = input.data[mapping.from as keyof object];
+        }
+
+        if (mapping.to) {
+          newInput.data[mapping.to] = newData;
+        } else {
+          newInput.data = newData;
         }
       }
     }
+
     return newInput;
   }
   return input;
