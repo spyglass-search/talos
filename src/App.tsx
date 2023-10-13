@@ -320,10 +320,11 @@ function App() {
                                 updateWorkflow(childNode.uuid, updates)
                               }
                             />
-
-                            <ShowNodeResult
-                              result={nodeResults.get(childNode.uuid)}
-                            />
+                            <div className="mt-6">
+                              <ShowNodeResult
+                                result={nodeResults.get(childNode.uuid)}
+                              />
+                            </div>
                           </div>
                         );
                       },
