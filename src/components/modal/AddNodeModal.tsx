@@ -1,4 +1,4 @@
-import { MutableRefObject } from "react";
+import { MutableRefObject, useState } from "react";
 import Modal from ".";
 import { NodeIcon } from "../nodes";
 import { NodeDef, NodeType } from "../../types/node";
@@ -11,8 +11,12 @@ interface AddNodeModalProps {
 
 function nodeTypeLabel(nType: NodeType): string {
   switch (nType) {
-    case NodeType.Data:
-      return "Data Source";
+    case NodeType.DataConnection:
+      return "Connection";
+      case NodeType.DataFetched:
+        return "URL or File";
+    case NodeType.DataStatic:
+      return "Raw text";
     case NodeType.Extract:
       return "Extract";
     case NodeType.Summarize:
@@ -29,31 +33,62 @@ export default function AddNodeModal({
   modalRef,
   onClick = () => {},
 }: AddNodeModalProps) {
-  let allowedList = [];
-  if (!lastNode) {
-    allowedList.push(
-      NodeType.Data,
-      NodeType.Extract,
-      NodeType.Summarize,
-      NodeType.Template,
-    );
-  } else if (lastNode) {
-  }
+  let [activeTab, setActiveTab] = useState<number>(0);
+
+  // todo: validate which nodes can be used based on the last node.
+  let nodeList = [
+    { name: "Data Source", nodes: [
+        NodeType.DataConnection,
+        NodeType.DataFetched,
+        NodeType.DataStatic
+    ] },
+    {
+      name: "Actions",
+      nodes: [NodeType.Extract, NodeType.Summarize],
+    },
+    {
+      name: "Destination",
+      nodes: [NodeType.Template],
+    },
+  ];
 
   return (
     <Modal modalRef={modalRef}>
       <h2 className="text-xl font-bold mb-4">Add Action</h2>
-      <div className="grid grid-cols-2 gap-4">
-        {allowedList.map((nodeType) => {
+      <div className="tabs tabs-boxed">
+        {nodeList.map((nodeType, idx) => (
+          <a
+            className={`tab tab-lifted ${
+              activeTab === idx ? "tab-active" : ""
+            }`}
+            key={nodeType.name}
+            onClick={() => setActiveTab(idx)}
+          >
+            {nodeType.name}
+          </a>
+        ))}
+      </div>
+      <div className="p-4">
+        {nodeList.map((nodeType, idx) => {
+          let activeClass = activeTab === idx ? "grid" : "hidden";
           return (
-            <button
-              key={nodeType}
-              className="btn btn-neutral flex flex-row items-center gap-2"
-              onClick={() => onClick(nodeType)}
+            <div
+              className={`${activeClass} grid-cols-2 gap-4`}
+              key={`nodetab-${idx}`}
             >
-              <NodeIcon nodeType={nodeType} className="w-6" />
-              <div>{nodeTypeLabel(nodeType)}</div>
-            </button>
+              {nodeType.nodes.map((nodeType) => {
+                return (
+                  <button
+                    key={nodeType}
+                    className="btn btn-neutral flex flex-row items-center gap-2"
+                    onClick={() => onClick(nodeType)}
+                  >
+                    <NodeIcon nodeType={nodeType} className="w-6" />
+                    <div>{nodeTypeLabel(nodeType)}</div>
+                  </button>
+                );
+              })}
+            </div>
           );
         })}
       </div>

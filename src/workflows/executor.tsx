@@ -175,7 +175,7 @@ export async function executeNode(
   }
   console.log("input: ", updatedInput);
 
-  if (node.nodeType === NodeType.Data) {
+  if (node.nodeType === NodeType.DataStatic) {
     return _handleDataNode(node);
   } else if (node.nodeType === NodeType.Extract) {
     return _handleExtractNode(node, input);

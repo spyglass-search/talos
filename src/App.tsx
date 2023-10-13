@@ -168,7 +168,7 @@ function App() {
 
   let onAddNode = (nodeType: NodeType) => {
     let nodeData: NodeDataTypes;
-    if (nodeType === NodeType.Data) {
+    if (nodeType === NodeType.DataStatic) {
       nodeData = { type: DataNodeType.Text } as DataNodeDef;
     } else if (nodeType === NodeType.Extract) {
       nodeData = { query: "", schema: {} } as ExtractNodeDef;
@@ -324,7 +324,7 @@ function App() {
       </div>
       <AddNodeModal
         modalRef={addNodeModal}
-        lastNode={workflow.length > 0 ? workflow[workflow.length] : null}
+        lastNode={workflow.length > 0 ? workflow[workflow.length - 1] : null}
         onClick={onAddNode}
       />
     </main>

@@ -9,12 +9,15 @@ import {
 } from "../types/node";
 import {
   ArrowDownIcon,
+  Bars3BottomLeftIcon,
   BoltIcon,
   BookOpenIcon,
   CheckBadgeIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  CloudIcon,
   CodeBracketIcon,
+  DocumentTextIcon,
   ExclamationCircleIcon,
   NoSymbolIcon,
   TableCellsIcon,
@@ -66,6 +69,12 @@ export function NodeIcon({ nodeType, className }: NodeIconProps) {
     icon = <CodeBracketIcon className={className} />;
   } else if (nodeType === NodeType.Summarize) {
     icon = <BookOpenIcon className={className} />;
+  } else if (nodeType === NodeType.DataConnection) {
+    icon = <CloudIcon className={className} />;
+  } else if (nodeType === NodeType.DataFetched) {
+    icon = <DocumentTextIcon className={className} />
+  } else if (nodeType === NodeType.DataStatic) {
+    icon = <Bars3BottomLeftIcon className={className} />
   }
   return icon;
 }
@@ -218,7 +227,7 @@ export function NodeComponent({
       return (
         <ExtractNode data={data} onUpdateData={(data) => onUpdate({ data })} />
       );
-    } else if (nodeType === NodeType.Data) {
+    } else if (nodeType === NodeType.DataStatic || nodeType === NodeType.DataConnection || nodeType === NodeType.DataFetched) {
       // todo: handle other data node types
       return (
         <DataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
