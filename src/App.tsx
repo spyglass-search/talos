@@ -170,6 +170,8 @@ function App() {
     let nodeData: NodeDataTypes;
     if (nodeType === NodeType.DataStatic) {
       nodeData = { type: DataNodeType.Text } as DataNodeDef;
+    } else if (nodeType === NodeType.DataFile) {
+      nodeData = { type: DataNodeType.File } as DataNodeDef;
     } else if (nodeType === NodeType.DataURL) {
       nodeData = { type: DataNodeType.Url } as DataNodeDef;
     } else if (nodeType === NodeType.Extract) {

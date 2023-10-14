@@ -49,7 +49,7 @@ export function cancelExecution() {
 async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   let data = node.data as DataNodeDef;
   console.debug(`Handling data node type: ${data.type}`);
-  if (data.type === DataNodeType.File && data.file) {
+  if (data.type === DataNodeType.File) {
     return await executeParseFile(data.file);
   } else if (data.type === DataNodeType.Url) {
     return await executeFetchUrl(data.url);

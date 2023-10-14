@@ -32,6 +32,7 @@ import { StaticDataNode } from "./nodes/sources/static";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 import { UrlDataNode } from "./nodes/sources/url";
+import { FileDataNode } from "./nodes/sources/file";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -233,15 +234,17 @@ export function NodeComponent({
         <ExtractNode data={data} onUpdateData={(data) => onUpdate({ data })} />
       );
     } else if (nodeType === NodeType.DataStatic) {
-      // todo: handle other data node types
       return (
         <StaticDataNode
           data={data}
           onUpdateData={(data) => onUpdate({ data })}
         />
       );
+    } else if (nodeType === NodeType.DataFile) {
+      return (
+        <FileDataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
+      );
     } else if (nodeType === NodeType.DataURL) {
-      // todo: handle other data node types
       return (
         <UrlDataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
       );

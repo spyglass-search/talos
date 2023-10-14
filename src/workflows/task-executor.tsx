@@ -66,8 +66,15 @@ export async function executeFetchUrl(
 }
 
 export async function executeParseFile(
-  file: File,
+  file: File | undefined,
 ): Promise<NodeResult | ApiError> {
+  if (!file) {
+    return {
+      status: "error",
+      error: "No file selected"
+    }
+  }
+
   let formData = new FormData();
   formData.append("file", file);
   return await axios
