@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { DataNodeDef } from "../../../types/node";
 import { NodeBodyProps } from "../../nodes";
 import { EditableTextarea } from "../../editable";

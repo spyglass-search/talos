@@ -176,12 +176,7 @@ export async function executeNode(
   }
   console.log("input: ", updatedInput);
 
-  if (
-    node.nodeType === NodeType.DataStatic ||
-    node.nodeType === NodeType.DataConnection ||
-    node.nodeType === NodeType.DataURL ||
-    node.nodeType === NodeType.DataFile
-  ) {
+  if (node.nodeType === NodeType.DataSource) {
     return _handleDataNode(node);
   } else if (node.nodeType === NodeType.Extract) {
     return _handleExtractNode(node, input);

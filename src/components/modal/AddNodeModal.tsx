@@ -1,24 +1,29 @@
 import { MutableRefObject, useState } from "react";
 import Modal from ".";
 import { NodeIcon } from "../nodes";
-import { NodeDef, NodeType } from "../../types/node";
+import { DataNodeType, NodeDef, NodeType } from "../../types/node";
 
 interface AddNodeModalProps {
   lastNode: NodeDef | null;
   modalRef: MutableRefObject<null>;
-  onClick?: (nodeType: NodeType) => void;
+  onClick?: (nodeType: NodeType, subType: DataNodeType | null) => void;
 }
 
-function nodeTypeLabel(nType: NodeType): string {
+function nodeTypeLabel(nType: NodeType, subType: DataNodeType | null): string {
   switch (nType) {
-    case NodeType.DataConnection:
-      return "Connection";
-    case NodeType.DataFile:
-      return "File Upload";
-    case NodeType.DataURL:
-      return "URL";
-    case NodeType.DataStatic:
-      return "Raw text";
+    case NodeType.DataSource:
+      switch (subType) {
+        case DataNodeType.Connection:
+          return "Connection";
+        case DataNodeType.File:
+          return "File Upload";
+        case DataNodeType.Url:
+          return "URL";
+        case DataNodeType.Text:
+          return "Raw text";
+        default:
+          return "Unknown";
+      }
     case NodeType.Extract:
       return "Extract";
     case NodeType.Summarize:
@@ -42,19 +47,22 @@ export default function AddNodeModal({
     {
       name: "Data Source",
       nodes: [
-        NodeType.DataConnection,
-        NodeType.DataURL,
-        NodeType.DataFile,
-        NodeType.DataStatic,
+        { nodeType: NodeType.DataSource, subType: DataNodeType.Connection },
+        { nodeType: NodeType.DataSource, subType: DataNodeType.File },
+        { nodeType: NodeType.DataSource, subType: DataNodeType.Text },
+        { nodeType: NodeType.DataSource, subType: DataNodeType.Url },
       ],
     },
     {
       name: "Actions",
-      nodes: [NodeType.Extract, NodeType.Summarize],
+      nodes: [
+        { nodeType: NodeType.Extract, subType: null },
+        { nodeType: NodeType.Summarize, subType: null },
+      ],
     },
     {
       name: "Destination",
-      nodes: [NodeType.Template],
+      nodes: [{ nodeType: NodeType.Template, subType: null }],
     },
   ];
 
@@ -62,7 +70,7 @@ export default function AddNodeModal({
     <Modal modalRef={modalRef}>
       <div className="tabs tabs-boxed">
         {nodeList.map((nodeType, idx) => (
-          <a
+          <button
             className={`tab tab-lifted ${
               activeTab === idx ? "tab-active" : ""
             }`}
@@ -70,7 +78,7 @@ export default function AddNodeModal({
             onClick={() => setActiveTab(idx)}
           >
             {nodeType.name}
-          </a>
+          </button>
         ))}
       </div>
       <div className="p-4">
@@ -81,15 +89,20 @@ export default function AddNodeModal({
               className={`${activeClass} grid-cols-2 gap-4`}
               key={`nodetab-${idx}`}
             >
-              {nodeType.nodes.map((nodeType, idx) => {
+              {nodeType.nodes.map((node, idx) => {
+                let { nodeType, subType } = node;
                 return (
                   <button
                     key={`nodetype-${idx}`}
                     className="btn btn-neutral flex flex-row items-center gap-2"
-                    onClick={() => onClick(nodeType)}
+                    onClick={() => onClick(nodeType, subType)}
                   >
-                    <NodeIcon nodeType={nodeType} className="w-6" />
-                    <div>{nodeTypeLabel(nodeType)}</div>
+                    <NodeIcon
+                      nodeType={nodeType}
+                      subType={subType}
+                      className="w-6"
+                    />
+                    <div>{nodeTypeLabel(nodeType, subType)}</div>
                   </button>
                 );
               })}

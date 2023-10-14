@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import {
   ApiError,
   ApiResponse,
@@ -71,8 +71,8 @@ export async function executeParseFile(
   if (!file) {
     return {
       status: "error",
-      error: "No file selected"
-    }
+      error: "No file selected",
+    };
   }
 
   let formData = new FormData();

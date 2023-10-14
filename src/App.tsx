@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import axios from "axios";
 import {
   ArrowDownIcon,
@@ -60,19 +60,19 @@ function App() {
   let exampleSelection = useRef(null);
   let addNodeModal = useRef(null);
 
-  // Initialize workflow
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      await axios
-        .get<Array<NodeDef>>(
-          `${process.env.PUBLIC_URL}/workflow-examples/initial.json`,
-        )
-        .then((resp) => resp.data)
-        .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
-    };
+  // // Initialize workflow
+  // useEffect(() => {
+  //   const fetchInitialData = async () => {
+  //     await axios
+  //       .get<Array<NodeDef>>(
+  //         `${process.env.PUBLIC_URL}/workflow-examples/initial.json`,
+  //       )
+  //       .then((resp) => resp.data)
+  //       .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
+  //   };
 
-    fetchInitialData().catch(console.error);
-  }, []);
+  //   fetchInitialData().catch(console.error);
+  // }, []);
 
   let loadExample = async () => {
     if (exampleSelection.current) {
@@ -166,14 +166,10 @@ function App() {
     cancelExecution();
   };
 
-  let onAddNode = (nodeType: NodeType) => {
+  let onAddNode = (nodeType: NodeType, subType: DataNodeType | null) => {
     let nodeData: NodeDataTypes;
-    if (nodeType === NodeType.DataStatic) {
-      nodeData = { type: DataNodeType.Text } as DataNodeDef;
-    } else if (nodeType === NodeType.DataFile) {
-      nodeData = { type: DataNodeType.File } as DataNodeDef;
-    } else if (nodeType === NodeType.DataURL) {
-      nodeData = { type: DataNodeType.Url } as DataNodeDef;
+    if (nodeType === NodeType.DataSource && subType) {
+      nodeData = { type: subType } as DataNodeDef;
     } else if (nodeType === NodeType.Extract) {
       nodeData = { query: "", schema: {} } as ExtractNodeDef;
     } else if (nodeType === NodeType.Summarize) {

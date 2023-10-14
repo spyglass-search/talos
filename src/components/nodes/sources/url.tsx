@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { DataNodeDef, DataNodeType } from "../../../types/node";
+import { DataNodeDef } from "../../../types/node";
 import { NodeBodyProps } from "../../nodes";
 import { GlobeAltIcon } from "@heroicons/react/20/solid";
 
