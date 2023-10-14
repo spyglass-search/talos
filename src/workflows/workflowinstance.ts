@@ -7,6 +7,7 @@ import {
   ParentDataDef,
 } from "../types/node";
 import { executeNode } from "./executor";
+import { isInLoop, isLastNode } from "./utils";
 
 export interface WorkflowRunContext {
   onRunningNodeChange: (uuid: string) => void;
@@ -81,47 +82,11 @@ export class WorkflowContext implements WorkflowRunContext {
   }
 
   public isLastNode(uuid: string): boolean {
-    const length = this.workflow.length;
-    for (let i = 0; i < length; i++) {
-      const node = this.workflow[i];
-
-      if (node.parentNode) {
-        let subnodeLength = (node.data as ParentDataDef).actions.length;
-        for (let j = 0; j < subnodeLength; j++) {
-          const subNode = (node.data as ParentDataDef).actions[j];
-          if (subNode.uuid === uuid) {
-            return i === length - 1 && j === subnodeLength - 1;
-          }
-        }
-      }
-
-      if (node.uuid === uuid) {
-        return i === length - 1;
-      }
-    }
-    return false;
+    return isLastNode(this.workflow, uuid);
   }
 
   public isInLoop(uuid: string): boolean {
-    const length = this.workflow.length;
-    for (let i = 0; i < length; i++) {
-      const node = this.workflow[i];
-
-      if (node.parentNode) {
-        let subnodeLength = (node.data as ParentDataDef).actions.length;
-        for (let j = 0; j < subnodeLength; j++) {
-          const subNode = (node.data as ParentDataDef).actions[j];
-          if (subNode.uuid === uuid) {
-            return true;
-          }
-        }
-      }
-
-      if (node.uuid === uuid) {
-        return false;
-      }
-    }
-    return false;
+    return isInLoop(this.workflow, uuid);
   }
 
   public async runNode(

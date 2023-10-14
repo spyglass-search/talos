@@ -28,7 +28,13 @@ import {
   WorkflowResult,
 } from "./components/nodes";
 import { useState } from "react";
-import { loadWorkflow, saveWorkflow } from "./workflows/utils";
+import {
+  insertNode,
+  loadWorkflow,
+  nodeComesAfter,
+  removeNode,
+  saveWorkflow,
+} from "./workflows/utils";
 import { cancelExecution } from "./workflows/executor";
 import { ModalType } from "./types";
 import AddNodeModal from "./components/modal/AddNodeModal";
@@ -53,14 +59,14 @@ function App() {
   let [nodeResults, setNodeResults] = useState<Map<string, LastRunDetails>>(
     new Map(),
   );
-  let [workflowRun, setWorkflowRun] = useState<WorkflowContext | null>();
+  let [dragNDropAfter, setDragNDropAfter] = useState<boolean>(true);
   let [isRunning, setIsRunning] = useState<boolean>(false);
   let [isLoading, setIsLoading] = useState<boolean>(false);
   let [currentNodeRunning, setCurrentNodeRunning] = useState<string | null>(
     null,
   );
   let [endResult, setEndResult] = useState<NodeResult | null>(null);
-  let [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  let [dragOverUuid, setDragOverUuid] = useState<string | null>(null);
   let [draggedNode, setDraggedNode] = useState<string | null>(null);
   let fileInput = useRef(null);
   let exampleSelection = useRef(null);
@@ -192,41 +198,32 @@ function App() {
     }
   };
 
-  const nodeDropped = (before: boolean, dropUUID: string) => {
+  const nodeDropped = (after: boolean, dropUUID: string) => {
+    if (!draggedNode) {
+      return;
+    }
     const newWorkflow = [...workflow];
-    const dragIndex: number = newWorkflow.findIndex(
-      (node) => node.uuid === draggedNode,
-    );
-
-    const dragNode = newWorkflow.splice(dragIndex, 1);
-
-    const dropIndex: number = newWorkflow.findIndex(
-      (node) => node.uuid === dropUUID,
-    );
-
-    if (before) {
-      newWorkflow.splice(dropIndex, 0, dragNode[0]);
-    } else {
-      newWorkflow.splice(dropIndex + 1, 0, dragNode[0]);
+    const dragNode = removeNode(newWorkflow, draggedNode);
+    if (dragNode) {
+      insertNode(newWorkflow, after, dropUUID, dragNode);
     }
 
-    setDragOverIndex(null);
+    setDragOverUuid(null);
     setDraggedNode(null);
     setWorkflow(newWorkflow);
   };
 
-  const isValidDropSpot = (
-    dropAfter: boolean,
-    spotUUID: string,
-    idx: number,
-  ) => {
-    let dragIndex: number = workflow.findIndex(
-      (node) => node.uuid === draggedNode,
-    );
+  const isValidDropSpot = (dropAfter: boolean, spotUUID: string) => {
+    if (!draggedNode) {
+      return false;
+    }
+
     return (
-      idx === dragOverIndex &&
+      spotUUID === dragOverUuid &&
+      dropAfter === dragNDropAfter &&
       spotUUID !== draggedNode &&
-      (!dropAfter || (dropAfter && dragIndex !== idx + 1))
+      (!dropAfter ||
+        (dropAfter && !nodeComesAfter(workflow, spotUUID, draggedNode)))
     );
   };
 
@@ -330,10 +327,10 @@ function App() {
           {workflow.length > 0 ? (
             <DropArea
               uuid={workflow[0].uuid}
-              index={-1}
               dropAfter={false}
               isValidDropSpot={isValidDropSpot}
-              setDragOverIndex={setDragOverIndex}
+              setDragOverUuid={setDragOverUuid}
+              setDragNDropAfter={setDragNDropAfter}
               nodeDropped={nodeDropped}
             ></DropArea>
           ) : null}
@@ -351,16 +348,35 @@ function App() {
                   onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
                   dragUpdate={(uuid) => setDraggedNode(uuid)}
                 />
-                {idx < workflow.length - 1 ? (
-                  <ShowNodeResult result={nodeResults.get(node.uuid)} />
-                ) : (
-                  <ArrowDownIcon className="mt-4 w-4 mx-auto" />
-                )}
+                <DropArea
+                  uuid={node.uuid}
+                  dropAfter={true}
+                  isValidDropSpot={isValidDropSpot}
+                  setDragOverUuid={setDragOverUuid}
+                  setDragNDropAfter={setDragNDropAfter}
+                  nodeDropped={nodeDropped}
+                >
+                  {idx < workflow.length - 1 ? (
+                    <ShowNodeResult result={nodeResults.get(node.uuid)} />
+                  ) : (
+                    <ArrowDownIcon className="mt-4 w-4 mx-auto" />
+                  )}
+                </DropArea>
                 {node.parentNode
                   ? (node.data as ParentDataDef).actions.map(
                       (childNode, childIdx) => {
                         return (
                           <div className="ml-16">
+                            {childIdx === 0 ? (
+                              <DropArea
+                                uuid={childNode.uuid}
+                                dropAfter={false}
+                                isValidDropSpot={isValidDropSpot}
+                                setDragOverUuid={setDragOverUuid}
+                                setDragNDropAfter={setDragNDropAfter}
+                                nodeDropped={nodeDropped}
+                              ></DropArea>
+                            ) : null}
                             <NodeComponent
                               key={`node-${idx}-${childIdx}`}
                               {...childNode}
@@ -372,31 +388,27 @@ function App() {
                               onUpdate={(updates) =>
                                 updateWorkflow(childNode.uuid, updates)
                               }
+                              dragUpdate={(uuid) => setDraggedNode(uuid)}
                             />
-                            <div className="mt-6">
-                              <ShowNodeResult
-                                result={nodeResults.get(childNode.uuid)}
-                              />
-                            </div>
+                            <DropArea
+                              uuid={childNode.uuid}
+                              dropAfter={true}
+                              isValidDropSpot={isValidDropSpot}
+                              setDragOverUuid={setDragOverUuid}
+                              setDragNDropAfter={setDragNDropAfter}
+                              nodeDropped={nodeDropped}
+                            >
+                              <div className="mt-6">
+                                <ShowNodeResult
+                                  result={nodeResults.get(childNode.uuid)}
+                                />
+                              </div>
+                            </DropArea>
                           </div>
                         );
                       },
                     )
                   : null}
-                <DropArea
-                  uuid={node.uuid}
-                  index={idx}
-                  dropAfter={true}
-                  isValidDropSpot={isValidDropSpot}
-                  setDragOverIndex={setDragOverIndex}
-                  nodeDropped={nodeDropped}
-                >
-                  {idx < workflow.length - 1 ? (
-                    <ShowNodeResult result={nodeResults.get(node.uuid)} />
-                  ) : (
-                    <ArrowDownIcon className="mt-4 w-4 mx-auto" />
-                  )}
-                </DropArea>
               </>
             );
           })}
@@ -429,19 +441,15 @@ function App() {
 
 interface DropAreaProperties {
   uuid: string;
-  index: number;
   dropAfter: boolean;
-  isValidDropSpot: (
-    dropAfter: boolean,
-    spotUUID: string,
-    spotIndex: number,
-  ) => boolean;
-  setDragOverIndex: (index: number | null) => void;
-  nodeDropped: (before: boolean, dropUUID: string) => void;
+  isValidDropSpot: (dropAfter: boolean, spotUUID: string) => boolean;
+  setDragNDropAfter: (dropAfter: boolean) => void;
+  setDragOverUuid: (string: string | null) => void;
+  nodeDropped: (after: boolean, dropUUID: string) => void;
 }
 
 function DropArea(props: React.PropsWithChildren<DropAreaProperties>) {
-  const style = props.isValidDropSpot(props.dropAfter, props.uuid, props.index)
+  const style = props.isValidDropSpot(props.dropAfter, props.uuid)
     ? "border-t-4 border-solid border-base-content"
     : "";
 
@@ -449,20 +457,21 @@ function DropArea(props: React.PropsWithChildren<DropAreaProperties>) {
     <div
       className={`${style} w-full md:w-[480px] lg:w-[640px] min-h-6`}
       onDragOver={(event) => {
-        if (props.isValidDropSpot(props.dropAfter, props.uuid, props.index)) {
+        if (props.isValidDropSpot(props.dropAfter, props.uuid)) {
           event.preventDefault();
         }
 
-        props.setDragOverIndex(props.index);
+        props.setDragNDropAfter(props.dropAfter);
+        props.setDragOverUuid(props.uuid);
       }}
       onDragLeave={(event) => {
         event.preventDefault();
-        props.setDragOverIndex(null);
+        props.setDragOverUuid(null);
       }}
       onDrop={(dropEvent) => {
         dropEvent.preventDefault();
-        props.nodeDropped(!props.dropAfter, props.uuid);
-        props.setDragOverIndex(null);
+        props.nodeDropped(props.dropAfter, props.uuid);
+        props.setDragOverUuid(null);
       }}
     >
       {props.children}
