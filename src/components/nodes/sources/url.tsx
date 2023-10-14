@@ -13,9 +13,8 @@ export function UrlDataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
     setDataValue(nodeData.url ?? "");
   }, [nodeData]);
 
-
   let handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setDataValue(event.target.value ?? '');
+    setDataValue(event.target.value ?? "");
     onUpdateData({
       url: event.target.value,
       content: nodeData.content,

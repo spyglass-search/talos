@@ -39,12 +39,15 @@ export default function AddNodeModal({
 
   // todo: validate which nodes can be used based on the last node.
   let nodeList = [
-    { name: "Data Source", nodes: [
+    {
+      name: "Data Source",
+      nodes: [
         NodeType.DataConnection,
         NodeType.DataURL,
         NodeType.DataFile,
-        NodeType.DataStatic
-    ] },
+        NodeType.DataStatic,
+      ],
+    },
     {
       name: "Actions",
       nodes: [NodeType.Extract, NodeType.Summarize],

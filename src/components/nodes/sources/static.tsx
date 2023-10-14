@@ -3,7 +3,10 @@ import { DataNodeDef } from "../../../types/node";
 import { NodeBodyProps } from "../../nodes";
 import { EditableTextarea } from "../../editable";
 
-export function StaticDataNode({ data, onUpdateData = () => {}}: NodeBodyProps) {
+export function StaticDataNode({
+  data,
+  onUpdateData = () => {},
+}: NodeBodyProps) {
   let nodeData = data as DataNodeDef;
   let [type, setType] = useState(nodeData.type);
   let [dataValue, setDataValue] = useState<string>("");

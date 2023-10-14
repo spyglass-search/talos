@@ -75,11 +75,11 @@ export function NodeIcon({ nodeType, className }: NodeIconProps) {
   } else if (nodeType === NodeType.DataConnection) {
     icon = <CloudIcon className={className} />;
   } else if (nodeType === NodeType.DataURL) {
-    icon = <GlobeAltIcon className={className} />
+    icon = <GlobeAltIcon className={className} />;
   } else if (nodeType === NodeType.DataFile) {
-    icon = <DocumentTextIcon className={className} />
+    icon = <DocumentTextIcon className={className} />;
   } else if (nodeType === NodeType.DataStatic) {
-    icon = <Bars3BottomLeftIcon className={className} />
+    icon = <Bars3BottomLeftIcon className={className} />;
   }
   return icon;
 }
@@ -235,7 +235,10 @@ export function NodeComponent({
     } else if (nodeType === NodeType.DataStatic) {
       // todo: handle other data node types
       return (
-        <StaticDataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
+        <StaticDataNode
+          data={data}
+          onUpdateData={(data) => onUpdate({ data })}
+        />
       );
     } else if (nodeType === NodeType.DataURL) {
       // todo: handle other data node types

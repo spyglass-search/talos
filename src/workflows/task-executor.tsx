@@ -32,13 +32,13 @@ export async function executeFetchUrl(
   if (!url || url.length === 0) {
     return {
       status: "error",
-      error: "No URL inputed"
-    }
-  } else if(!url.startsWith('http')) {
+      error: "No URL inputed",
+    };
+  } else if (!url.startsWith("http")) {
     return {
       status: "error",
-      error: "Only http and https URLs are supported."
-    }
+      error: "Only http and https URLs are supported.",
+    };
   }
 
   console.debug(`fetching url: ${url}`);

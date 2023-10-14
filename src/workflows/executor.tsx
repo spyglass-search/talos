@@ -177,10 +177,10 @@ export async function executeNode(
   console.log("input: ", updatedInput);
 
   if (
-    node.nodeType === NodeType.DataStatic
-    || node.nodeType === NodeType.DataConnection
-    || node.nodeType === NodeType.DataURL
-    || node.nodeType === NodeType.DataFile
+    node.nodeType === NodeType.DataStatic ||
+    node.nodeType === NodeType.DataConnection ||
+    node.nodeType === NodeType.DataURL ||
+    node.nodeType === NodeType.DataFile
   ) {
     return _handleDataNode(node);
   } else if (node.nodeType === NodeType.Extract) {
