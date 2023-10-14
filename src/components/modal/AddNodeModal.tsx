@@ -13,8 +13,10 @@ function nodeTypeLabel(nType: NodeType): string {
   switch (nType) {
     case NodeType.DataConnection:
       return "Connection";
-      case NodeType.DataFetched:
-        return "URL or File";
+    case NodeType.DataFile:
+      return "File Upload";
+    case NodeType.DataURL:
+      return "URL";
     case NodeType.DataStatic:
       return "Raw text";
     case NodeType.Extract:
@@ -39,7 +41,8 @@ export default function AddNodeModal({
   let nodeList = [
     { name: "Data Source", nodes: [
         NodeType.DataConnection,
-        NodeType.DataFetched,
+        NodeType.DataURL,
+        NodeType.DataFile,
         NodeType.DataStatic
     ] },
     {
@@ -75,10 +78,10 @@ export default function AddNodeModal({
               className={`${activeClass} grid-cols-2 gap-4`}
               key={`nodetab-${idx}`}
             >
-              {nodeType.nodes.map((nodeType) => {
+              {nodeType.nodes.map((nodeType, idx) => {
                 return (
                   <button
-                    key={nodeType}
+                    key={`nodetype-${idx}`}
                     className="btn btn-neutral flex flex-row items-center gap-2"
                     onClick={() => onClick(nodeType)}
                   >

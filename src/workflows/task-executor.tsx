@@ -27,8 +27,21 @@ const API_CONFIG: AxiosRequestConfig = {
 };
 
 export async function executeFetchUrl(
-  url: string,
+  url: string | undefined,
 ): Promise<NodeResult | ApiError> {
+  if (!url || url.length === 0) {
+    return {
+      status: "error",
+      error: "No URL inputed"
+    }
+  } else if(!url.startsWith('http')) {
+    return {
+      status: "error",
+      error: "Only http and https URLs are supported."
+    }
+  }
+
+  console.debug(`fetching url: ${url}`);
   let config: AxiosRequestConfig = {
     params: {
       url,

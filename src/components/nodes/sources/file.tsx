@@ -9,7 +9,7 @@ import {
 import { DocumentTextIcon } from "@heroicons/react/24/outline";
 import { EditableTextarea, EditableText } from "../../editable";
 
-export function FetchedDataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
+export function FileDataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
   let nodeData = data as DataNodeDef;
   let [type, setType] = useState(nodeData.type);
   let [dataValue, setDataValue] = useState<string>("");
@@ -17,7 +17,9 @@ export function FetchedDataNode({ data, onUpdateData = () => {} }: NodeBodyProps
 
   useEffect(() => {
     setType(nodeData.type);
-    if (nodeData.type === DataNodeType.Url) {
+    if (nodeData.type === DataNodeType.Text) {
+      setDataValue(nodeData.content ?? "");
+    } else if (nodeData.type === DataNodeType.Url) {
       setDataValue(nodeData.url ?? "");
     } else if (nodeData.type === DataNodeType.File) {
       setDataValue(nodeData.file?.name ?? "");
@@ -26,6 +28,7 @@ export function FetchedDataNode({ data, onUpdateData = () => {} }: NodeBodyProps
 
   let dataIcons = {
     [DataNodeType.File]: <ArrowUpOnSquareIcon className="w-4" />,
+    [DataNodeType.Text]: <DocumentTextIcon className="w-4" />,
     [DataNodeType.Url]: <GlobeAltIcon className="w-4" />,
   };
 
@@ -41,7 +44,14 @@ export function FetchedDataNode({ data, onUpdateData = () => {} }: NodeBodyProps
   };
 
   let updateData = (newValue: string | File) => {
-    if (type === DataNodeType.Url) {
+    if (type === DataNodeType.Text) {
+      onUpdateData({
+        content: newValue,
+        url: nodeData.url,
+        file: nodeData.file,
+        type,
+      } as DataNodeDef);
+    } else if (type === DataNodeType.Url) {
       onUpdateData({
         url: newValue,
         content: nodeData.content,
@@ -99,6 +109,14 @@ export function FetchedDataNode({ data, onUpdateData = () => {} }: NodeBodyProps
           />
         </button>
       </div>
+    );
+  } else if (type === DataNodeType.Text) {
+    rendered = (
+      <EditableTextarea
+        data={dataValue}
+        label="Data"
+        onChange={(value) => updateData(value)}
+      />
     );
   } else if (type === DataNodeType.Url) {
     rendered = (

@@ -48,9 +48,10 @@ export function cancelExecution() {
 
 async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   let data = node.data as DataNodeDef;
+  console.debug(`Handling data node type: ${data.type}`);
   if (data.type === DataNodeType.File && data.file) {
     return await executeParseFile(data.file);
-  } else if (data.type === DataNodeType.Url && data.url) {
+  } else if (data.type === DataNodeType.Url) {
     return await executeFetchUrl(data.url);
   } else if (data.type === DataNodeType.Text) {
     return {
@@ -175,7 +176,12 @@ export async function executeNode(
   }
   console.log("input: ", updatedInput);
 
-  if (node.nodeType === NodeType.DataStatic) {
+  if (
+    node.nodeType === NodeType.DataStatic
+    || node.nodeType === NodeType.DataConnection
+    || node.nodeType === NodeType.DataURL
+    || node.nodeType === NodeType.DataFile
+  ) {
     return _handleDataNode(node);
   } else if (node.nodeType === NodeType.Extract) {
     return _handleExtractNode(node, input);

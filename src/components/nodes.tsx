@@ -19,6 +19,7 @@ import {
   CodeBracketIcon,
   DocumentTextIcon,
   ExclamationCircleIcon,
+  GlobeAltIcon,
   NoSymbolIcon,
   TableCellsIcon,
   XMarkIcon,
@@ -30,7 +31,7 @@ import { DataNode } from "./nodes/sources/sources";
 import { StaticDataNode } from "./nodes/sources/static";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
-import { FetchedDataNode } from "./nodes/sources/fetch";
+import { UrlDataNode } from "./nodes/sources/url";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -73,7 +74,9 @@ export function NodeIcon({ nodeType, className }: NodeIconProps) {
     icon = <BookOpenIcon className={className} />;
   } else if (nodeType === NodeType.DataConnection) {
     icon = <CloudIcon className={className} />;
-  } else if (nodeType === NodeType.DataFetched) {
+  } else if (nodeType === NodeType.DataURL) {
+    icon = <GlobeAltIcon className={className} />
+  } else if (nodeType === NodeType.DataFile) {
     icon = <DocumentTextIcon className={className} />
   } else if (nodeType === NodeType.DataStatic) {
     icon = <Bars3BottomLeftIcon className={className} />
@@ -234,10 +237,10 @@ export function NodeComponent({
       return (
         <StaticDataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
       );
-    } else if (nodeType === NodeType.DataFetched) {
+    } else if (nodeType === NodeType.DataURL) {
       // todo: handle other data node types
       return (
-        <FetchedDataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
+        <UrlDataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
       );
     } else if (nodeType === NodeType.DataConnection) {
       // todo: handle other data node types

@@ -1,8 +1,10 @@
 export enum NodeType {
   // Data that is being pulled from an integration
   DataConnection = "DataConnection",
-  // Data fetched from a URL or parsed from a file.
-  DataFetched = "DataFetched",
+  // Data fetched from a URL.
+  DataURL = "DataURL",
+  // Data read/parsed from a file.
+  DataFile = "DataFile",
   // Static data, provided by a the user, i.e. a text blob
   DataStatic = "DataStatic",
   Extract = "Extract",

@@ -170,6 +170,8 @@ function App() {
     let nodeData: NodeDataTypes;
     if (nodeType === NodeType.DataStatic) {
       nodeData = { type: DataNodeType.Text } as DataNodeDef;
+    } else if (nodeType === NodeType.DataURL) {
+      nodeData = { type: DataNodeType.Url } as DataNodeDef;
     } else if (nodeType === NodeType.Extract) {
       nodeData = { query: "", schema: {} } as ExtractNodeDef;
     } else if (nodeType === NodeType.Summarize) {
