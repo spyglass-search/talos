@@ -19,7 +19,19 @@ export interface DataNodeDef {
   content?: string;
   url?: string;
   file?: File;
+  connectionData?: ConnectionDataDef;
   type: DataNodeType;
+}
+
+export enum DataNodeType {
+  Connection = "Connection",
+  File = "File",
+  Text = "Text",
+  Url = "Url",
+}
+
+export interface ConnectionDataDef {
+  [key: string]: any
 }
 
 export interface TemplateNodeDef {
@@ -38,12 +50,6 @@ export type NodeDataTypes =
   | TemplateNodeDef
   | SummaryDataDef;
 
-export enum DataNodeType {
-  Connection = "Connection",
-  File = "File",
-  Text = "Text",
-  Url = "Url",
-}
 
 export interface NodeDef {
   uuid: string;

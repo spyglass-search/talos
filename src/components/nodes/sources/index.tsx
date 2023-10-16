@@ -1,4 +1,5 @@
 import { DataNodeDef, DataNodeType, NodeDataTypes } from "../../../types/node";
+import { ConnectionDataNode } from "./connection";
 import { FileDataNode } from "./file";
 import { StaticDataNode } from "./static";
 import { UrlDataNode } from "./url";
@@ -20,7 +21,9 @@ export function DataNodeComponent({
 
   let dataType = data.type;
 
-  if (dataType === DataNodeType.Text) {
+  if (dataType === DataNodeType.Connection) {
+    return <ConnectionDataNode {...baseProps} />;
+  } else if (dataType === DataNodeType.Text) {
     return <StaticDataNode {...baseProps} />;
   } else if (dataType === DataNodeType.File) {
     return <FileDataNode {...baseProps} />;
