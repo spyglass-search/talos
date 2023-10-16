@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import axios from "axios";
 import {
   ArrowDownIcon,
@@ -38,7 +38,7 @@ function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
     <div className="mx-auto">
       <button className="btn" onClick={onAdd}>
         <PlusCircleIcon className="w-8 h-auto" />
-        Add Action
+        Add Step
       </button>
     </div>
   );
@@ -62,19 +62,19 @@ function App() {
   let exampleSelection = useRef(null);
   let addNodeModal = useRef(null);
 
-  // Initialize workflow
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      await axios
-        .get<Array<NodeDef>>(
-          `${process.env.PUBLIC_URL}/workflow-examples/initial.json`,
-        )
-        .then((resp) => resp.data)
-        .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
-    };
+  // // Initialize workflow
+  // useEffect(() => {
+  //   const fetchInitialData = async () => {
+  //     await axios
+  //       .get<Array<NodeDef>>(
+  //         `${process.env.PUBLIC_URL}/workflow-examples/initial.json`,
+  //       )
+  //       .then((resp) => resp.data)
+  //       .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
+  //   };
 
-    fetchInitialData().catch(console.error);
-  }, []);
+  //   fetchInitialData().catch(console.error);
+  // }, []);
 
   let loadExample = async () => {
     if (exampleSelection.current) {
@@ -168,10 +168,10 @@ function App() {
     cancelExecution();
   };
 
-  let onAddNode = (nodeType: NodeType) => {
+  let onAddNode = (nodeType: NodeType, subType: DataNodeType | null) => {
     let nodeData: NodeDataTypes;
-    if (nodeType === NodeType.Data) {
-      nodeData = { type: DataNodeType.Text } as DataNodeDef;
+    if (nodeType === NodeType.DataSource && subType) {
+      nodeData = { type: subType } as DataNodeDef;
     } else if (nodeType === NodeType.Extract) {
       nodeData = { query: "", schema: {} } as ExtractNodeDef;
     } else if (nodeType === NodeType.Summarize) {
@@ -182,7 +182,7 @@ function App() {
 
     let newNode: NodeDef = {
       uuid: crypto.randomUUID(),
-      label: `${nodeType} node`,
+      label: `Untitled step`,
       nodeType: nodeType,
       data: nodeData,
     };
@@ -340,9 +340,8 @@ function App() {
         <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
-              <>
+              <div key={`node-${idx}`} className="flex flex-col gap-4">
                 <NodeComponent
-                  key={`node-${idx}`}
                   {...node}
                   isRunning={node.uuid === currentNodeRunning}
                   lastRun={nodeResults.get(node.uuid)}
@@ -364,7 +363,7 @@ function App() {
                     <ArrowDownIcon className="mt-4 w-4 mx-auto" />
                   )}
                 </DropArea>
-              </>
+              </div>
             );
           })}
           <AddAction
@@ -386,7 +385,7 @@ function App() {
       </div>
       <AddNodeModal
         modalRef={addNodeModal}
-        lastNode={workflow.length > 0 ? workflow[workflow.length] : null}
+        lastNode={workflow.length > 0 ? workflow[workflow.length - 1] : null}
         onClick={onAddNode}
       />
     </main>

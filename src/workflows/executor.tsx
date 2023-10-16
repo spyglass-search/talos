@@ -1,6 +1,7 @@
 import Handlebars from "handlebars";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import {
+  executeConnectionRequest,
   executeFetchUrl,
   executeParseFile,
   executeSummarizeTask,
@@ -48,9 +49,12 @@ export function cancelExecution() {
 
 async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   let data = node.data as DataNodeDef;
-  if (data.type === DataNodeType.File && data.file) {
+  console.debug(`Handling data node type: ${data.type}`);
+  if (data.type === DataNodeType.Connection && data.connectionData) {
+    return await executeConnectionRequest(data.connectionData);
+  } else if (data.type === DataNodeType.File) {
     return await executeParseFile(data.file);
-  } else if (data.type === DataNodeType.Url && data.url) {
+  } else if (data.type === DataNodeType.Url) {
     return await executeFetchUrl(data.url);
   } else if (data.type === DataNodeType.Text) {
     return {
@@ -175,7 +179,7 @@ export async function executeNode(
   }
   console.log("input: ", updatedInput);
 
-  if (node.nodeType === NodeType.Data) {
+  if (node.nodeType === NodeType.DataSource) {
     return _handleDataNode(node);
   } else if (node.nodeType === NodeType.Extract) {
     return _handleExtractNode(node, input);

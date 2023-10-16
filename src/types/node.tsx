@@ -1,6 +1,11 @@
 export enum NodeType {
+  // Data that is being pulled from:
+  // - An integration
+  // - A URL
+  // - A file
+  // - or just a static text blob.
+  DataSource = "DataSource",
   Extract = "Extract",
-  Data = "Data",
   Template = "Template",
   Summarize = "Summarize",
 }
@@ -14,7 +19,19 @@ export interface DataNodeDef {
   content?: string;
   url?: string;
   file?: File;
+  connectionData?: ConnectionDataDef;
   type: DataNodeType;
+}
+
+export enum DataNodeType {
+  Connection = "Connection",
+  File = "File",
+  Text = "Text",
+  Url = "Url",
+}
+
+export interface ConnectionDataDef {
+  [key: string]: any;
 }
 
 export interface TemplateNodeDef {
@@ -27,17 +44,14 @@ export interface SummaryDataDef {
   bulletSummary: string;
 }
 
+// todo: separate NodeResult data types
 export type NodeDataTypes =
   | ExtractNodeDef
   | DataNodeDef
   | TemplateNodeDef
-  | SummaryDataDef;
-
-export enum DataNodeType {
-  File = "File",
-  Text = "Text",
-  Url = "Url",
-}
+  | SummaryDataDef
+  | { [key: string]: string }
+  | any[];
 
 export interface NodeDef {
   uuid: string;
