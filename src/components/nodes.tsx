@@ -362,15 +362,7 @@ export function ShowNodeResult({
   if (!result) {
     return (
       <div className="w-full flex justify-center">
-        <button
-          className="btn btn-neutral indicator"
-          onClick={() => onMappingConfigure()}
-        >
-          <span className="indicator-item indicator-end badge">
-            <BeakerIcon className="h-4 w-4"></BeakerIcon>
-          </span>
-          <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
-        </button>
+        <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
       </div>
     );
   } else if (showResult && result) {
@@ -390,15 +382,7 @@ export function ShowNodeResult({
           </div>
         ) : (
           <div className="w-full flex justify-center">
-            <button
-              className="btn btn-neutral indicator"
-              onClick={() => onMappingConfigure()}
-            >
-              <span className="indicator-item indicator-end badge">
-                <BeakerIcon className="h-4 w-4"></BeakerIcon>
-              </span>
-              <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
-            </button>
+            <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
           </div>
         )}
       </div>
