@@ -8,7 +8,6 @@ import {
 } from "./task-executor";
 import { Subject } from "rxjs";
 import {
-  ConnectionDataDef,
   DataNodeDef,
   DataNodeType,
   ExtractNodeDef,
