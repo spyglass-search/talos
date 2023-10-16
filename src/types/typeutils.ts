@@ -2,6 +2,10 @@ import {
   ExtractResponse,
   LoopNodeDataResult,
   NodeDataResultTypes,
+  NodeDef,
+  NodePropertyDefinition,
+  NodeType,
+  PropertyType,
   StringContentResult,
   SummaryDataDef,
 } from "./node";
@@ -43,5 +47,46 @@ export function getValue(data: NodeDataResultTypes): any {
     return data;
   } else if (Array.isArray(data)) {
     return data;
+  }
+}
+
+export function getOutputTypeDefinition(
+  node: NodeDef,
+): NodePropertyDefinition | undefined {
+  if ((node.nodeType = NodeType.Data)) {
+    return {
+      type: PropertyType.Object,
+      objectDef: {
+        content: {
+          type: PropertyType.String,
+        },
+      },
+    };
+  }
+}
+
+export function getInputTypeDefinition(
+  node: NodeDef,
+): NodePropertyDefinition | undefined {
+  if (node.nodeType === NodeType.Data) {
+    return {
+      type: PropertyType.None,
+    };
+  } else if (node.nodeType === NodeType.Extract) {
+    return {
+      type: PropertyType.String,
+    };
+  } else if (node.nodeType === NodeType.Loop) {
+    return {
+      type: PropertyType.None,
+    };
+  } else if (node.nodeType === NodeType.Summarize) {
+    return {
+      type: PropertyType.String,
+    };
+  } else if (node.nodeType === NodeType.Template) {
+    return {
+      type: PropertyType.Object,
+    };
   }
 }

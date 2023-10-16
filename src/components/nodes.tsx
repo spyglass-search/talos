@@ -11,6 +11,7 @@ import {
   ArrowDownIcon,
   ArrowPathIcon,
   Bars3Icon,
+  BeakerIcon,
   BoltIcon,
   BookOpenIcon,
   CheckBadgeIcon,
@@ -334,13 +335,27 @@ export function NodeComponent({
 
 export function ShowNodeResult({
   result,
+  onMappingConfigure,
 }: {
   result: LastRunDetails | undefined;
+  onMappingConfigure: () => void;
 }) {
   let [showResult, setShowResult] = useState<boolean>(false);
 
   if (!result) {
-    return <ArrowDownIcon className="mt-4 mx-auto w-4" />;
+    return (
+      <div className="w-full flex justify-center">
+        <button
+          className="btn btn-neutral indicator"
+          onClick={() => onMappingConfigure()}
+        >
+          <span className="indicator-item indicator-end badge">
+            <BeakerIcon className="h-4 w-4"></BeakerIcon>
+          </span>
+          <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
+        </button>
+      </div>
+    );
   } else if (showResult && result) {
     return (
       <WorkflowResult
@@ -357,7 +372,17 @@ export function ShowNodeResult({
             View Results
           </div>
         ) : (
-          <ArrowDownIcon className="w-4" />
+          <div className="w-full flex justify-center">
+            <button
+              className="btn btn-neutral indicator"
+              onClick={() => onMappingConfigure()}
+            >
+              <span className="indicator-item indicator-end badge">
+                <BeakerIcon className="h-4 w-4"></BeakerIcon>
+              </span>
+              <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
+            </button>
+          </div>
         )}
       </div>
     );

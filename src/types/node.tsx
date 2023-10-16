@@ -123,3 +123,23 @@ export interface NodeResult {
   data?: NodeDataResultTypes;
   error?: string;
 }
+
+export interface ObjectTypeDefinition {
+  [key: string]: NodePropertyDefinition;
+}
+
+export interface NodePropertyDefinition {
+  type: PropertyType;
+  objectDef?: ObjectTypeDefinition;
+  enumDef?: string[];
+  arrayType?: PropertyType;
+}
+
+export enum PropertyType {
+  Array = "Array",
+  Object = "Object",
+  Number = "Number",
+  String = "String",
+  Enum = "Enum",
+  None = "None",
+}

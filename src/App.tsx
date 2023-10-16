@@ -41,6 +41,7 @@ import AddNodeModal from "./components/modal/AddNodeModal";
 import { runWorkflow } from "./workflows";
 import { createNodeDefFromType } from "./utils/nodeUtils";
 import { WorkflowContext } from "./workflows/workflowinstance";
+import { ConfigureMappingModal } from "./components/modal/ConfigureMappingModal";
 
 function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
   return (
@@ -68,6 +69,9 @@ function App() {
   let [endResult, setEndResult] = useState<NodeResult | null>(null);
   let [dragOverUuid, setDragOverUuid] = useState<string | null>(null);
   let [draggedNode, setDraggedNode] = useState<string | null>(null);
+  let [inputNode, setInputNode] = useState<NodeDef | null>(null);
+  let [outputNode, setOutputNode] = useState<NodeDef | null>(null);
+  let configureMappingModal = useRef<HTMLDialogElement>(null);
   let fileInput = useRef(null);
   let exampleSelection = useRef(null);
   let addNodeModal = useRef(null);
@@ -227,6 +231,14 @@ function App() {
     );
   };
 
+  const configureMappings = (inputNode: NodeDef, outputNode: NodeDef) => {
+    setInputNode(inputNode);
+    setOutputNode(outputNode);
+    if (configureMappingModal.current) {
+      configureMappingModal.current.showModal();
+    }
+  };
+
   return (
     <main className="flex w-screen min-h-screen flex-col gap-8 items-center md:py-8">
       <div className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
@@ -357,7 +369,12 @@ function App() {
                   nodeDropped={nodeDropped}
                 >
                   {idx < workflow.length - 1 ? (
-                    <ShowNodeResult result={nodeResults.get(node.uuid)} />
+                    <ShowNodeResult
+                      result={nodeResults.get(node.uuid)}
+                      onMappingConfigure={() =>
+                        configureMappings(node, workflow[idx + 1])
+                      }
+                    />
                   ) : (
                     <ArrowDownIcon className="mt-4 w-4 mx-auto" />
                   )}
@@ -401,6 +418,9 @@ function App() {
                               <div className="mt-6">
                                 <ShowNodeResult
                                   result={nodeResults.get(childNode.uuid)}
+                                  onMappingConfigure={() =>
+                                    configureMappings(node, workflow[idx + 1])
+                                  }
                                 />
                               </div>
                             </DropArea>
@@ -434,6 +454,11 @@ function App() {
         lastNode={workflow.length > 0 ? workflow[workflow.length] : null}
         onClick={onAddNode}
         inLoop={false}
+      />
+      <ConfigureMappingModal
+        modalRef={configureMappingModal}
+        inputNode={inputNode}
+        outputNode={outputNode}
       />
     </main>
   );
