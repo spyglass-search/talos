@@ -18,6 +18,7 @@ import {
   CheckBadgeIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  CircleStackIcon,
   CloudIcon,
   CodeBracketIcon,
   DocumentTextIcon,
@@ -28,7 +29,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/20/solid";
 import ExtractNode from "./nodes/extract";
-import TemplateNode from "./nodes/template";
+import TemplateNode from "./nodes/destinations/template";
 import SummarizeNode from "./nodes/summarize";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
@@ -86,6 +87,8 @@ export function NodeIcon({ nodeType, subType, className }: NodeIconProps) {
     } else if (subType === DataNodeType.Text) {
       icon = <Bars3BottomLeftIcon className={className} />;
     }
+  } else if (nodeType === NodeType.DataDestination) {
+    icon = <CircleStackIcon className={className} />;
   }
   return icon;
 }
