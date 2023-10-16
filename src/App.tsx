@@ -288,9 +288,8 @@ function App() {
         <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
-              <>
+              <div key={`node-${idx}`}>
                 <NodeComponent
-                  key={`node-${idx}`}
                   {...node}
                   isRunning={node.uuid === currentNodeRunning}
                   lastRun={nodeResults.get(node.uuid)}
@@ -302,7 +301,7 @@ function App() {
                 ) : (
                   <ArrowDownIcon className="mt-4 w-4 mx-auto" />
                 )}
-              </>
+              </div>
             );
           })}
           <AddAction

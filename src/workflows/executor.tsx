@@ -1,12 +1,14 @@
 import Handlebars from "handlebars";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import {
+  executeConnectionRequest,
   executeFetchUrl,
   executeParseFile,
   executeSummarizeTask,
 } from "./task-executor";
 import { Subject } from "rxjs";
 import {
+  ConnectionDataDef,
   DataNodeDef,
   DataNodeType,
   ExtractNodeDef,
@@ -49,7 +51,9 @@ export function cancelExecution() {
 async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   let data = node.data as DataNodeDef;
   console.debug(`Handling data node type: ${data.type}`);
-  if (data.type === DataNodeType.File) {
+  if (data.type === DataNodeType.Connection && data.connectionData) {
+    return await executeConnectionRequest(data.connectionData);
+  } else if (data.type === DataNodeType.File) {
     return await executeParseFile(data.file);
   } else if (data.type === DataNodeType.Url) {
     return await executeFetchUrl(data.url);

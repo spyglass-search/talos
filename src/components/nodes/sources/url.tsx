@@ -17,8 +17,6 @@ export function UrlDataNode({ data, onUpdateData = () => {} }: NodeBodyProps) {
     setDataValue(event.target.value ?? "");
     onUpdateData({
       url: event.target.value,
-      content: nodeData.content,
-      file: nodeData.file,
       type,
     } as DataNodeDef);
   };

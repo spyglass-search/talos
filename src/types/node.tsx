@@ -31,7 +31,7 @@ export enum DataNodeType {
 }
 
 export interface ConnectionDataDef {
-  [key: string]: any
+  [key: string]: any;
 }
 
 export interface TemplateNodeDef {
@@ -44,12 +44,14 @@ export interface SummaryDataDef {
   bulletSummary: string;
 }
 
+// todo: separate NodeResult data types
 export type NodeDataTypes =
   | ExtractNodeDef
   | DataNodeDef
   | TemplateNodeDef
-  | SummaryDataDef;
-
+  | SummaryDataDef
+  | { [key: string]: string }
+  | any[];
 
 export interface NodeDef {
   uuid: string;
