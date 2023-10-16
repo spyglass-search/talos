@@ -1,6 +1,11 @@
 export enum NodeType {
+  // Data that is being pulled from:
+  // - An integration
+  // - A URL
+  // - A file
+  // - or just a static text blob.
+  DataSource = "DataSource",
   Extract = "Extract",
-  Data = "Data",
   Template = "Template",
   Summarize = "Summarize",
   Loop = "Loop",
@@ -15,7 +20,19 @@ export interface DataNodeDef {
   content?: string;
   url?: string;
   file?: File;
+  connectionData?: ConnectionDataDef;
   type: DataNodeType;
+}
+
+export enum DataNodeType {
+  Connection = "Connection",
+  File = "File",
+  Text = "Text",
+  Url = "Url",
+}
+
+export interface ConnectionDataDef {
+  [key: string]: any;
 }
 
 export interface TemplateNodeDef {
@@ -62,12 +79,6 @@ export interface ExtractResponse {
 export interface StringContentResult {
   content: string;
   type: "string";
-}
-
-export enum DataNodeType {
-  File = "File",
-  Text = "Text",
-  Url = "Url",
 }
 
 export interface ObjectResult {

@@ -9,7 +9,7 @@ import { createNodeDefFromType } from "../../utils/nodeUtils";
 export default function Loop({ data, onUpdateData }: NodeBodyProps) {
   let addNodeModal = useRef(null);
   const onAddNode = (type: NodeType) => {
-    let newNode = createNodeDefFromType(type);
+    let newNode = createNodeDefFromType(type, null);
     let loopData = data as ParentDataDef;
     if (newNode) {
       let newActions = [...loopData.actions, newNode];

@@ -53,7 +53,7 @@ export function getValue(data: NodeDataResultTypes): any {
 export function getOutputTypeDefinition(
   node: NodeDef,
 ): NodePropertyDefinition | undefined {
-  if ((node.nodeType = NodeType.Data)) {
+  if ((node.nodeType = NodeType.DataSource)) {
     return {
       type: PropertyType.Object,
       objectDef: {
@@ -68,7 +68,7 @@ export function getOutputTypeDefinition(
 export function getInputTypeDefinition(
   node: NodeDef,
 ): NodePropertyDefinition | undefined {
-  if (node.nodeType === NodeType.Data) {
+  if (node.nodeType === NodeType.DataSource) {
     return {
       type: PropertyType.None,
     };

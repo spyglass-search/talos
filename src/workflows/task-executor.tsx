@@ -8,6 +8,7 @@ import {
   TaskResponse,
 } from "../types/spyglassApi";
 import {
+  ConnectionDataDef,
   DataNodeDef,
   NodeResult,
   NodeResultStatus,
@@ -26,13 +27,94 @@ import {
   Subject,
   merge,
 } from "rxjs";
+import { UserConnection } from "../components/nodes/sources/connection";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 const API_CONFIG: AxiosRequestConfig = {
   headers: { Authorization: `Bearer ${API_TOKEN}` },
 };
 
-export async function executeFetchUrl(url: string): Promise<NodeResult> {
+export async function listUserConnections(): Promise<UserConnection[]> {
+  let config: AxiosRequestConfig = {
+    ...API_CONFIG,
+  };
+
+  return await axios
+    .get<ApiResponse<UserConnection[]>>(`${API_ENDPOINT}/connections`, config)
+    .then((resp) => resp.data.result);
+}
+
+export async function executeConnectionRequest(
+  data: ConnectionDataDef,
+): Promise<NodeResult> {
+  console.debug(`connection request: ${data}`);
+  // Do some light data validation
+  if (!data.connectionId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please choose a valid connection.",
+    };
+  } else if (!data.spreadsheetId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please set a valid spreadsheet id.",
+    };
+  }
+
+  // Setup the data request
+  let config: AxiosRequestConfig = {
+    ...API_CONFIG,
+  };
+
+  // todo: refactor to support other integrations
+  let request = {
+    Sheets: {
+      action: "ReadRows",
+      request: {
+        spreadsheetId: data.spreadsheetId ?? "",
+        sheetId: data.sheetId ?? "",
+        range: "A1:AA100",
+      },
+    },
+  };
+
+  return await axios
+    .post<ApiResponse<[]>>(
+      `${API_ENDPOINT}/connections/${data.connectionId}`,
+      request,
+      config,
+    )
+    .then((resp) => {
+      let result = resp.data.result;
+      return {
+        status: NodeResultStatus.Ok,
+        data: result,
+      };
+    })
+    .catch((err) => {
+      return {
+        status: NodeResultStatus.Error,
+        error: err.toString(),
+      };
+    });
+}
+
+export async function executeFetchUrl(
+  url: string | undefined,
+): Promise<NodeResult> {
+  if (!url || url.length === 0) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "No URL inputed",
+    };
+  } else if (!url.startsWith("http")) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Only http and https URLs are supported.",
+    };
+  }
+
+  console.debug(`fetching url: ${url}`);
   let config: AxiosRequestConfig = {
     params: {
       url,
@@ -56,7 +138,16 @@ export async function executeFetchUrl(url: string): Promise<NodeResult> {
     });
 }
 
-export async function executeParseFile(file: File): Promise<NodeResult> {
+export async function executeParseFile(
+  file: File | undefined,
+): Promise<NodeResult> {
+  if (!file) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "No file selected",
+    };
+  }
+
   let formData = new FormData();
   formData.append("file", file);
   return await axios

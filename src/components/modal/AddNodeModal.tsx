@@ -1,19 +1,30 @@
-import { MutableRefObject } from "react";
+import { MutableRefObject, useState } from "react";
 import Modal from ".";
 import { NodeIcon } from "../nodes";
-import { NodeDef, NodeType } from "../../types/node";
+import { DataNodeType, NodeDef, NodeType } from "../../types/node";
 
 interface AddNodeModalProps {
   lastNode: NodeDef | null;
   modalRef: MutableRefObject<null>;
   inLoop: boolean;
-  onClick?: (nodeType: NodeType) => void;
+  onClick?: (nodeType: NodeType, subType: DataNodeType | null) => void;
 }
 
-function nodeTypeLabel(nType: NodeType): string {
+function nodeTypeLabel(nType: NodeType, subType: DataNodeType | null): string {
   switch (nType) {
-    case NodeType.Data:
-      return "Data Source";
+    case NodeType.DataSource:
+      switch (subType) {
+        case DataNodeType.Connection:
+          return "Connection";
+        case DataNodeType.File:
+          return "File Upload";
+        case DataNodeType.Url:
+          return "URL";
+        case DataNodeType.Text:
+          return "Raw text";
+        default:
+          return "Unknown";
+      }
     case NodeType.Extract:
       return "Extract";
     case NodeType.Summarize:
@@ -33,57 +44,79 @@ export default function AddNodeModal({
   inLoop,
   onClick = (type: NodeType) => {},
 }: AddNodeModalProps) {
-  let allowedList = [];
-  let flowControl = [];
-  if (!lastNode) {
-    allowedList.push(
-      NodeType.Data,
-      NodeType.Extract,
-      NodeType.Summarize,
-      NodeType.Template,
-    );
-  } else if (lastNode) {
-  }
+  let [activeTab, setActiveTab] = useState<number>(0);
 
-  flowControl.push(NodeType.Loop);
+  // todo: validate which nodes can be used based on the last node.
+  let nodeList = [
+    {
+      name: "Data Source",
+      nodes: [
+        { nodeType: NodeType.DataSource, subType: DataNodeType.Connection },
+        { nodeType: NodeType.DataSource, subType: DataNodeType.File },
+        { nodeType: NodeType.DataSource, subType: DataNodeType.Text },
+        { nodeType: NodeType.DataSource, subType: DataNodeType.Url },
+      ],
+    },
+    {
+      name: "Actions",
+      nodes: [
+        { nodeType: NodeType.Extract, subType: null },
+        { nodeType: NodeType.Summarize, subType: null },
+      ],
+    },
+    {
+      name: "Destination",
+      nodes: [{ nodeType: NodeType.Template, subType: null }],
+    },
+    {
+      name: "Flow Control",
+      nodes: [{ nodeType: NodeType.Loop, subType: null }],
+    },
+  ];
 
   return (
     <Modal modalRef={modalRef}>
-      <div>
-        <h2 className="text-xl font-bold mb-4">Add Action</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {allowedList.map((nodeType) => {
-            return (
-              <button
-                key={nodeType}
-                className="btn btn-neutral flex flex-row items-center gap-2"
-                onClick={() => onClick(nodeType)}
-              >
-                <NodeIcon nodeType={nodeType} className="w-6" />
-                <div>{nodeTypeLabel(nodeType)}</div>
-              </button>
-            );
-          })}
-        </div>
-        {!inLoop ? (
-          <>
-            <h2 className="text-xl font-bold mb-4 mt-4">Flow Control</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {flowControl.map((nodeType) => {
+      <div className="tabs tabs-boxed">
+        {nodeList.map((nodeType, idx) => (
+          <div
+            className={`tab tab-lifted ${
+              activeTab === idx ? "tab-active" : ""
+            }`}
+            key={nodeType.name}
+            onClick={(e) => setActiveTab(idx)}
+          >
+            {nodeType.name}
+          </div>
+        ))}
+      </div>
+      <div className="p-4">
+        {nodeList.map((nodeType, idx) => {
+          let activeClass = activeTab === idx ? "grid" : "hidden";
+          return (
+            <div
+              className={`${activeClass} grid-cols-2 gap-4`}
+              key={`nodetab-${idx}`}
+            >
+              {nodeType.nodes.map((node, idx) => {
+                let { nodeType, subType } = node;
                 return (
                   <button
-                    key={nodeType}
+                    key={`nodetype-${idx}`}
                     className="btn btn-neutral flex flex-row items-center gap-2"
-                    onClick={() => onClick(nodeType)}
+                    onClick={() => onClick(nodeType, subType)}
                   >
-                    <NodeIcon nodeType={nodeType} className="w-6" />
-                    <div>{nodeTypeLabel(nodeType)}</div>
+                    <NodeIcon
+                      nodeType={nodeType}
+                      subType={subType}
+                      className="w-6"
+                    />
+                    <div>{nodeTypeLabel(nodeType, subType)}</div>
                   </button>
                 );
               })}
-            </div>{" "}
-          </>
-        ) : null}
+            </div>
+          );
+        })}
       </div>
     </Modal>
   );

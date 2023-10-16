@@ -6,10 +6,13 @@ import {
   NodeUpdates,
   NodeResult,
   NodeDataTypes,
+  DataNodeDef,
+  DataNodeType,
 } from "../types/node";
 import {
   ArrowDownIcon,
   ArrowPathIcon,
+  Bars3BottomLeftIcon,
   Bars3Icon,
   BeakerIcon,
   BoltIcon,
@@ -17,8 +20,11 @@ import {
   CheckBadgeIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  CloudIcon,
   CodeBracketIcon,
+  DocumentTextIcon,
   ExclamationCircleIcon,
+  GlobeAltIcon,
   NoSymbolIcon,
   TableCellsIcon,
   XMarkIcon,
@@ -26,11 +32,11 @@ import {
 import ExtractNode from "./nodes/extract";
 import TemplateNode from "./nodes/template";
 import SummarizeNode from "./nodes/summarize";
-import { DataNode } from "./nodes/sources";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 import Loop from "./nodes/loop";
 import { getValue, isStringResult } from "../types/typeutils";
+import { DataNodeComponent } from "./nodes/sources";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -54,17 +60,19 @@ export interface NodeBodyProps {
 export interface NodeHeaderProps {
   label: string;
   nodeType: NodeType;
+  subType?: DataNodeType;
   onUpdate?: (newValue: string, oldValue: string) => void;
 }
 
 export interface NodeIconProps {
   nodeType: NodeType;
+  subType?: DataNodeType | null;
   className?: string;
 }
 
 const BASE_CARD_STYLE = "card shadow-xl w-full md:w-[480px] lg:w-[640px]";
 
-export function NodeIcon({ nodeType, className }: NodeIconProps) {
+export function NodeIcon({ nodeType, subType, className }: NodeIconProps) {
   let icon = <TableCellsIcon className={className} />;
   if (nodeType === NodeType.Extract) {
     icon = <BoltIcon className={className} />;
@@ -72,6 +80,16 @@ export function NodeIcon({ nodeType, className }: NodeIconProps) {
     icon = <CodeBracketIcon className={className} />;
   } else if (nodeType === NodeType.Summarize) {
     icon = <BookOpenIcon className={className} />;
+  } else if (nodeType === NodeType.DataSource) {
+    if (subType === DataNodeType.Connection) {
+      icon = <CloudIcon className={className} />;
+    } else if (subType === DataNodeType.Url) {
+      icon = <GlobeAltIcon className={className} />;
+    } else if (subType === DataNodeType.File) {
+      icon = <DocumentTextIcon className={className} />;
+    } else if (subType === DataNodeType.Text) {
+      icon = <Bars3BottomLeftIcon className={className} />;
+    }
   } else if (nodeType === NodeType.Loop) {
     icon = <ArrowPathIcon className={className} />;
   }
@@ -80,12 +98,13 @@ export function NodeIcon({ nodeType, className }: NodeIconProps) {
 
 export function NodeHeader({
   nodeType,
+  subType,
   label,
   onUpdate = () => {},
 }: NodeHeaderProps) {
   return (
     <h2 className="card-title flex flex-row">
-      <NodeIcon nodeType={nodeType} className="w-6 h-6" />
+      <NodeIcon nodeType={nodeType} subType={subType} className="w-6 h-6" />
       <EditableText
         data={label}
         onChange={(newValue) => onUpdate(newValue, label)}
@@ -225,29 +244,27 @@ export function NodeComponent({
     }
   }, [isRunning]);
 
+  let baseProps = {
+    data: data,
+    onUpdateData: (data: any) => onUpdate({ data }),
+  };
+
   let renderNodeBody = () => {
     if (nodeType === NodeType.Extract) {
+      return <ExtractNode {...baseProps} />;
+    } else if (nodeType === NodeType.DataSource) {
       return (
-        <ExtractNode data={data} onUpdateData={(data) => onUpdate({ data })} />
-      );
-    } else if (nodeType === NodeType.Data) {
-      // todo: handle other data node types
-      return (
-        <DataNode data={data} onUpdateData={(data) => onUpdate({ data })} />
-      );
-    } else if (nodeType === NodeType.Template) {
-      return (
-        <TemplateNode data={data} onUpdateData={(data) => onUpdate({ data })} />
-      );
-    } else if (nodeType === NodeType.Summarize) {
-      return (
-        <SummarizeNode
-          data={data}
-          onUpdateData={(data) => onUpdate({ data })}
+        <DataNodeComponent
+          data={data as DataNodeDef}
+          onUpdate={(data) => onUpdate({ data })}
         />
       );
+    } else if (nodeType === NodeType.Template) {
+      return <TemplateNode {...baseProps} />;
+    } else if (nodeType === NodeType.Summarize) {
+      return <SummarizeNode {...baseProps} />;
     } else if (nodeType === NodeType.Loop) {
-      return <Loop data={data} onUpdateData={(data) => onUpdate({ data })} />;
+      return <Loop {...baseProps} />;
     }
     return null;
   };
