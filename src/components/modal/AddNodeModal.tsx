@@ -70,15 +70,15 @@ export default function AddNodeModal({
     <Modal modalRef={modalRef}>
       <div className="tabs tabs-boxed">
         {nodeList.map((nodeType, idx) => (
-          <button
+          <div
             className={`tab tab-lifted ${
               activeTab === idx ? "tab-active" : ""
             }`}
             key={nodeType.name}
-            onClick={() => setActiveTab(idx)}
+            onClick={(e) => setActiveTab(idx)}
           >
             {nodeType.name}
-          </button>
+          </div>
         ))}
       </div>
       <div className="p-4">

@@ -182,7 +182,7 @@ function App() {
 
     let newNode: NodeDef = {
       uuid: crypto.randomUUID(),
-      label: `Untitled node`,
+      label: `Untitled step`,
       nodeType: nodeType,
       data: nodeData,
     };
@@ -340,7 +340,7 @@ function App() {
         <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
-              <div key={`node-${idx}`}>
+              <div key={`node-${idx}`} className="flex flex-col gap-4">
                 <NodeComponent
                   {...node}
                   isRunning={node.uuid === currentNodeRunning}
