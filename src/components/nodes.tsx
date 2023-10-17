@@ -34,6 +34,7 @@ import SummarizeNode from "./nodes/summarize";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 import { DataNodeComponent } from "./nodes/sources";
+import DataDestinationNode from "./nodes/destinations/connection";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -258,7 +259,10 @@ export function NodeComponent({
       return <TemplateNode {...baseProps} />;
     } else if (nodeType === NodeType.Summarize) {
       return <SummarizeNode {...baseProps} />;
+    } else if (nodeType === NodeType.DataDestination) {
+      return <DataDestinationNode {...baseProps} />;
     }
+
     return null;
   };
 
