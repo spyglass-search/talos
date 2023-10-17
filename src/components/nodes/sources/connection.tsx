@@ -93,10 +93,8 @@ export function ConnectionDataNode({
           value={spreadsheetId || ""}
           onChange={(event) => {
             let spreadsheetId = event.target.value ?? "";
-            if (spreadsheetId) {
-              setSpreadsheetID(spreadsheetId);
-              updateNodeData({ spreadsheetId });
-            }
+            setSpreadsheetID(spreadsheetId);
+            updateNodeData({ spreadsheetId });
           }}
         />
       </div>
@@ -111,10 +109,8 @@ export function ConnectionDataNode({
           value={sheetId || ""}
           onChange={(event) => {
             let sheetId = event.target.value ?? "";
-            if (sheetId) {
-              setSheetId(event.target.value ?? "");
-              updateNodeData({ sheetId });
-            }
+            setSheetId(sheetId);
+            updateNodeData({ sheetId });
           }}
         />
       </div>
