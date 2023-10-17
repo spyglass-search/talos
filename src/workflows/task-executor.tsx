@@ -11,6 +11,8 @@ import {
   ConnectionDataDef,
   DataNodeDef,
   NodeResult,
+  NodeResultStatus,
+  StringContentResult,
   SummaryDataDef,
 } from "../types/node";
 import {
@@ -26,16 +28,25 @@ import {
   merge,
 } from "rxjs";
 import { UserConnection } from "../components/nodes/sources/connection";
+import { WorkflowContext } from "./workflowinstance";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 const API_CONFIG: AxiosRequestConfig = {
   headers: { Authorization: `Bearer ${API_TOKEN}` },
 };
 
-export async function listUserConnections(): Promise<UserConnection[]> {
+export async function listUserConnections(
+  token?: string,
+): Promise<UserConnection[]> {
   let config: AxiosRequestConfig = {
     ...API_CONFIG,
   };
+
+  if (token) {
+    config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+  }
 
   return await axios
     .get<ApiResponse<UserConnection[]>>(`${API_ENDPOINT}/connections`, config)
@@ -44,17 +55,18 @@ export async function listUserConnections(): Promise<UserConnection[]> {
 
 export async function executeConnectionRequest(
   data: ConnectionDataDef,
+  token?: string,
 ): Promise<NodeResult> {
   console.debug(`connection request: ${data}`);
   // Do some light data validation
   if (!data.connectionId) {
     return {
-      status: "error",
+      status: NodeResultStatus.Error,
       error: "Please choose a valid connection.",
     };
   } else if (!data.spreadsheetId) {
     return {
-      status: "error",
+      status: NodeResultStatus.Error,
       error: "Please set a valid spreadsheet id.",
     };
   }
@@ -63,6 +75,12 @@ export async function executeConnectionRequest(
   let config: AxiosRequestConfig = {
     ...API_CONFIG,
   };
+
+  if (token) {
+    config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+  }
 
   // todo: refactor to support other integrations
   let request = {
@@ -85,13 +103,13 @@ export async function executeConnectionRequest(
     .then((resp) => {
       let result = resp.data.result;
       return {
-        status: "ok",
+        status: NodeResultStatus.Ok,
         data: result,
       };
     })
     .catch((err) => {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: err.toString(),
       };
     });
@@ -99,15 +117,15 @@ export async function executeConnectionRequest(
 
 export async function executeFetchUrl(
   url: string | undefined,
-): Promise<NodeResult | ApiError> {
+): Promise<NodeResult> {
   if (!url || url.length === 0) {
     return {
-      status: "error",
+      status: NodeResultStatus.Error,
       error: "No URL inputed",
     };
   } else if (!url.startsWith("http")) {
     return {
-      status: "error",
+      status: NodeResultStatus.Error,
       error: "Only http and https URLs are supported.",
     };
   }
@@ -124,13 +142,13 @@ export async function executeFetchUrl(
     .then((resp) => {
       let { content } = resp.data.result;
       return {
-        status: "ok",
-        data: { content } as DataNodeDef,
+        status: NodeResultStatus.Ok,
+        data: { content, type: "string" } as StringContentResult,
       } as NodeResult;
     })
     .catch((err) => {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: err.toString(),
       };
     });
@@ -138,10 +156,10 @@ export async function executeFetchUrl(
 
 export async function executeParseFile(
   file: File | undefined,
-): Promise<NodeResult | ApiError> {
+): Promise<NodeResult> {
   if (!file) {
     return {
-      status: "error",
+      status: NodeResultStatus.Error,
       error: "No file selected",
     };
   }
@@ -157,15 +175,15 @@ export async function executeParseFile(
     .then((resp) => {
       let { parsed } = resp.data.result;
       return {
-        status: "ok",
-        data: { content: parsed } as DataNodeDef,
+        status: NodeResultStatus.Ok,
+        data: { content: parsed, type: "string" } as StringContentResult,
       } as NodeResult;
     })
     .catch((err) => {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: err.toString(),
-      };
+      } as NodeResult;
     });
 }
 
@@ -173,11 +191,17 @@ export async function executeSummarizeTask(
   input: NodeResult | null,
   controller: AbortController,
   cancelListener: Observable<boolean>,
-): Promise<NodeResult | ApiError> {
+  executeContext: WorkflowContext,
+): Promise<NodeResult> {
   let config: AxiosRequestConfig = {
     signal: controller.signal,
     ...API_CONFIG,
   };
+
+  if (executeContext.getAuthToken) {
+    const token = executeContext.getAuthToken();
+    config.headers = { Authorization: `Bearer ${token}` };
+  }
 
   let text = "";
   if (input && input.data && "content" in input.data) {
@@ -193,7 +217,7 @@ export async function executeSummarizeTask(
     .then((resp) => resp.data)
     .catch((err) => {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: err.toString(),
       };
     });
@@ -209,7 +233,7 @@ export async function executeSummarizeTask(
 
     if (!taskResponse.result) {
       return {
-        status: "error",
+        status: NodeResultStatus.Error,
         error: "Invalid response",
       };
     }
@@ -224,7 +248,7 @@ export async function executeSummarizeTask(
   } else {
     let res = await lastValueFrom(of(response));
     return {
-      status: "error",
+      status: NodeResultStatus.Error,
       error: "error" in res ? res.error : JSON.stringify(res),
     };
   }
