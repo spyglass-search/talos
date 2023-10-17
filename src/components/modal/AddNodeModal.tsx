@@ -31,6 +31,8 @@ function nodeTypeLabel(nType: NodeType, subType: DataNodeType | null): string {
       return "Summarize";
     case NodeType.Template:
       return "Template";
+    case NodeType.DataDestination:
+      return "Connection";
     case NodeType.Loop:
       return "Loop";
     default:
@@ -49,7 +51,7 @@ export default function AddNodeModal({
   // todo: validate which nodes can be used based on the last node.
   let nodeList = [
     {
-      name: "Data Source",
+      name: "Data Sources",
       nodes: [
         { nodeType: NodeType.DataSource, subType: DataNodeType.Connection },
         { nodeType: NodeType.DataSource, subType: DataNodeType.File },
@@ -62,11 +64,12 @@ export default function AddNodeModal({
       nodes: [
         { nodeType: NodeType.Extract, subType: null },
         { nodeType: NodeType.Summarize, subType: null },
+        { nodeType: NodeType.Template, subType: null },
       ],
     },
     {
-      name: "Destination",
-      nodes: [{ nodeType: NodeType.Template, subType: null }],
+      name: "Destinations",
+      nodes: [{ nodeType: NodeType.DataDestination, subType: null }],
     },
   ];
 

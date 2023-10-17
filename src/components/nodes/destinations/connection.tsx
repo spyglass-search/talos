@@ -1,44 +1,29 @@
-import { useEffect, useState } from "react";
-import { NodeBodyProps } from "../../nodes";
+import React, { useEffect, useState } from "react";
 import { ConnectionDataDef, DataNodeDef } from "../../../types/node";
+import { NodeBodyProps } from "../../nodes";
 import {
   GlobeAltIcon,
   TableCellsIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
+import { UserConnection } from "../sources/connection";
 import { listUserConnections } from "../../../workflows/task-executor";
 
-export interface UserConnection {
-  id: number;
-  apiId: string;
-  account: string;
-}
-
-export function ConnectionDataNode({
+export default function DataDestinationNode({
   data,
   onUpdateData = () => {},
-  getAuthToken,
 }: NodeBodyProps) {
   let nodeData = data as DataNodeDef;
-  let [type, setType] = useState(nodeData.type);
-
   let [userConns, setUserConns] = useState<UserConnection[]>([]);
   let [connectionId, setConnectionId] = useState<number | null>(null);
   let [spreadsheetId, setSpreadsheetID] = useState<string | null>(null);
   let [sheetId, setSheetId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (getAuthToken) {
-      getAuthToken()
-        .then((token) => listUserConnections(token))
-        .then((conns) => setUserConns(conns));
-    } else {
-      listUserConnections().then((conns) => setUserConns(conns));
-    }
-  }, [getAuthToken]);
+    listUserConnections().then((conns) => setUserConns(conns));
+  }, []);
 
   useEffect(() => {
-    setType(nodeData.type);
     if (nodeData.connectionData) {
       let data = nodeData.connectionData;
       setSpreadsheetID(data.spreadsheetId ?? null);
@@ -53,12 +38,12 @@ export function ConnectionDataNode({
         spreadsheetId: newData.spreadsheetId ?? spreadsheetId,
         sheetId: newData.sheetId ?? sheetId,
       },
-      type,
     });
   };
 
   return (
     <div className="flex flex-col gap-4">
+      <div>Appends rows to the sheet specified.</div>
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
           <UserCircleIcon className="w-4" />

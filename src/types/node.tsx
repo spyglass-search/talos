@@ -1,4 +1,6 @@
 export enum NodeType {
+  // Take a generated output and save it somewhere
+  DataDestination = "DataDestination",
   // Data that is being pulled from:
   // - An integration
   // - A URL
@@ -63,6 +65,7 @@ export type NodeDataResultTypes =
   | ExtractResponse
   | MultiNodeDataResult
   | SummaryDataDef
+  | ObjectResult
   | any[];
 
 export type MultiNodeDataResult = NodeResult[];

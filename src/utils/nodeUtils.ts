@@ -25,6 +25,8 @@ export function createNodeDefFromType(
     nodeData = { template: "", varMapping: {} } as TemplateNodeDef;
   } else if (nodeType === NodeType.Loop) {
     nodeData = { actions: [] } as ParentDataDef;
+  } else if (nodeType === NodeType.DataDestination) {
+    nodeData = {};
   } else {
     return undefined;
   }
@@ -36,6 +38,7 @@ export function createNodeDefFromType(
     data: nodeData,
     parentNode: nodeType === NodeType.Loop,
   };
+
   return newNode;
 }
 

@@ -9,9 +9,9 @@ import {
 } from "../types/spyglassApi";
 import {
   ConnectionDataDef,
-  DataNodeDef,
   NodeResult,
   NodeResultStatus,
+  ObjectResult,
   StringContentResult,
   SummaryDataDef,
 } from "../types/node";
@@ -29,9 +29,10 @@ import {
 } from "rxjs";
 import { UserConnection } from "../components/nodes/sources/connection";
 import { WorkflowContext } from "./workflowinstance";
-const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
-const API_TOKEN = process.env.REACT_APP_API_TOKEN;
-const API_CONFIG: AxiosRequestConfig = {
+
+export const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
+export const API_TOKEN = process.env.REACT_APP_API_TOKEN;
+export const API_CONFIG: AxiosRequestConfig = {
   headers: { Authorization: `Bearer ${API_TOKEN}` },
 };
 
@@ -55,6 +56,7 @@ export async function listUserConnections(
 
 export async function executeConnectionRequest(
   data: ConnectionDataDef,
+  request: ObjectResult,
   token?: string,
 ): Promise<NodeResult> {
   console.debug(`connection request: ${data}`);
@@ -81,18 +83,6 @@ export async function executeConnectionRequest(
       headers: { Authorization: `Bearer ${token}` },
     };
   }
-
-  // todo: refactor to support other integrations
-  let request = {
-    Sheets: {
-      action: "ReadRows",
-      request: {
-        spreadsheetId: data.spreadsheetId ?? "",
-        sheetId: data.sheetId ?? "",
-        range: "A1:AA100",
-      },
-    },
-  };
 
   return await axios
     .post<ApiResponse<[]>>(
@@ -198,10 +188,8 @@ export async function executeSummarizeTask(
     ...API_CONFIG,
   };
 
-  if (executeContext.getAuthToken) {
-    const token = executeContext.getAuthToken();
-    config.headers = { Authorization: `Bearer ${token}` };
-  }
+  const token = executeContext.getAuthToken();
+  config.headers = { Authorization: `Bearer ${token}` };
 
   let text = "";
   if (input && input.data && "content" in input.data) {
