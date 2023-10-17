@@ -350,34 +350,37 @@ function App() {
         <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
-              <div key={`node-${idx}`} className="flex flex-col gap-4">
-                <NodeComponent
-                  {...node}
-                  isRunning={node.uuid === currentNodeRunning}
-                  lastRun={nodeResults.get(node.uuid)}
-                  onDelete={() => deleteWorkflowNode(node.uuid)}
-                  onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
-                  dragUpdate={(uuid) => setDraggedNode(uuid)}
-                />
-                <DropArea
-                  uuid={node.uuid}
-                  dropAfter={true}
-                  isValidDropSpot={isValidDropSpot}
-                  setDragOverUuid={setDragOverUuid}
-                  setDragNDropAfter={setDragNDropAfter}
-                  nodeDropped={nodeDropped}
-                >
-                  {idx < workflow.length - 1 ? (
-                    <ShowNodeResult
-                      result={nodeResults.get(node.uuid)}
-                      onMappingConfigure={() =>
-                        configureMappings(node, workflow[idx + 1])
-                      }
-                    />
-                  ) : (
-                    <ArrowDownIcon className="mt-4 w-4 mx-auto" />
-                  )}
-                </DropArea>
+              <>
+                <div key={`node-${idx}`} className="flex flex-col gap-4">
+                  <NodeComponent
+                    {...node}
+                    isRunning={node.uuid === currentNodeRunning}
+                    lastRun={nodeResults.get(node.uuid)}
+                    onDelete={() => deleteWorkflowNode(node.uuid)}
+                    onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
+                    dragUpdate={(uuid) => setDraggedNode(uuid)}
+                  />
+                  <DropArea
+                    uuid={node.uuid}
+                    dropAfter={true}
+                    isValidDropSpot={isValidDropSpot}
+                    setDragOverUuid={setDragOverUuid}
+                    setDragNDropAfter={setDragNDropAfter}
+                    nodeDropped={nodeDropped}
+                  >
+                    {idx < workflow.length - 1 ? (
+                      <ShowNodeResult
+                        result={nodeResults.get(node.uuid)}
+                        onMappingConfigure={() =>
+                          configureMappings(node, workflow[idx + 1])
+                        }
+                      />
+                    ) : (
+                      <ArrowDownIcon className="mt-4 w-4 mx-auto" />
+                    )}
+                  </DropArea>
+                </div>
+
                 {node.parentNode
                   ? (node.data as ParentDataDef).actions.map(
                       (childNode, childIdx) => {
@@ -428,7 +431,7 @@ function App() {
                       },
                     )
                   : null}
-              </div>
+              </>
             );
           })}
           <AddAction
