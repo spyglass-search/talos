@@ -36,6 +36,7 @@ import AddNodeModal from "./components/modal/AddNodeModal";
 import { runWorkflow } from "./workflows";
 import { createNodeDefFromType } from "./utils/nodeUtils";
 import { ConfigureMappingModal } from "./components/modal/ConfigureMappingModal";
+import { API_TOKEN } from "./workflows/task-executor";
 
 function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
   return (
@@ -70,20 +71,6 @@ function App() {
   let exampleSelection = useRef(null);
   let addNodeModal = useRef(null);
 
-  // // Initialize workflow
-  // useEffect(() => {
-  //   const fetchInitialData = async () => {
-  //     await axios
-  //       .get<Array<NodeDef>>(
-  //         `${process.env.PUBLIC_URL}/workflow-examples/initial.json`,
-  //       )
-  //       .then((resp) => resp.data)
-  //       .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
-  //   };
-
-  //   fetchInitialData().catch(console.error);
-  // }, []);
-
   let loadExample = async () => {
     if (exampleSelection.current) {
       let value = (exampleSelection.current as HTMLSelectElement).value;
@@ -110,6 +97,9 @@ function App() {
       (currentResults) => {
         setNodeResults(currentResults);
       },
+      async () => {
+        return API_TOKEN ?? '';
+      }
     );
 
     setEndResult(lastResult);
