@@ -98,8 +98,8 @@ function App() {
         setNodeResults(currentResults);
       },
       async () => {
-        return API_TOKEN ?? '';
-      }
+        return API_TOKEN ?? "";
+      },
     );
 
     setEndResult(lastResult);

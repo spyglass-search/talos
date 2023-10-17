@@ -70,12 +70,18 @@ async function _handleDataNode(
         request: {
           spreadsheetId: cdata.spreadsheetId ?? "",
           sheetId: cdata.sheetId ?? "",
-          range: "A1:AA100",
+          // note: starts on the second row, assuming the first one are the
+          // column headers.
+          range: "A2:AA100",
         },
       },
     };
 
-    return await executeConnectionRequest(cdata, request, await executeContext.getAuthToken());
+    return await executeConnectionRequest(
+      cdata,
+      request,
+      await executeContext.getAuthToken(),
+    );
   } else if (data.type === DataNodeType.File) {
     return await executeParseFile(data.file);
   } else if (data.type === DataNodeType.Url) {
@@ -102,13 +108,13 @@ async function _handleDataNode(
 async function _handleDestinationNode(
   node: NodeDef,
   input: NodeResult | null,
-  executeContext: WorkflowContext
+  executeContext: WorkflowContext,
 ): Promise<NodeResult> {
   let ndata = node.data as DataNodeDef;
   if (!ndata.connectionData) {
     return {
       status: "error",
-      error: "Connection not setup"
+      error: "Connection not setup",
     } as NodeResult;
   }
 
@@ -130,7 +136,7 @@ async function _handleDestinationNode(
   if (!input || !input.data || !Array.isArray(input.data)) {
     return {
       status: "ok",
-      content: "Added 0 rows"
+      content: "Added 0 rows",
     } as NodeResult;
   }
 
@@ -140,18 +146,21 @@ async function _handleDestinationNode(
       request: {
         spreadsheetId: data.spreadsheetId ?? "",
         sheetId: data.sheetId ?? "",
-        data: input.data
+        data: input.data,
       },
     },
   };
 
-
-  await executeConnectionRequest(data, request, await executeContext.getAuthToken());
+  await executeConnectionRequest(
+    data,
+    request,
+    await executeContext.getAuthToken(),
+  );
   return {
     status: "ok",
     data: {
       content: `Added ${input.data.length} rows`,
-      type: "string"
+      type: "string",
     } as StringContentResult,
   } as NodeResult;
 }

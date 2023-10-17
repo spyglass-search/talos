@@ -9,7 +9,6 @@ import {
 } from "../types/spyglassApi";
 import {
   ConnectionDataDef,
-  DataNodeDef,
   NodeResult,
   NodeResultStatus,
   ObjectResult,

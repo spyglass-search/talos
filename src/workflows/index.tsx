@@ -1,6 +1,5 @@
 import { LastRunDetails, NodeDef, NodeResult } from "../types/node";
 import { track } from "../utils/metrics";
-import { executeNode } from "./executor";
 import { WorkflowContext } from "./workflowinstance";
 
 export async function runWorkflow(

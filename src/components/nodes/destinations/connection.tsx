@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  ConnectionDataDef,
-  DataNodeDef,
-  TemplateNodeDef,
-} from "../../../types/node";
+import { ConnectionDataDef, DataNodeDef } from "../../../types/node";
 import { NodeBodyProps } from "../../nodes";
 import {
   GlobeAltIcon,

@@ -29,13 +29,13 @@ export function ConnectionDataNode({
 
   useEffect(() => {
     if (getAuthToken) {
-      getAuthToken().then((token) => {
-        listUserConnections(token).then((conns) => setUserConns(conns));
-      });
+      getAuthToken()
+        .then((token) => listUserConnections(token))
+        .then((conns) => setUserConns(conns));
     } else {
       listUserConnections().then((conns) => setUserConns(conns));
     }
-  }, []);
+  }, [getAuthToken]);
 
   useEffect(() => {
     setType(nodeData.type);

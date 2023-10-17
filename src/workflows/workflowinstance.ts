@@ -3,8 +3,6 @@ import {
   MultiNodeDataResult,
   NodeDef,
   NodeResult,
-  NodeType,
-  ParentDataDef,
 } from "../types/node";
 import { executeNode } from "./executor";
 import { isInLoop, isLastNode } from "./utils";
