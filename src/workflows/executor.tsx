@@ -71,6 +71,16 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
   };
 }
 
+async function _handleDestinationNode(node: NodeDef, input: NodeResult | null) {
+  console.log(node);
+  return {
+    status: "ok",
+    data: {
+      content: "Added 10 rows"
+    } as DataNodeDef
+  } as NodeResult
+}
+
 async function _handleExtractNode(
   node: NodeDef,
   input: NodeResult | null,
@@ -187,6 +197,8 @@ export async function executeNode(
     return _handleSummarizeNode(node, updatedInput);
   } else if (node.nodeType === NodeType.Template) {
     return _handleTemplateNode(node, input);
+  } else if (node.nodeType === NodeType.DataDestination) {
+    return _handleDestinationNode(node, input);
   }
 
   return {

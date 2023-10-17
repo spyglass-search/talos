@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DataNodeDef, TemplateNodeDef } from "../../../types/node";
+import { ConnectionDataDef, DataNodeDef, TemplateNodeDef } from "../../../types/node";
 import { NodeBodyProps } from "../../nodes";
 import { GlobeAltIcon, TableCellsIcon, UserCircleIcon } from "@heroicons/react/20/solid";
 import { UserConnection } from "../sources/connection";
@@ -10,8 +10,6 @@ export default function DataDestinationNode({
   onUpdateData = () => {},
 }: NodeBodyProps) {
   let nodeData = data as DataNodeDef;
-  let [type, setType] = useState(nodeData.type);
-
   let [userConns, setUserConns] = useState<UserConnection[]>([]);
   let [connectionId, setConnectionId] = useState<number | null>(null);
   let [spreadsheetId, setSpreadsheetID] = useState<string | null>(null);
@@ -22,7 +20,6 @@ export default function DataDestinationNode({
   }, []);
 
   useEffect(() => {
-    setType(nodeData.type);
     if (nodeData.connectionData) {
       let data = nodeData.connectionData;
       setSpreadsheetID(data.spreadsheetId ?? null);
@@ -30,10 +27,21 @@ export default function DataDestinationNode({
     }
   }, [nodeData]);
 
-  let updateNodeData = (_: any) => {};
+  let updateNodeData = (newData: ConnectionDataDef) => {
+    onUpdateData({
+      connectionData: {
+        connectionId: newData.connectionId ?? connectionId,
+        spreadsheetId: newData.spreadsheetId ?? spreadsheetId,
+        sheetId: newData.sheetId ?? sheetId,
+      }
+    });
+  };
 
   return (
     <div className="flex flex-col gap-4">
+      <div>
+        Appends rows to the sheet specified.
+      </div>
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
           <UserCircleIcon className="w-4" />

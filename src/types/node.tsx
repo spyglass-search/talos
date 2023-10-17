@@ -52,7 +52,7 @@ export type NodeDataTypes =
   | DataNodeDef
   | TemplateNodeDef
   | SummaryDataDef
-  | { [key: string]: string }
+  | { [key: string]: any }
   | any[];
 
 export interface NodeDef {

@@ -176,8 +176,12 @@ function App() {
       nodeData = { query: "", schema: {} } as ExtractNodeDef;
     } else if (nodeType === NodeType.Summarize) {
       nodeData = { summary: "", bulletSummary: "" } as SummaryDataDef;
-    } else {
+    } else if (nodeType === NodeType.Template) {
       nodeData = { template: "", varMapping: {} } as TemplateNodeDef;
+    } else if (nodeType === NodeType.DataDestination) {
+      nodeData = {};
+    } else {
+      nodeData = {};
     }
 
     let newNode: NodeDef = {
