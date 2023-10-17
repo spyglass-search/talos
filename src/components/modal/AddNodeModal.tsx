@@ -6,6 +6,7 @@ import { DataNodeType, NodeDef, NodeType } from "../../types/node";
 interface AddNodeModalProps {
   lastNode: NodeDef | null;
   modalRef: MutableRefObject<null>;
+  inLoop: boolean;
   onClick?: (nodeType: NodeType, subType: DataNodeType | null) => void;
 }
 
@@ -31,7 +32,9 @@ function nodeTypeLabel(nType: NodeType, subType: DataNodeType | null): string {
     case NodeType.Template:
       return "Template";
     case NodeType.DataDestination:
-      return "Connection"
+      return "Connection";
+    case NodeType.Loop:
+      return "Loop";
     default:
       return "Unknown";
   }
@@ -40,7 +43,8 @@ function nodeTypeLabel(nType: NodeType, subType: DataNodeType | null): string {
 export default function AddNodeModal({
   lastNode,
   modalRef,
-  onClick = () => {},
+  inLoop,
+  onClick = (type: NodeType) => {},
 }: AddNodeModalProps) {
   let [activeTab, setActiveTab] = useState<number>(0);
 
@@ -65,11 +69,16 @@ export default function AddNodeModal({
     },
     {
       name: "Destinations",
-      nodes: [
-        { nodeType: NodeType.DataDestination, subType: null },
-      ],
+      nodes: [{ nodeType: NodeType.DataDestination, subType: null }],
     },
   ];
+
+  if (!inLoop) {
+    nodeList.push({
+      name: "Flow Control",
+      nodes: [{ nodeType: NodeType.Loop, subType: null }],
+    });
+  }
 
   return (
     <Modal modalRef={modalRef}>

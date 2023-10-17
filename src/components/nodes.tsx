@@ -11,6 +11,7 @@ import {
 } from "../types/node";
 import {
   ArrowDownIcon,
+  ArrowPathIcon,
   Bars3BottomLeftIcon,
   Bars3Icon,
   BoltIcon,
@@ -35,6 +36,8 @@ import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 import { DataNodeComponent } from "./nodes/sources";
 import DataDestinationNode from "./nodes/destinations/connection";
+import Loop from "./nodes/loop";
+import { getValue, isStringResult } from "../types/typeutils";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -48,11 +51,13 @@ export interface BaseNodeProps {
   // Request node update
   onUpdate?: (nodeUpdates: NodeUpdates) => void;
   dragUpdate: (uuid: string | null) => void;
+  getAuthToken?: () => Promise<string>;
 }
 
 export interface NodeBodyProps {
   data: NodeDataTypes;
   onUpdateData?: (dataUpdates: NodeDataTypes) => void;
+  getAuthToken?: () => Promise<string>;
 }
 
 export interface NodeHeaderProps {
@@ -90,6 +95,8 @@ export function NodeIcon({ nodeType, subType, className }: NodeIconProps) {
     }
   } else if (nodeType === NodeType.DataDestination) {
     icon = <CircleStackIcon className={className} />;
+  } else if (nodeType === NodeType.Loop) {
+    icon = <ArrowPathIcon className={className} />;
   }
   return icon;
 }
@@ -162,10 +169,12 @@ export function WorkflowResult({
   // Pull out text based content to display by itself, otherwise
   // render data as a pretty printed JSON blob.
   let content: string | null | undefined = null;
-  if (result.data && "content" in result.data) {
-    content = result.data["content"];
+  if (result.data && isStringResult(result.data)) {
+    content = result.data.content;
+  } else if (result.data) {
+    content = JSON.stringify(getValue(result.data), null, 2);
   } else {
-    content = JSON.stringify(result.data, null, 2);
+    content = null;
   }
 
   let handleCopy = () => {
@@ -219,6 +228,7 @@ export function NodeComponent({
   onUpdate = () => {},
   onDelete = () => {},
   dragUpdate,
+  getAuthToken,
 }: BaseNodeProps) {
   let scrollToRef = useRef(null);
 
@@ -253,6 +263,7 @@ export function NodeComponent({
         <DataNodeComponent
           data={data as DataNodeDef}
           onUpdate={(data) => onUpdate({ data })}
+          getAuthToken={getAuthToken}
         />
       );
     } else if (nodeType === NodeType.Template) {
@@ -261,6 +272,8 @@ export function NodeComponent({
       return <SummarizeNode {...baseProps} />;
     } else if (nodeType === NodeType.DataDestination) {
       return <DataDestinationNode {...baseProps} />;
+    } else if (nodeType === NodeType.Loop) {
+      return <Loop {...baseProps} />;
     }
 
     return null;
@@ -349,13 +362,19 @@ export function NodeComponent({
 
 export function ShowNodeResult({
   result,
+  onMappingConfigure,
 }: {
   result: LastRunDetails | undefined;
+  onMappingConfigure: () => void;
 }) {
   let [showResult, setShowResult] = useState<boolean>(false);
 
   if (!result) {
-    return <ArrowDownIcon className="mt-4 mx-auto w-4" />;
+    return (
+      <div className="w-full flex justify-center">
+        <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
+      </div>
+    );
   } else if (showResult && result) {
     return (
       <WorkflowResult
@@ -372,7 +391,9 @@ export function ShowNodeResult({
             View Results
           </div>
         ) : (
-          <ArrowDownIcon className="w-4" />
+          <div className="w-full flex justify-center">
+            <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
+          </div>
         )}
       </div>
     );

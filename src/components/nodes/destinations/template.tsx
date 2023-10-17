@@ -52,7 +52,6 @@ export default function TemplateNode({
       ...varMapping,
       [varName]: newValue,
     };
-
     onUpdateData({
       ...templateData,
       varMapping: newMapping,

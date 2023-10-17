@@ -17,6 +17,7 @@ export interface UserConnection {
 export function ConnectionDataNode({
   data,
   onUpdateData = () => {},
+  getAuthToken,
 }: NodeBodyProps) {
   let nodeData = data as DataNodeDef;
   let [type, setType] = useState(nodeData.type);
@@ -27,7 +28,13 @@ export function ConnectionDataNode({
   let [sheetId, setSheetId] = useState<string | null>(null);
 
   useEffect(() => {
-    listUserConnections().then((conns) => setUserConns(conns));
+    if (getAuthToken) {
+      getAuthToken().then((token) => {
+        listUserConnections(token).then((conns) => setUserConns(conns));
+      });
+    } else {
+      listUserConnections().then((conns) => setUserConns(conns));
+    }
   }, []);
 
   useEffect(() => {

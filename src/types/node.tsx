@@ -10,6 +10,7 @@ export enum NodeType {
   Extract = "Extract",
   Template = "Template",
   Summarize = "Summarize",
+  Loop = "Loop",
 }
 
 export interface ExtractNodeDef {
@@ -46,26 +47,59 @@ export interface SummaryDataDef {
   bulletSummary: string;
 }
 
-// todo: separate NodeResult data types
+export interface ParentDataDef {
+  actions: NodeDef[];
+}
+
 export type NodeDataTypes =
   | ExtractNodeDef
   | DataNodeDef
   | TemplateNodeDef
   | SummaryDataDef
-  | { [key: string]: any }
+  | ParentDataDef
+  | ObjectResult;
+
+export type NodeDataResultTypes =
+  | StringContentResult
+  | LoopNodeDataResult
+  | ExtractResponse
+  | MultiNodeDataResult
+  | SummaryDataDef
+  | ObjectResult
   | any[];
+
+export type MultiNodeDataResult = NodeResult[];
+
+export interface LoopNodeDataResult {
+  loopResults: MultiNodeDataResult[];
+}
+
+export interface ExtractResponse {
+  extractedData: any;
+  schema?: object;
+}
+
+export interface StringContentResult {
+  content: string;
+  type: "string";
+}
+
+export interface ObjectResult {
+  [key: string]: any;
+}
 
 export interface NodeDef {
   uuid: string;
   label: string;
   nodeType: NodeType;
   data: NodeDataTypes;
+  parentNode: boolean;
   mapping?: NodeInputMapping[];
 }
 
 export interface NodeInputMapping {
   from: string;
-  to: string;
+  to?: string;
   conversion: NodeInputConversion;
 }
 
@@ -93,8 +127,33 @@ export interface LastRunDetails {
   nodeResult: NodeResult;
 }
 
+export enum NodeResultStatus {
+  Ok = "ok",
+  Error = "error",
+}
+
 export interface NodeResult {
-  status: string;
-  data?: NodeDataTypes;
+  status: NodeResultStatus;
+  data?: NodeDataResultTypes;
   error?: string;
+}
+
+export interface ObjectTypeDefinition {
+  [key: string]: NodePropertyDefinition;
+}
+
+export interface NodePropertyDefinition {
+  type: PropertyType;
+  objectDef?: ObjectTypeDefinition;
+  enumDef?: string[];
+  arrayType?: PropertyType;
+}
+
+export enum PropertyType {
+  Array = "Array",
+  Object = "Object",
+  Number = "Number",
+  String = "String",
+  Enum = "Enum",
+  None = "None",
 }

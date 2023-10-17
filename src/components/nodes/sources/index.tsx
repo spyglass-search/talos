@@ -8,15 +8,18 @@ export interface DataNodeProps {
   data: DataNodeDef;
   // Request node update
   onUpdate?: (nodeUpdates: NodeDataTypes) => void;
+  getAuthToken?: () => Promise<string>;
 }
 
 export function DataNodeComponent({
   data,
   onUpdate = () => {},
+  getAuthToken,
 }: DataNodeProps) {
   let baseProps = {
     data: data,
     onUpdateData: onUpdate,
+    getAuthToken: getAuthToken,
   };
 
   let dataType = data.type;
