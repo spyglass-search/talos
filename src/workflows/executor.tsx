@@ -1,12 +1,12 @@
-import Handlebars from "handlebars";
-import axios, { AxiosRequestConfig, AxiosError } from "axios";
+import Handlebars from 'handlebars';
+import axios, {AxiosRequestConfig, AxiosError} from 'axios';
 import {
   executeConnectionRequest,
   executeFetchUrl,
   executeParseFile,
   executeSummarizeTask,
-} from "./task-executor";
-import { Subject, last } from "rxjs";
+} from './task-executor';
+import {Subject, last} from 'rxjs';
 import {
   DataNodeDef,
   DataNodeType,
@@ -25,9 +25,9 @@ import {
   StringContentResult,
   StringToListConversion,
   TemplateNodeDef,
-} from "../types/node";
-import { WorkflowContext } from "./workflowinstance";
-import { MappedTypeNode } from "typescript";
+} from '../types/node';
+import {WorkflowContext} from './workflowinstance';
+import {MappedTypeNode} from 'typescript';
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 
@@ -44,24 +44,34 @@ interface AskApiResult {
 }
 
 export function isStringToListConversion(
-  object: NodeInputConversion | undefined,
+  object: NodeInputConversion | undefined
 ): object is StringToListConversion {
-  return object ? object.type === "StringToListConversion" : false;
+  return object ? object.type === 'StringToListConversion' : false;
 }
 
 export function isRename(object: any): object is RenameInput {
-  return object.type === "Rename";
+  return object.type === 'Rename';
 }
 
 export function cancelExecution() {
   cancelListener.next(true);
 }
 
-async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
+async function _handleDataNode(
+  node: NodeDef,
+  executeContext: WorkflowContext
+): Promise<NodeResult> {
   let data = node.data as DataNodeDef;
   console.debug(`Handling data node type: ${data.type}`);
   if (data.type === DataNodeType.Connection && data.connectionData) {
-    return await executeConnectionRequest(data.connectionData);
+    if (executeContext.getAuthToken) {
+      const connectionData = data.connectionData;
+      return await executeContext.getAuthToken().then(token => {
+        return executeConnectionRequest(connectionData, token);
+      });
+    } else {
+      return await executeConnectionRequest(data.connectionData);
+    }
   } else if (data.type === DataNodeType.File) {
     return await executeParseFile(data.file);
   } else if (data.type === DataNodeType.Url) {
@@ -70,8 +80,8 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
     return {
       status: NodeResultStatus.Ok,
       data: {
-        content: data.content ?? "",
-        type: "string",
+        content: data.content ?? '',
+        type: 'string',
       } as StringContentResult,
     };
   }
@@ -80,14 +90,14 @@ async function _handleDataNode(node: NodeDef): Promise<NodeResult> {
     status: NodeResultStatus.Ok,
     data: {
       content: data.content,
-      type: "string",
+      type: 'string',
     } as StringContentResult,
   };
 }
 
 async function _handleExtractNode(
   node: NodeDef,
-  input: NodeResult | null,
+  input: NodeResult | null
 ): Promise<NodeResult> {
   const controller = new AbortController();
   let subscription = cancelListener.subscribe(() => {
@@ -95,17 +105,17 @@ async function _handleExtractNode(
   });
 
   let config: AxiosRequestConfig = {
-    headers: { Authorization: `Bearer ${API_TOKEN}` },
+    headers: {Authorization: `Bearer ${API_TOKEN}`},
     signal: controller.signal,
   };
 
-  console.log("input: ", input);
+  console.log('input: ', input);
   let nodeData = node.data as ExtractNodeDef;
 
-  let text = "";
+  let text = '';
   if (input && input.data) {
-    if ("content" in input.data) {
-      text = input.data.content ?? "";
+    if ('content' in input.data) {
+      text = input.data.content ?? '';
     } else {
       text = JSON.stringify(input.data);
     }
@@ -119,7 +129,7 @@ async function _handleExtractNode(
 
   const response = await axios
     .post<AskApiResult>(`${API_ENDPOINT}/action/ask`, data, config)
-    .then((resp) => {
+    .then(resp => {
       let response = resp.data;
       return {
         status: response.status,
@@ -135,7 +145,7 @@ async function _handleExtractNode(
         error: err.message,
       } as NodeResult;
     })
-    .catch((err) => {
+    .catch(err => {
       return {
         status: NodeResultStatus.Error,
         error: err.toString(),
@@ -157,7 +167,7 @@ async function _handleSummarizeNode(node: NodeDef, input: NodeResult | null) {
 async function _handleLoopNode(
   node: NodeDef,
   input: NodeResult | null,
-  executeContext: WorkflowContext,
+  executeContext: WorkflowContext
 ): Promise<NodeResult> {
   if (input) {
     const loopResult = {
@@ -172,9 +182,9 @@ async function _handleLoopNode(
         };
         await _executeLoop(node, inputData, executeContext, loopResult);
       }
-    } else if (typeof input.data === "object") {
+    } else if (typeof input.data === 'object') {
       for (const [key, value] of Object.entries(input.data)) {
-        let data: { [key: string]: any } = {};
+        let data: {[key: string]: any} = {};
         data[key] = value;
         let inputData = {
           status: NodeResultStatus.Ok,
@@ -195,7 +205,7 @@ async function _handleLoopNode(
 
   return {
     status: NodeResultStatus.Error,
-    error: "Invalid template node input",
+    error: 'Invalid template node input',
   };
 }
 
@@ -203,7 +213,7 @@ async function _executeLoop(
   node: NodeDef,
   lastResult: NodeResult | null,
   executeContext: WorkflowContext,
-  loopResult: LoopNodeDataResult,
+  loopResult: LoopNodeDataResult
 ) {
   let length = (node.data as ParentDataDef).actions.length;
   const multiResult = [] as MultiNodeDataResult;
@@ -220,13 +230,13 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
   let context: any = {};
   let templateData = node.data as TemplateNodeDef;
   if (input?.data) {
-    Object.keys(templateData.varMapping).forEach((key) => {
+    Object.keys(templateData.varMapping).forEach(key => {
       let value = templateData.varMapping[key as keyof object];
       if (input.data && input.data[value as keyof object]) {
         let data: any = input.data[value as keyof object];
 
         // Use SafeString here so that html is correctly embedded.
-        if ("content" in input.data) {
+        if ('content' in input.data) {
           context[key] = new Handlebars.SafeString(data);
         } else {
           context[key] = data;
@@ -239,30 +249,30 @@ export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
       status: NodeResultStatus.Ok,
       data: {
         content: template(context),
-        type: "string",
+        type: 'string',
       } as StringContentResult,
     } as NodeResult;
   }
 
   return {
     status: NodeResultStatus.Error,
-    error: "Invalid template node input",
+    error: 'Invalid template node input',
   };
 }
 
 export async function executeNode(
   input: NodeResult | null,
   node: NodeDef,
-  executeContext: WorkflowContext,
+  executeContext: WorkflowContext
 ): Promise<NodeResult> {
   let updatedInput = input;
   if (node.mapping) {
     updatedInput = mapInput(node, input);
   }
-  console.log("input: ", updatedInput);
+  console.log('input: ', updatedInput);
 
   if (node.nodeType === NodeType.DataSource) {
-    return _handleDataNode(node);
+    return _handleDataNode(node, executeContext);
   } else if (node.nodeType === NodeType.Extract) {
     return _handleExtractNode(node, input);
   } else if (node.nodeType === NodeType.Summarize) {
@@ -275,7 +285,7 @@ export async function executeNode(
 
   return {
     status: NodeResultStatus.Error,
-    error: "Invalid node type",
+    error: 'Invalid node type',
   };
 }
 
@@ -292,10 +302,10 @@ function mapInput(node: NodeDef, input: NodeResult | null): NodeResult | null {
         let newData;
         if (isStringToListConversion(mapping.conversion)) {
           let data = input.data[mapping.from as keyof object] as string;
-          newData = data.split(mapping.conversion.delimiter).map((value) => {
+          newData = data.split(mapping.conversion.delimiter).map(value => {
             return {
               content: value,
-              type: "string",
+              type: 'string',
             } as StringContentResult;
           });
         } else if (isRename(mapping)) {

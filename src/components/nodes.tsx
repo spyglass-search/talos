@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { DateTime } from "luxon";
+import React, {useEffect, useRef, useState} from 'react';
+import {DateTime} from 'luxon';
 import {
   LastRunDetails,
   NodeType,
@@ -8,7 +8,7 @@ import {
   NodeDataTypes,
   DataNodeDef,
   DataNodeType,
-} from "../types/node";
+} from '../types/node';
 import {
   ArrowDownIcon,
   ArrowPathIcon,
@@ -28,15 +28,15 @@ import {
   NoSymbolIcon,
   TableCellsIcon,
   XMarkIcon,
-} from "@heroicons/react/20/solid";
-import ExtractNode from "./nodes/extract";
-import TemplateNode from "./nodes/template";
-import SummarizeNode from "./nodes/summarize";
-import { EditableText } from "./editable";
-import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
-import Loop from "./nodes/loop";
-import { getValue, isStringResult } from "../types/typeutils";
-import { DataNodeComponent } from "./nodes/sources";
+} from '@heroicons/react/20/solid';
+import ExtractNode from './nodes/extract';
+import TemplateNode from './nodes/template';
+import SummarizeNode from './nodes/summarize';
+import {EditableText} from './editable';
+import {ClipboardDocumentListIcon} from '@heroicons/react/24/outline';
+import Loop from './nodes/loop';
+import {getValue, isStringResult} from '../types/typeutils';
+import {DataNodeComponent} from './nodes/sources';
 
 export interface BaseNodeProps {
   uuid: string;
@@ -50,11 +50,13 @@ export interface BaseNodeProps {
   // Request node update
   onUpdate?: (nodeUpdates: NodeUpdates) => void;
   dragUpdate: (uuid: string | null) => void;
+  getAuthToken?: () => Promise<string>;
 }
 
 export interface NodeBodyProps {
   data: NodeDataTypes;
   onUpdateData?: (dataUpdates: NodeDataTypes) => void;
+  getAuthToken?: () => Promise<string>;
 }
 
 export interface NodeHeaderProps {
@@ -70,9 +72,9 @@ export interface NodeIconProps {
   className?: string;
 }
 
-const BASE_CARD_STYLE = "card shadow-xl w-full md:w-[480px] lg:w-[640px]";
+const BASE_CARD_STYLE = 'card shadow-xl w-full md:w-[480px] lg:w-[640px]';
 
-export function NodeIcon({ nodeType, subType, className }: NodeIconProps) {
+export function NodeIcon({nodeType, subType, className}: NodeIconProps) {
   let icon = <TableCellsIcon className={className} />;
   if (nodeType === NodeType.Extract) {
     icon = <BoltIcon className={className} />;
@@ -107,23 +109,23 @@ export function NodeHeader({
       <NodeIcon nodeType={nodeType} subType={subType} className="w-6 h-6" />
       <EditableText
         data={label}
-        onChange={(newValue) => onUpdate(newValue, label)}
+        onChange={newValue => onUpdate(newValue, label)}
       />
     </h2>
   );
 }
 
-function LastRunSummary({ lastRun }: { lastRun: LastRunDetails }) {
+function LastRunSummary({lastRun}: {lastRun: LastRunDetails}) {
   let scrollToRef = useRef(null);
 
-  if (lastRun.nodeResult.status.toLowerCase() === "ok") {
+  if (lastRun.nodeResult.status.toLowerCase() === 'ok') {
     if (scrollToRef.current) {
       (scrollToRef.current as HTMLElement).scrollIntoView();
     }
 
     let duration = DateTime.fromJSDate(lastRun.endTimestamp).diff(
       DateTime.fromJSDate(lastRun.startTimestamp),
-      "seconds",
+      'seconds'
     );
     return (
       <div ref={scrollToRef} className="flex flex-row gap-2 text-xs w-full">
@@ -131,7 +133,7 @@ function LastRunSummary({ lastRun }: { lastRun: LastRunDetails }) {
         <div className="text-neutral-500">{duration.seconds.toFixed(3)}s</div>
         <div className="text-neutral-500 ml-auto">
           {DateTime.fromJSDate(lastRun.endTimestamp).toLocaleString(
-            DateTime.DATETIME_FULL,
+            DateTime.DATETIME_FULL
           )}
         </div>
       </div>
@@ -155,7 +157,7 @@ interface WorkflowResultProps {
 
 export function WorkflowResult({
   result,
-  className = "bg-base-200",
+  className = 'bg-base-200',
   hideButton = false,
   onHide = () => {},
 }: WorkflowResultProps) {
@@ -223,6 +225,7 @@ export function NodeComponent({
   onUpdate = () => {},
   onDelete = () => {},
   dragUpdate,
+  getAuthToken,
 }: BaseNodeProps) {
   let scrollToRef = useRef(null);
 
@@ -231,7 +234,7 @@ export function NodeComponent({
   let [canDrag, setCanDrag] = useState<boolean>(false);
 
   useEffect(() => {
-    if (lastRun?.nodeResult.status === "error") {
+    if (lastRun?.nodeResult.status === 'error') {
       setError(lastRun.nodeResult.error ?? null);
     } else {
       setError(null);
@@ -246,7 +249,7 @@ export function NodeComponent({
 
   let baseProps = {
     data: data,
-    onUpdateData: (data: any) => onUpdate({ data }),
+    onUpdateData: (data: any) => onUpdate({data}),
   };
 
   let renderNodeBody = () => {
@@ -256,7 +259,8 @@ export function NodeComponent({
       return (
         <DataNodeComponent
           data={data as DataNodeDef}
-          onUpdate={(data) => onUpdate({ data })}
+          onUpdate={data => onUpdate({data})}
+          getAuthToken={getAuthToken}
         />
       );
     } else if (nodeType === NodeType.Template) {
@@ -269,12 +273,12 @@ export function NodeComponent({
     return null;
   };
 
-  let borderColor = isRunning ? "border-info" : "border-neutral";
+  let borderColor = isRunning ? 'border-info' : 'border-neutral';
   if (!isRunning && lastRun) {
-    if (lastRun.nodeResult.status.toLowerCase() === "ok") {
-      borderColor = "border-success";
+    if (lastRun.nodeResult.status.toLowerCase() === 'ok') {
+      borderColor = 'border-success';
     } else {
-      borderColor = "border-error";
+      borderColor = 'border-error';
     }
   }
 
@@ -324,7 +328,7 @@ export function NodeComponent({
           <NodeHeader
             label={label}
             nodeType={nodeType}
-            onUpdate={(value) => onUpdate({ label: value })}
+            onUpdate={value => onUpdate({label: value})}
           />
           {!isCollapsed && renderNodeBody()}
         </div>

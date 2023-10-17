@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { NodeBodyProps } from "../../nodes";
-import { ConnectionDataDef, DataNodeDef } from "../../../types/node";
+import {useEffect, useState} from 'react';
+import {NodeBodyProps} from '../../nodes';
+import {ConnectionDataDef, DataNodeDef} from '../../../types/node';
 import {
   GlobeAltIcon,
   TableCellsIcon,
   UserCircleIcon,
-} from "@heroicons/react/20/solid";
-import { listUserConnections } from "../../../workflows/task-executor";
+} from '@heroicons/react/20/solid';
+import {listUserConnections} from '../../../workflows/task-executor';
 
 export interface UserConnection {
   id: number;
@@ -17,6 +17,7 @@ export interface UserConnection {
 export function ConnectionDataNode({
   data,
   onUpdateData = () => {},
+  getAuthToken,
 }: NodeBodyProps) {
   let nodeData = data as DataNodeDef;
   let [type, setType] = useState(nodeData.type);
@@ -27,7 +28,13 @@ export function ConnectionDataNode({
   let [sheetId, setSheetId] = useState<string | null>(null);
 
   useEffect(() => {
-    listUserConnections().then((conns) => setUserConns(conns));
+    if (getAuthToken) {
+      getAuthToken().then(token => {
+        listUserConnections(token).then(conns => setUserConns(conns));
+      });
+    } else {
+      listUserConnections().then(conns => setUserConns(conns));
+    }
   }, []);
 
   useEffect(() => {
@@ -58,14 +65,14 @@ export function ConnectionDataNode({
         </div>
         <select
           className="input join-item w-full placeholder:text-gray-700"
-          onChange={(event) => {
+          onChange={event => {
             let connectionId = Number.parseInt(event.target.value);
             if (connectionId) {
               setConnectionId(connectionId);
-              updateNodeData({ connectionId });
+              updateNodeData({connectionId});
             }
           }}
-          defaultValue={connectionId || ""}
+          defaultValue={connectionId || ''}
         >
           <option>Select an account</option>
           {userConns.map((conn, idx) => (
@@ -83,12 +90,12 @@ export function ConnectionDataNode({
         <input
           className="input join-item w-full placeholder:text-gray-700"
           placeholder="Spreadsheet ID"
-          value={spreadsheetId || ""}
-          onChange={(event) => {
-            let spreadsheetId = event.target.value ?? "";
+          value={spreadsheetId || ''}
+          onChange={event => {
+            let spreadsheetId = event.target.value ?? '';
             if (spreadsheetId) {
               setSpreadsheetID(spreadsheetId);
-              updateNodeData({ spreadsheetId });
+              updateNodeData({spreadsheetId});
             }
           }}
         />
@@ -101,12 +108,12 @@ export function ConnectionDataNode({
         <input
           className="input join-item w-full placeholder:text-gray-700"
           placeholder="Sheet title, defaults to first sheet if blank"
-          value={sheetId || ""}
-          onChange={(event) => {
-            let sheetId = event.target.value ?? "";
+          value={sheetId || ''}
+          onChange={event => {
+            let sheetId = event.target.value ?? '';
             if (sheetId) {
-              setSheetId(event.target.value ?? "");
-              updateNodeData({ sheetId });
+              setSheetId(event.target.value ?? '');
+              updateNodeData({sheetId});
             }
           }}
         />
