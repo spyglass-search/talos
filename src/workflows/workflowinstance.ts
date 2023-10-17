@@ -25,7 +25,7 @@ export class WorkflowContext implements WorkflowRunContext {
     public workflow: Array<NodeDef>,
     public onRunningNodeChange: (uuid: string) => void,
     public onResultChange: (nodeResults: Map<string, LastRunDetails>) => void,
-    public getAuthToken?: () => Promise<string>,
+    public getAuthToken: () => Promise<string>,
   ) {
     this.nodeResults = new Map();
   }

@@ -7,7 +7,7 @@ export async function runWorkflow(
   workflow: Array<NodeDef>,
   onRunningNodeChange: (uuid: string) => void,
   onResultChange: (nodeResults: Map<string, LastRunDetails>) => void,
-  getAuthToken?: () => Promise<string>,
+  getAuthToken: () => Promise<string>,
 ): Promise<NodeResult | null> {
   let runInstance = new WorkflowContext(
     workflow,

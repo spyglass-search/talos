@@ -16,7 +16,6 @@ import {
   MultiNodeDataResult,
   NodeDef,
   NodeInputConversion,
-  NodeInputMapping,
   NodeResult,
   NodeResultStatus,
   NodeType,
@@ -27,7 +26,7 @@ import {
   TemplateNodeDef,
 } from "../types/node";
 import { WorkflowContext } from "./workflowinstance";
-import { MappedTypeNode } from "typescript";
+
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 
@@ -64,14 +63,19 @@ async function _handleDataNode(
   let data = node.data as DataNodeDef;
   console.debug(`Handling data node type: ${data.type}`);
   if (data.type === DataNodeType.Connection && data.connectionData) {
-    if (executeContext.getAuthToken) {
-      const connectionData = data.connectionData;
-      return await executeContext.getAuthToken().then((token) => {
-        return executeConnectionRequest(connectionData, token);
-      });
-    } else {
-      return await executeConnectionRequest(data.connectionData);
-    }
+    const cdata = data.connectionData;
+    let request = {
+      Sheets: {
+        action: "ReadRows",
+        request: {
+          spreadsheetId: cdata.spreadsheetId ?? "",
+          sheetId: cdata.sheetId ?? "",
+          range: "A1:AA100",
+        },
+      },
+    };
+
+    return await executeConnectionRequest(cdata, request, await executeContext.getAuthToken());
   } else if (data.type === DataNodeType.File) {
     return await executeParseFile(data.file);
   } else if (data.type === DataNodeType.Url) {
@@ -95,13 +99,60 @@ async function _handleDataNode(
   };
 }
 
-async function _handleDestinationNode(node: NodeDef, input: NodeResult | null) {
-  console.log(node);
+async function _handleDestinationNode(
+  node: NodeDef,
+  input: NodeResult | null,
+  executeContext: WorkflowContext
+): Promise<NodeResult> {
+  let ndata = node.data as DataNodeDef;
+  if (!ndata.connectionData) {
+    return {
+      status: "error",
+      error: "Connection not setup"
+    } as NodeResult;
+  }
+
+  // Do some light data validation
+  let data = ndata.connectionData;
+  if (!data.connectionId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please choose a valid connection.",
+    };
+  } else if (!data.spreadsheetId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please set a valid spreadsheet id.",
+    };
+  }
+
+  // Check if the input data is a valid array.
+  if (!input || !input.data || !Array.isArray(input.data)) {
+    return {
+      status: "ok",
+      content: "Added 0 rows"
+    } as NodeResult;
+  }
+
+  let request = {
+    Sheets: {
+      action: "AppendRows",
+      request: {
+        spreadsheetId: data.spreadsheetId ?? "",
+        sheetId: data.sheetId ?? "",
+        data: input.data
+      },
+    },
+  };
+
+
+  await executeConnectionRequest(data, request, await executeContext.getAuthToken());
   return {
     status: "ok",
     data: {
-      content: "Added 10 rows",
-    } as DataNodeDef,
+      content: `Added ${input.data.length} rows`,
+      type: "string"
+    } as StringContentResult,
   } as NodeResult;
 }
 
@@ -120,10 +171,8 @@ async function _handleExtractNode(
     signal: controller.signal,
   };
 
-  if (executeContext.getAuthToken) {
-    const token = await executeContext.getAuthToken();
-    config.headers = { Authorization: `Bearer ${token}` };
-  }
+  const token = await executeContext.getAuthToken();
+  config.headers = { Authorization: `Bearer ${token}` };
 
   console.log("input: ", input);
   let nodeData = node.data as ExtractNodeDef;
@@ -305,7 +354,7 @@ export async function executeNode(
   } else if (node.nodeType === NodeType.Template) {
     return _handleTemplateNode(node, input);
   } else if (node.nodeType === NodeType.DataDestination) {
-    return _handleDestinationNode(node, input);
+    return _handleDestinationNode(node, input, executeContext);
   } else if (node.nodeType === NodeType.Loop) {
     return _handleLoopNode(node, updatedInput, executeContext);
   }
