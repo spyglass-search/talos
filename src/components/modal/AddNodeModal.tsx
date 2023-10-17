@@ -68,11 +68,14 @@ export default function AddNodeModal({
       name: "Destination",
       nodes: [{ nodeType: NodeType.Template, subType: null }],
     },
-    {
+  ];
+
+  if (!inLoop) {
+    nodeList.push({
       name: "Flow Control",
       nodes: [{ nodeType: NodeType.Loop, subType: null }],
-    },
-  ];
+    });
+  }
 
   return (
     <Modal modalRef={modalRef}>

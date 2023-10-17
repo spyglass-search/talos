@@ -18,7 +18,7 @@ export function ConfigureMappingModal({
   outputNode,
 }: ConfigureMappingModalProperties) {
   if (!inputNode || !outputNode) {
-    return <div>Missing Nodes</div>;
+    return null;
   }
 
   let fromType = getOutputTypeDefinition(inputNode);
