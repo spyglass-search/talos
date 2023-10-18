@@ -16,6 +16,9 @@ import {
   NodeType,
   DataNodeType,
   ParentDataDef,
+  NodePropertyDefinition,
+  OutputDataType,
+  DataNodeDef,
 } from "./types/node";
 import {
   NodeComponent,
@@ -70,6 +73,9 @@ function App() {
   let [currentNodeRunning, setCurrentNodeRunning] = useState<string | null>(
     null,
   );
+  let [cachedNodeTypes, setCachedNodeTypes] = useState<{
+    [key: string]: InputOutputDefinition;
+  }>({});
   let [endResult, setEndResult] = useState<NodeResult | null>(null);
   let [dragOverUuid, setDragOverUuid] = useState<string | null>(null);
   let [draggedNode, setDraggedNode] = useState<string | null>(null);
@@ -94,13 +100,6 @@ function App() {
   //   fetchInitialData().catch(console.error);
   // }, []);
 
-  useEffect(() => {
-    generateInputOutputTypes(workflow, getAuthToken).then((result) => {
-      setWorkflowDataTypes(result);
-      console.error("The results ", result);
-    });
-  }, [workflow]);
-
   let loadExample = async () => {
     if (exampleSelection.current) {
       let value = (exampleSelection.current as HTMLSelectElement).value;
@@ -113,6 +112,29 @@ function App() {
           .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
       }
     }
+  };
+
+  const updateNodeDataTypes = (
+    newWorkflow: NodeDef[],
+    cache: { [key: string]: InputOutputDefinition },
+    getAuthToken: () => Promise<string>,
+  ) => {
+    generateInputOutputTypes(newWorkflow, cache, getAuthToken).then(
+      (result) => {
+        const newCache = { ...cachedNodeTypes };
+        for (const node of result) {
+          if (
+            node.outputType === OutputDataType.TableResult &&
+            node.outputSchema
+          ) {
+            newCache[node.uuid] = node;
+          }
+        }
+        setCachedNodeTypes(newCache);
+        setWorkflowDataTypes(result);
+        console.debug("DataType Results", result);
+      },
+    );
   };
 
   let handleRunWorkflow = async () => {
@@ -135,59 +157,74 @@ function App() {
   };
 
   let deleteWorkflowNode = (uuid: string) => {
-    setWorkflow(
-      workflow.flatMap((node) => {
-        if (node.parentNode) {
-          (node.data as ParentDataDef).actions = (
-            node.data as ParentDataDef
-          ).actions.flatMap((node) => {
-            if (node.uuid === uuid) {
-              return [];
-            } else {
-              return node;
-            }
-          });
-        }
-        if (node.uuid === uuid) {
-          return [];
-        } else {
-          return node;
-        }
-      }),
-    );
+    const newCache = { ...cachedNodeTypes };
+    delete newCache[uuid];
+    setCachedNodeTypes(newCache);
+
+    const newWorkflow = workflow.flatMap((node) => {
+      if (node.parentNode) {
+        (node.data as ParentDataDef).actions = (
+          node.data as ParentDataDef
+        ).actions.flatMap((node) => {
+          if (node.uuid === uuid) {
+            return [];
+          } else {
+            return node;
+          }
+        });
+      }
+      if (node.uuid === uuid) {
+        return [];
+      } else {
+        return node;
+      }
+    });
+    setWorkflow(newWorkflow);
+    updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
   };
 
   let updateWorkflow = (uuid: string, updates: NodeUpdates) => {
-    setWorkflow(
-      workflow.map((node) => {
-        if (node.parentNode) {
-          (node.data as ParentDataDef).actions = (
-            node.data as ParentDataDef
-          ).actions.flatMap((node) => {
-            if (node.uuid === uuid) {
-              return {
-                ...node,
-                label: updates.label ?? node.label,
-                data: updates.data ?? node.data,
-                mapping: updates.mapping ?? node.mapping,
-              };
-            } else {
-              return node;
-            }
-          });
-        }
-        if (node.uuid === uuid) {
-          return {
-            ...node,
-            label: updates.label ?? node.label,
-            data: updates.data ?? node.data,
-            mapping: updates.mapping ?? node.mapping,
-          };
-        } else {
-          return node;
-        }
-      }),
-    );
+    const newCache = { ...cachedNodeTypes };
+    delete newCache[uuid];
+    setCachedNodeTypes(newCache);
+
+    const newWorkflow = workflow.map((node) => {
+      if (node.parentNode) {
+        (node.data as ParentDataDef).actions = (
+          node.data as ParentDataDef
+        ).actions.flatMap((node) => {
+          if (node.uuid === uuid) {
+            return {
+              ...node,
+              label: updates.label ?? node.label,
+              data: updates.data ?? node.data,
+              mapping: updates.mapping ?? node.mapping,
+            };
+          } else {
+            return node;
+          }
+        });
+      }
+      if (node.uuid === uuid) {
+        return {
+          ...node,
+          label: updates.label ?? node.label,
+          data: updates.data ?? node.data,
+          mapping: updates.mapping ?? node.mapping,
+        };
+      } else {
+        return node;
+      }
+    });
+    setWorkflow(newWorkflow);
+
+    // Want to avoid making the same external request over and over
+    if (
+      updates.data &&
+      !((updates.data as DataNodeDef).type === DataNodeType.Connection)
+    ) {
+      updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
+    }
   };
 
   let clearWorkflow = () => {
@@ -212,6 +249,7 @@ function App() {
     if (newNode) {
       let newWorkflow = [...workflow, newNode];
       setWorkflow(newWorkflow);
+      updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
     }
   };
 

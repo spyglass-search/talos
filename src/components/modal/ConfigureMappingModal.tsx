@@ -445,7 +445,6 @@ function canMapObjects(
   from: InputOutputDefinition,
   to: InputOutputDefinition,
 ): boolean {
-  console.error("Checking if objects can be mapped ", from, to);
   return (
     to.inputType === InputDataType.Object &&
     from.outputSchema?.type === PropertyType.Object
@@ -456,7 +455,6 @@ function canExtractObject(
   from: InputOutputDefinition,
   to: InputOutputDefinition,
 ): boolean {
-  console.error("Checking if objects can be extracted ", from, to);
   return from.outputSchema?.type === PropertyType.Object;
 }
 

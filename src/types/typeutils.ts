@@ -167,6 +167,7 @@ export interface InputOutputDefinition {
 
 export async function generateInputOutputTypes(
   nodes: NodeDef[],
+  cache: { [key: string]: InputOutputDefinition },
   getAuthToken: () => Promise<string>,
 ): Promise<InputOutputDefinition[]> {
   const definitions: InputOutputDefinition[] = [];
@@ -183,17 +184,29 @@ export async function generateInputOutputTypes(
         previousNode,
         node,
         false,
+        cache,
         getAuthToken,
       );
       objectDefPost = await getFlowControlObjectDefinition(
         previousNode,
         node,
         true,
+        cache,
         getAuthToken,
       );
     } else {
-      objectDefPre = await getObjectDefinition(node, false, getAuthToken);
-      objectDefPost = await getObjectDefinition(node, true, getAuthToken);
+      objectDefPre = await getObjectDefinition(
+        node,
+        false,
+        cache,
+        getAuthToken,
+      );
+      objectDefPost = await getObjectDefinition(
+        node,
+        true,
+        cache,
+        getAuthToken,
+      );
     }
 
     previousNode = node;
@@ -217,6 +230,7 @@ export async function generateInputOutputTypes(
       const parentNode = node.data as ParentDataDef;
       const types = await generateInputOutputTypes(
         parentNode.actions,
+        cache,
         getAuthToken,
       );
       definitions.push(...types);
@@ -230,12 +244,14 @@ async function getFlowControlObjectDefinition(
   inputNode: NodeDef,
   flowControlNode: NodeDef,
   processNodeMappings: boolean,
+  cache: { [key: string]: InputOutputDefinition },
   getAuthToken: () => Promise<string>,
 ): Promise<NodePropertyDefinition | null> {
   if (flowControlNode.nodeType === NodeType.Loop) {
     let inputDefinition = await getObjectDefinition(
       inputNode,
       true,
+      cache,
       getAuthToken,
     );
     if (
@@ -257,6 +273,7 @@ async function getFlowControlObjectDefinition(
 async function getObjectDefinition(
   node: NodeDef,
   processNodeMappings: boolean,
+  cache: { [key: string]: InputOutputDefinition },
   getAuthToken: () => Promise<string>,
 ): Promise<NodePropertyDefinition | null> {
   if (node.nodeType === NodeType.Extract) {
@@ -274,6 +291,14 @@ async function getObjectDefinition(
       dataNode.connectionData &&
       dataNode.connectionData.connectionType === DataConnectionType.GSheets
     ) {
+      const cachedValue = cache[node.uuid];
+      if (cachedValue) {
+        if (processNodeMappings && cachedValue.outputSchemaWithMapping) {
+          return cachedValue.outputSchemaWithMapping;
+        } else if (cachedValue.outputSchema) {
+          return cachedValue.outputSchema;
+        }
+      }
       let token = await getAuthToken();
       const rowResponse = await executeGSheetsHeaderRequest(
         dataNode.connectionData,
