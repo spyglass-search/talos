@@ -59,7 +59,7 @@ export async function executeConnectionRequest(
   request: ObjectResult,
   token?: string,
 ): Promise<NodeResult> {
-  console.debug(`connection request: ${data}`);
+  console.debug('connection request: ', data);
   // Do some light data validation
   if (!data.connectionId) {
     return {

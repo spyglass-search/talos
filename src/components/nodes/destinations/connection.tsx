@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ConnectionDataDef, DataNodeDef } from "../../../types/node";
 import { NodeBodyProps } from "../../nodes";
 import {
-  GlobeAltIcon,
+  DocumentIcon,
   TableCellsIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
@@ -13,6 +13,12 @@ export default function DataDestinationNode({
   data,
   onUpdateData = () => {},
 }: NodeBodyProps) {
+  let [action, setAction] = useState<string>("update");
+  let actions = [
+    { label: "Update Rows", id: "update" },
+    { label: "Append to End", id: "append" },
+  ];
+
   let nodeData = data as DataNodeDef;
   let [userConns, setUserConns] = useState<UserConnection[]>([]);
   let [connectionId, setConnectionId] = useState<number | null>(null);
@@ -37,13 +43,36 @@ export default function DataDestinationNode({
         connectionId: newData.connectionId ?? connectionId,
         spreadsheetId: newData.spreadsheetId ?? spreadsheetId,
         sheetId: newData.sheetId ?? sheetId,
+        action,
       },
     });
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <div>Appends rows to the sheet specified.</div>
+      <div className="tabs tabs-boxed">
+        {actions.map((tab) => {
+          let selected = tab.id === action ? "tab-active" : "";
+          return (
+            <div
+              key={tab.id}
+              className={`tab ${selected}`}
+              onClick={() => {
+                setAction(tab.id);
+                updateNodeData({});
+              }}
+            >
+              {tab.label}
+            </div>)
+          ;
+        })}
+      </div>
+      <caption className="text-sm">
+        {action === "update"
+          ? "Row data must have `_idx` field to indicate which row to update."
+          : "Row data will be added to the end of the specified sheet."
+        }
+      </caption>
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
           <UserCircleIcon className="w-4" />
@@ -67,7 +96,6 @@ export default function DataDestinationNode({
           ))}
         </select>
       </div>
-
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
           <TableCellsIcon className="w-4" />
@@ -86,7 +114,7 @@ export default function DataDestinationNode({
 
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
-          <GlobeAltIcon className="w-4" />
+          <DocumentIcon className="w-4" />
         </div>
         <input
           className="input join-item w-full placeholder:text-gray-700"
