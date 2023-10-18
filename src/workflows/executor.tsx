@@ -72,7 +72,10 @@ async function _handleDataNode(
           sheetId: cdata.sheetId ?? "",
           // note: starts on the second row, assuming the first one are the
           // column headers.
-          range: "A2:AA100",
+          range: {
+            start: 2,
+            numRows: 100
+          }
         },
       },
     };
@@ -140,9 +143,14 @@ async function _handleDestinationNode(
     } as NodeResult;
   }
 
+  let action = "AppendRows";
+  if (data.action && data.action == "update") {
+    action = "UpdateRows";
+  }
+
   let request = {
     Sheets: {
-      action: "AppendRows",
+      action,
       request: {
         spreadsheetId: data.spreadsheetId ?? "",
         sheetId: data.sheetId ?? "",

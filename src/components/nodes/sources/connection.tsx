@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NodeBodyProps } from "../../nodes";
 import { ConnectionDataDef, DataNodeDef } from "../../../types/node";
 import {
-  GlobeAltIcon,
+  DocumentIcon,
   TableCellsIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
@@ -101,7 +101,7 @@ export function ConnectionDataNode({
 
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
-          <GlobeAltIcon className="w-4" />
+          <DocumentIcon className="w-4" />
         </div>
         <input
           className="input join-item w-full placeholder:text-gray-700"
