@@ -27,6 +27,7 @@ import {
 } from "./components/nodes";
 import { useState } from "react";
 import {
+  getPreviousUuid,
   insertNode,
   loadWorkflow,
   nodeComesAfter,
@@ -161,6 +162,7 @@ function App() {
     delete newCache[uuid];
     setCachedNodeTypes(newCache);
 
+    let previousUUID = getPreviousUuid(uuid, workflow);
     const newWorkflow = workflow.flatMap((node) => {
       if (node.parentNode) {
         (node.data as ParentDataDef).actions = (
@@ -179,7 +181,12 @@ function App() {
         return node;
       }
     });
+
+    if (previousUUID) {
+      clearPreviousMapping(previousUUID, newWorkflow);
+    }
     setWorkflow(newWorkflow);
+
     updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
   };
 
@@ -520,6 +527,13 @@ function App() {
       />
     </main>
   );
+}
+
+function clearPreviousMapping(uuid: string, workflow: NodeDef[]) {
+  const node = workflow.find((node) => node.uuid === uuid);
+  if (node) {
+    node.mapping = [];
+  }
 }
 
 async function getAuthToken(): Promise<string> {

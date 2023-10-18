@@ -69,6 +69,38 @@ export function isInLoop(workflow: Array<NodeDef>, uuid: string): boolean {
   return false;
 }
 
+export function getPreviousUuid(
+  uuid: string,
+  workflow: Array<NodeDef>,
+): string | undefined {
+  const length = workflow.length;
+  let previous;
+  for (let i = 0; i < length; i++) {
+    const node = workflow[i];
+
+    if (node.parentNode) {
+      let subnodeLength = (node.data as ParentDataDef).actions.length;
+      let subNodesPrevious = node;
+      for (let j = 0; j < subnodeLength; j++) {
+        const subNode = (node.data as ParentDataDef).actions[j];
+        if (subNode.uuid === uuid) {
+          return subNodesPrevious.uuid;
+        }
+        subNodesPrevious = subNode;
+      }
+    }
+
+    if (node.uuid === uuid) {
+      if (previous) {
+        return previous.uuid;
+      }
+      return;
+    }
+
+    previous = node;
+  }
+}
+
 export function nodeComesAfter(
   workflow: Array<NodeDef>,
   firstNodeUuid: string,
