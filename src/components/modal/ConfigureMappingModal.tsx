@@ -60,6 +60,21 @@ export function ConfigureMappingModal({
               Ok
             </button>
             <button
+              className="btn btn-accent"
+              onClick={() => {
+                setPendingUpdate([]);
+                if (fromNode) {
+                  updateWorkflow(fromNode.uuid, {
+                    mapping: [],
+                  });
+                }
+                modalRef.current?.close();
+              }}
+              disabled={!fromNode?.mapping || fromNode.mapping.length <= 0}
+            >
+              Clear Mapping
+            </button>
+            <button
               className="btn"
               onClick={() => {
                 setPendingUpdate([]);

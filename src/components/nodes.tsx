@@ -368,7 +368,7 @@ export function ShowNodeResult({
 }) {
   let [showResult, setShowResult] = useState<boolean>(false);
 
-  const hasMapping = node.mapping !== undefined;
+  const hasMapping = node.mapping !== undefined && node.mapping.length > 0;
 
   if (!result) {
     return (
