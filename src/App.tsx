@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import axios from "axios";
 import {
   ArrowDownIcon,
@@ -14,12 +14,7 @@ import {
   LastRunDetails,
   NodeUpdates,
   NodeType,
-  DataNodeDef,
   DataNodeType,
-  NodeDataTypes,
-  ExtractNodeDef,
-  SummaryDataDef,
-  TemplateNodeDef,
   ParentDataDef,
 } from "./types/node";
 import {
@@ -40,8 +35,14 @@ import { ModalType } from "./types";
 import AddNodeModal from "./components/modal/AddNodeModal";
 import { runWorkflow } from "./workflows";
 import { createNodeDefFromType } from "./utils/nodeUtils";
-import { WorkflowContext } from "./workflows/workflowinstance";
 import { ConfigureMappingModal } from "./components/modal/ConfigureMappingModal";
+import {
+  InputOutputDefinition,
+  canConfigureMappings,
+  generateInputOutputTypes,
+} from "./types/typeutils";
+import { DropArea } from "./components/nodes/dropArea";
+import { NodeDivider } from "./components/nodes/nodeDivider";
 
 function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
   return (
@@ -57,6 +58,9 @@ function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
 function App() {
   // Is a workflow currently running?
   let [workflow, setWorkflow] = useState<Array<NodeDef>>([]);
+  let [workflowDataTypes, setWorkflowDataTypes] = useState<
+    InputOutputDefinition[]
+  >([]);
   let [nodeResults, setNodeResults] = useState<Map<string, LastRunDetails>>(
     new Map(),
   );
@@ -89,6 +93,13 @@ function App() {
 
   //   fetchInitialData().catch(console.error);
   // }, []);
+
+  useEffect(() => {
+    generateInputOutputTypes(workflow, getAuthToken).then((result) => {
+      setWorkflowDataTypes(result);
+      console.error("The results ", result);
+    });
+  }, [workflow]);
 
   let loadExample = async () => {
     if (exampleSelection.current) {
@@ -158,6 +169,7 @@ function App() {
                 ...node,
                 label: updates.label ?? node.label,
                 data: updates.data ?? node.data,
+                mapping: updates.mapping ?? node.mapping,
               };
             } else {
               return node;
@@ -169,6 +181,7 @@ function App() {
             ...node,
             label: updates.label ?? node.label,
             data: updates.data ?? node.data,
+            mapping: updates.mapping ?? node.mapping,
           };
         } else {
           return node;
@@ -368,16 +381,15 @@ function App() {
                     setDragNDropAfter={setDragNDropAfter}
                     nodeDropped={nodeDropped}
                   >
-                    {idx < workflow.length - 1 ? (
-                      <ShowNodeResult
-                        result={nodeResults.get(node.uuid)}
-                        onMappingConfigure={() =>
-                          configureMappings(node, workflow[idx + 1])
-                        }
-                      />
-                    ) : (
-                      <ArrowDownIcon className="mt-4 w-4 mx-auto" />
-                    )}
+                    <NodeDivider
+                      steps={workflow}
+                      childNode={node}
+                      dataTypes={workflowDataTypes}
+                      canConfigureMappings={canConfigureMappings}
+                      configureMappings={configureMappings}
+                      currentIndex={idx}
+                      nodeResults={nodeResults}
+                    ></NodeDivider>
                   </DropArea>
                 </div>
 
@@ -418,12 +430,16 @@ function App() {
                               nodeDropped={nodeDropped}
                             >
                               <div className="mt-6">
-                                <ShowNodeResult
-                                  result={nodeResults.get(childNode.uuid)}
-                                  onMappingConfigure={() =>
-                                    configureMappings(node, workflow[idx + 1])
-                                  }
-                                />
+                                <NodeDivider
+                                  parentNode={node}
+                                  dataTypes={workflowDataTypes}
+                                  steps={(node.data as ParentDataDef).actions}
+                                  canConfigureMappings={canConfigureMappings}
+                                  childNode={childNode}
+                                  configureMappings={configureMappings}
+                                  currentIndex={childIdx}
+                                  nodeResults={nodeResults}
+                                ></NodeDivider>
                               </div>
                             </DropArea>
                           </div>
@@ -459,51 +475,17 @@ function App() {
       />
       <ConfigureMappingModal
         modalRef={configureMappingModal}
-        inputNode={inputNode}
-        outputNode={outputNode}
+        dataTypes={workflowDataTypes}
+        fromNode={inputNode}
+        toNode={outputNode}
+        updateWorkflow={updateWorkflow}
       />
     </main>
   );
 }
 
-interface DropAreaProperties {
-  uuid: string;
-  dropAfter: boolean;
-  isValidDropSpot: (dropAfter: boolean, spotUUID: string) => boolean;
-  setDragNDropAfter: (dropAfter: boolean) => void;
-  setDragOverUuid: (string: string | null) => void;
-  nodeDropped: (after: boolean, dropUUID: string) => void;
-}
-
-function DropArea(props: React.PropsWithChildren<DropAreaProperties>) {
-  const style = props.isValidDropSpot(props.dropAfter, props.uuid)
-    ? "border-t-4 border-solid border-base-content"
-    : "";
-
-  return (
-    <div
-      className={`${style} w-full md:w-[480px] lg:w-[640px] min-h-6`}
-      onDragOver={(event) => {
-        if (props.isValidDropSpot(props.dropAfter, props.uuid)) {
-          event.preventDefault();
-        }
-
-        props.setDragNDropAfter(props.dropAfter);
-        props.setDragOverUuid(props.uuid);
-      }}
-      onDragLeave={(event) => {
-        event.preventDefault();
-        props.setDragOverUuid(null);
-      }}
-      onDrop={(dropEvent) => {
-        dropEvent.preventDefault();
-        props.nodeDropped(props.dropAfter, props.uuid);
-        props.setDragOverUuid(null);
-      }}
-    >
-      {props.children}
-    </div>
-  );
+async function getAuthToken(): Promise<string> {
+  return `${process.env.REACT_APP_API_TOKEN}`;
 }
 
 export default App;

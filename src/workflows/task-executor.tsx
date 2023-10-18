@@ -14,6 +14,7 @@ import {
   NodeResultStatus,
   StringContentResult,
   SummaryDataDef,
+  TableDataResult,
 } from "../types/node";
 import {
   interval,
@@ -95,16 +96,92 @@ export async function executeConnectionRequest(
   };
 
   return await axios
-    .post<ApiResponse<[]>>(
+    .post<ApiResponse<any[]>>(
       `${API_ENDPOINT}/connections/${data.connectionId}`,
       request,
       config,
     )
     .then((resp) => {
       let result = resp.data.result;
+      let header = {};
+      if (result.length > 0) {
+        header = result[0];
+      }
       return {
         status: NodeResultStatus.Ok,
-        data: result,
+        data: {
+          rows: result,
+          headerRow: header,
+        } as TableDataResult,
+      };
+    })
+    .catch((err) => {
+      return {
+        status: NodeResultStatus.Error,
+        error: err.toString(),
+      };
+    });
+}
+
+export async function executeGSheetsHeaderRequest(
+  data: ConnectionDataDef,
+  token?: string,
+): Promise<NodeResult> {
+  console.debug(`connection request: ${data}`);
+  // Do some light data validation
+  if (!data.connectionId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please choose a valid connection.",
+    };
+  } else if (!data.spreadsheetId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please set a valid spreadsheet id.",
+    };
+  }
+
+  // Setup the data request
+  let config: AxiosRequestConfig = {
+    ...API_CONFIG,
+  };
+
+  if (token) {
+    config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+  }
+
+  // todo: refactor to support other integrations
+  let request = {
+    Sheets: {
+      action: "ReadRows",
+      request: {
+        spreadsheetId: data.spreadsheetId ?? "",
+        sheetId: data.sheetId ?? "",
+        range: "1:1",
+      },
+    },
+  };
+
+  return await axios
+    .post<ApiResponse<any[]>>(
+      `${API_ENDPOINT}/connections/${data.connectionId}`,
+      request,
+      config,
+    )
+    .then((resp) => {
+      let result = resp.data.result;
+      let header = {};
+      if (result.length > 0) {
+        header = result[0];
+      }
+      return {
+        status: NodeResultStatus.Ok,
+        data: {
+          rows: result,
+          headerRow: header,
+        } as TableDataResult,
       };
     })
     .catch((err) => {

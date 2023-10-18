@@ -3,11 +3,9 @@ import {
   MultiNodeDataResult,
   NodeDef,
   NodeResult,
-  NodeType,
-  ParentDataDef,
-} from '../types/node';
-import {executeNode} from './executor';
-import {isInLoop, isLastNode} from './utils';
+} from "../types/node";
+import { executeNode } from "./executor";
+import { isInLoop, isLastNode } from "./utils";
 
 export interface WorkflowRunContext {
   onRunningNodeChange: (uuid: string) => void;
@@ -25,7 +23,7 @@ export class WorkflowContext implements WorkflowRunContext {
     public workflow: Array<NodeDef>,
     public onRunningNodeChange: (uuid: string) => void,
     public onResultChange: (nodeResults: Map<string, LastRunDetails>) => void,
-    public getAuthToken?: () => Promise<string>
+    public getAuthToken?: () => Promise<string>,
   ) {
     this.nodeResults = new Map();
   }
@@ -38,7 +36,7 @@ export class WorkflowContext implements WorkflowRunContext {
   public updateNode(
     uuid: string,
     startTimestamp: Date,
-    nodeResult: NodeResult
+    nodeResult: NodeResult,
   ): void {
     const newResult = {
       startTimestamp,
@@ -53,7 +51,7 @@ export class WorkflowContext implements WorkflowRunContext {
   public updateLoopNode(
     uuid: string,
     startTimestamp: Date,
-    nodeResult: NodeResult
+    nodeResult: NodeResult,
   ): void {
     let newNodeResult: NodeResult;
     let currentResult = this.nodeResults.get(uuid);
@@ -92,7 +90,7 @@ export class WorkflowContext implements WorkflowRunContext {
 
   public async runNode(
     node: NodeDef,
-    lastResult: NodeResult | null
+    lastResult: NodeResult | null,
   ): Promise<NodeResult> {
     this.onRunningNodeChange(node.uuid);
     let lastRunResult = this.nodeResults.get(node.uuid);
@@ -115,7 +113,7 @@ export class WorkflowContext implements WorkflowRunContext {
     }
 
     lastResult = await executeNode(lastResult, node, this);
-    console.debug('output = ', lastResult);
+    console.debug("output = ", lastResult);
     // Set the new node result
     if (this.isInLoop(node.uuid)) {
       this.updateLoopNode(node.uuid, startTimestamp, lastResult);
