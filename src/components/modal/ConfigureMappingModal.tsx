@@ -247,8 +247,8 @@ function ObjectMapping({
     return (
       <div className="flex flex-col">
         <p>{message}</p>
-        <div className="overflow-x-auto overflow-y-auto w-full pt-2">
-          <table className="table w-full table-zebra table-sm">
+        <div className="overflow-x-auto overflow-y-auto w-full mt-4 max-h-80">
+          <table className="table w-full table-zebra table-sm ">
             <thead className="text-secondary">
               <tr>
                 <th>Input Property</th>
@@ -327,7 +327,7 @@ function ExtractStringMapping({
     return (
       <div className="flex flex-col">
         <p>{message}</p>
-        <div className="overflow-x-auto overflow-y-auto w-full pt-2">
+        <div className="overflow-x-auto overflow-y-auto w-full mt-4 max-h-80">
           <table className="table w-full table-zebra table-sm">
             <thead className="text-secondary">
               <tr>
