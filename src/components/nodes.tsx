@@ -8,6 +8,7 @@ import {
   NodeDataTypes,
   DataNodeDef,
   DataNodeType,
+  NodeDef,
 } from "../types/node";
 import {
   ArrowDownIcon,
@@ -355,15 +356,19 @@ export function NodeComponent({
 }
 
 export function ShowNodeResult({
+  node,
   result,
   onMappingConfigure,
   canShowMapping,
 }: {
+  node: NodeDef;
   result: LastRunDetails | undefined;
   onMappingConfigure: () => void;
   canShowMapping: boolean;
 }) {
   let [showResult, setShowResult] = useState<boolean>(false);
+
+  const hasMapping = node.mapping !== undefined;
 
   if (!result) {
     return (
@@ -371,6 +376,7 @@ export function ShowNodeResult({
         <MappingButton
           onMappingConfigure={onMappingConfigure}
           showMapping={canShowMapping}
+          hasMapping={hasMapping}
         ></MappingButton>
       </div>
     );
@@ -393,6 +399,7 @@ export function ShowNodeResult({
           <MappingButton
             onMappingConfigure={onMappingConfigure}
             showMapping={canShowMapping}
+            hasMapping={hasMapping}
           ></MappingButton>
         )}
       </div>
@@ -403,17 +410,21 @@ export function ShowNodeResult({
 function MappingButton({
   onMappingConfigure,
   showMapping,
+  hasMapping,
 }: {
   onMappingConfigure: () => void;
   showMapping: boolean;
+  hasMapping: boolean;
 }) {
   if (showMapping) {
+    let badgeColor = hasMapping ? "badge-primary" : "";
+
     return (
       <button
         className="btn btn-neutral indicator"
         onClick={() => onMappingConfigure()}
       >
-        <span className="indicator-item indicator-end badge">
+        <span className={`indicator-item indicator-end badge ${badgeColor}`}>
           <BeakerIcon className="h-4 w-4"></BeakerIcon>
         </span>
         <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>

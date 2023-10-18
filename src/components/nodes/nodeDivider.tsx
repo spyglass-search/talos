@@ -33,6 +33,7 @@ export function NodeDivider({
     if (currentIndex < parentData.actions.length - 1) {
       return (
         <ShowNodeResult
+          node={childNode}
           result={nodeResults.get(childNode.uuid)}
           onMappingConfigure={() =>
             configureMappings(childNode, steps[currentIndex + 1])
@@ -55,6 +56,7 @@ export function NodeDivider({
   ) {
     return (
       <ShowNodeResult
+        node={childNode}
         result={nodeResults.get(childNode.uuid)}
         onMappingConfigure={() =>
           configureMappings(
@@ -69,6 +71,7 @@ export function NodeDivider({
     if (currentIndex < steps.length - 1) {
       return (
         <ShowNodeResult
+          node={childNode}
           result={nodeResults.get(childNode.uuid)}
           onMappingConfigure={() =>
             configureMappings(childNode, steps[currentIndex + 1])
