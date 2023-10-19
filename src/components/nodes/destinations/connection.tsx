@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { ConnectionDataDef, DataNodeDef } from "../../../types/node";
+import {
+  ConnectionDataDef,
+  DataConnectionType,
+  DataNodeDef,
+} from "../../../types/node";
 import { NodeBodyProps } from "../../nodes";
 import {
   DocumentIcon,
   TableCellsIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
-import { UserConnection } from "../sources/connection";
+import { ConnectionDataNode, UserConnection } from "../sources/connection";
 import { listUserConnections } from "../../../workflows/task-executor";
 
 export default function DataDestinationNode({
@@ -37,12 +41,13 @@ export default function DataDestinationNode({
     }
   }, [nodeData]);
 
-  let updateNodeData = (newData: ConnectionDataDef) => {
+  let updateNodeData = (newData: Partial<ConnectionDataDef>) => {
     onUpdateData({
       connectionData: {
         connectionId: newData.connectionId ?? connectionId,
         spreadsheetId: newData.spreadsheetId ?? spreadsheetId,
         sheetId: newData.sheetId ?? sheetId,
+        connectionType: newData.connectionType ?? DataConnectionType.GSheets,
         action,
       },
     });
@@ -63,15 +68,14 @@ export default function DataDestinationNode({
               }}
             >
               {tab.label}
-            </div>)
-          ;
+            </div>
+          );
         })}
       </div>
       <caption className="text-sm">
         {action === "update"
           ? "Row data must have `_idx` field to indicate which row to update."
-          : "Row data will be added to the end of the specified sheet."
-        }
+          : "Row data will be added to the end of the specified sheet."}
       </caption>
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
@@ -83,7 +87,9 @@ export default function DataDestinationNode({
             let connectionId = Number.parseInt(event.target.value);
             if (connectionId) {
               setConnectionId(connectionId);
-              updateNodeData({ connectionId });
+              updateNodeData({
+                connectionId,
+              });
             }
           }}
           defaultValue={connectionId || ""}
@@ -107,7 +113,9 @@ export default function DataDestinationNode({
           onChange={(event) => {
             let spreadsheetId = event.target.value ?? "";
             setSpreadsheetID(spreadsheetId);
-            updateNodeData({ spreadsheetId });
+            updateNodeData({
+              spreadsheetId,
+            });
           }}
         />
       </div>
@@ -123,7 +131,9 @@ export default function DataDestinationNode({
           onChange={(event) => {
             let sheetId = event.target.value ?? "";
             setSheetId(sheetId);
-            updateNodeData({ sheetId });
+            updateNodeData({
+              sheetId,
+            });
           }}
         />
       </div>

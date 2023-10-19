@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { NodeBodyProps } from "../../nodes";
-import { ConnectionDataDef, DataNodeDef } from "../../../types/node";
+import {
+  ConnectionDataDef,
+  DataConnectionType,
+  DataNodeDef,
+} from "../../../types/node";
 import {
   DocumentIcon,
   TableCellsIcon,
@@ -46,12 +50,13 @@ export function ConnectionDataNode({
     }
   }, [nodeData]);
 
-  let updateNodeData = (newData: ConnectionDataDef) => {
+  let updateNodeData = (newData: Partial<ConnectionDataDef>) => {
     onUpdateData({
       connectionData: {
         connectionId: newData.connectionId ?? connectionId,
         spreadsheetId: newData.spreadsheetId ?? spreadsheetId,
         sheetId: newData.sheetId ?? sheetId,
+        connectionType: DataConnectionType.GSheets,
       },
       type,
     });

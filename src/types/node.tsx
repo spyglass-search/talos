@@ -35,6 +35,14 @@ export enum DataNodeType {
 
 export interface ConnectionDataDef {
   [key: string]: any;
+  connectionType: DataConnectionType;
+}
+
+export enum DataConnectionType {
+  GSheets = "GSheets",
+  GDocs = "GDocs",
+  GSlides = "GSlides",
+  GForms = "GForms",
 }
 
 export interface TemplateNodeDef {
@@ -57,7 +65,7 @@ export type NodeDataTypes =
   | TemplateNodeDef
   | SummaryDataDef
   | ParentDataDef
-  | ObjectResult;
+  | DataDestinationDef;
 
 export type NodeDataResultTypes =
   | StringContentResult
@@ -65,13 +73,39 @@ export type NodeDataResultTypes =
   | ExtractResponse
   | MultiNodeDataResult
   | SummaryDataDef
+  | TableDataResult
   | ObjectResult
   | any[];
+
+export enum OutputDataType {
+  StringContent = "StringContent",
+  LoopResult = "LoopResult",
+  ExtractResult = "ExtractResult",
+  MultiNodeResult = "MultiNodeResult",
+  SummaryResult = "SummaryResult",
+  TableResult = "TableResult",
+}
+
+export enum InputDataType {
+  StringContent = "StringContent",
+  Iterable = "Iterable",
+  Object = "Object",
+  None = "None",
+}
+
+export interface DataDestinationDef {
+  [key: string]: any;
+}
 
 export type MultiNodeDataResult = NodeResult[];
 
 export interface LoopNodeDataResult {
   loopResults: MultiNodeDataResult[];
+}
+
+export interface TableDataResult {
+  rows: any[];
+  headerRow: { [key: string]: string };
 }
 
 export interface ExtractResponse {
@@ -100,6 +134,8 @@ export interface NodeDef {
 export interface NodeInputMapping {
   from: string;
   to?: string;
+  skip?: boolean;
+  extract?: boolean;
   conversion: NodeInputConversion;
 }
 
@@ -119,6 +155,7 @@ export interface RenameInput extends NodeInputConversion {
 export interface NodeUpdates {
   label?: string;
   data?: NodeDataTypes;
+  mapping?: NodeInputMapping[];
 }
 
 export interface LastRunDetails {
@@ -144,16 +181,16 @@ export interface ObjectTypeDefinition {
 
 export interface NodePropertyDefinition {
   type: PropertyType;
-  objectDef?: ObjectTypeDefinition;
-  enumDef?: string[];
-  arrayType?: PropertyType;
+  properties?: ObjectTypeDefinition;
+  enum?: string[];
+  items?: NodePropertyDefinition;
 }
 
 export enum PropertyType {
-  Array = "Array",
-  Object = "Object",
-  Number = "Number",
-  String = "String",
-  Enum = "Enum",
-  None = "None",
+  Array = "array",
+  Object = "object",
+  Number = "number",
+  String = "string",
+  Enum = "enum",
+  None = "none",
 }

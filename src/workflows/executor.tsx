@@ -19,6 +19,7 @@ import {
   NodeResult,
   NodeResultStatus,
   NodeType,
+  ObjectResult,
   ParentDataDef,
   RenameInput,
   StringContentResult,
@@ -26,7 +27,14 @@ import {
   TemplateNodeDef,
 } from "../types/node";
 import { WorkflowContext } from "./workflowinstance";
-
+import { MappedTypeNode } from "typescript";
+import {
+  getValue,
+  isExtractResult,
+  isStringResult,
+  isSummaryResult,
+  isTableResult,
+} from "../types/typeutils";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 
@@ -74,8 +82,8 @@ async function _handleDataNode(
           // column headers.
           range: {
             start: 2,
-            numRows: 100
-          }
+            numRows: 100,
+          },
         },
       },
     };
@@ -135,8 +143,12 @@ async function _handleDestinationNode(
     };
   }
 
+  let value;
+  if (input && input.data) {
+    value = getValue(input.data);
+  }
   // Check if the input data is a valid array.
-  if (!input || !input.data || !Array.isArray(input.data)) {
+  if (!input || !input.data || !Array.isArray(value)) {
     return {
       status: "ok",
       content: "Added 0 rows",
@@ -148,13 +160,15 @@ async function _handleDestinationNode(
     action = "UpdateRows";
   }
 
+  value = value.filter((update) => update !== undefined && update !== null);
+
   let request = {
     Sheets: {
       action,
       request: {
         spreadsheetId: data.spreadsheetId ?? "",
         sheetId: data.sheetId ?? "",
-        data: input.data,
+        data: value,
       },
     },
   };
@@ -167,7 +181,7 @@ async function _handleDestinationNode(
   return {
     status: "ok",
     data: {
-      content: `Added ${input.data.length} rows`,
+      content: `Added ${value.length} rows`,
       type: "string",
     } as StringContentResult,
   } as NodeResult;
@@ -196,10 +210,11 @@ async function _handleExtractNode(
 
   let text = "";
   if (input && input.data) {
-    if ("content" in input.data) {
-      text = input.data.content ?? "";
+    let rawValue = getValue(input.data);
+    if (typeof rawValue === "string") {
+      text = rawValue;
     } else {
-      text = JSON.stringify(input.data);
+      text = JSON.stringify(rawValue);
     }
   }
 
@@ -260,31 +275,51 @@ async function _handleLoopNode(
   input: NodeResult | null,
   executeContext: WorkflowContext,
 ): Promise<NodeResult> {
-  if (input) {
+  let status = {
+    canceled: false,
+  };
+  let subscription = cancelListener.subscribe(() => {
+    status.canceled = true;
+  });
+  if (input && input.data) {
     const loopResult = {
       loopResults: [],
     } as LoopNodeDataResult;
 
-    if (Array.isArray(input.data)) {
-      for (const item of input.data as any[]) {
+    const data = input.data;
+    if (isTableResult(data)) {
+      for (const item of data.rows) {
+        if (status.canceled) {
+          subscription.unsubscribe();
+          return {
+            status: NodeResultStatus.Error,
+            error: "User Canceled",
+            data: loopResult,
+          };
+        }
         let inputData = {
           status: NodeResultStatus.Ok,
-          data: item,
+          data: item as ObjectResult,
         };
-        await _executeLoop(node, inputData, executeContext, loopResult);
+        const newInput = mapInput(node, inputData);
+        await _executeLoop(node, newInput, executeContext, loopResult);
       }
-    } else if (typeof input.data === "object") {
-      for (const [key, value] of Object.entries(input.data)) {
-        let data: { [key: string]: any } = {};
-        data[key] = value;
+    } else if (Array.isArray(input.data)) {
+      for (const item of input.data as any[]) {
+        if (status.canceled) {
+          subscription.unsubscribe();
+          return {
+            status: NodeResultStatus.Error,
+            error: "User Canceled",
+            data: loopResult,
+          };
+        }
         let inputData = {
           status: NodeResultStatus.Ok,
-          data: {
-            extractedData: data,
-          } as ExtractResponse,
+          data: item as ObjectResult,
         };
-
-        await _executeLoop(node, inputData, executeContext, loopResult);
+        const newInput = mapInput(node, inputData);
+        await _executeLoop(node, newInput, executeContext, loopResult);
       }
     }
 
@@ -293,6 +328,8 @@ async function _handleLoopNode(
       data: loopResult,
     };
   }
+
+  subscription.unsubscribe();
 
   return {
     status: NodeResultStatus.Error,
@@ -317,23 +354,30 @@ async function _executeLoop(
   loopResult.loopResults.push(multiResult);
 }
 
-export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
+async function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
   let context: any = {};
   let templateData = node.data as TemplateNodeDef;
-  if (input?.data) {
-    Object.keys(templateData.varMapping).forEach((key) => {
-      let value = templateData.varMapping[key as keyof object];
-      if (input.data && input.data[value as keyof object]) {
-        let data: any = input.data[value as keyof object];
 
-        // Use SafeString here so that html is correctly embedded.
-        if ("content" in input.data) {
-          context[key] = new Handlebars.SafeString(data);
-        } else {
-          context[key] = data;
+  if (input?.data) {
+    const inputValue = getValue(input?.data);
+
+    if (isStringResult(input.data) || Array.isArray(inputValue)) {
+      context["content"] = inputValue;
+    } else {
+      Object.keys(templateData.varMapping).forEach((key) => {
+        let value = templateData.varMapping[key as keyof object];
+        if (inputValue && inputValue[value as keyof object]) {
+          let data: any = inputValue[value as keyof object];
+
+          // Use SafeString here so that html is correctly embedded.
+          if ("content" in inputValue) {
+            context[key] = new Handlebars.SafeString(data);
+          } else {
+            context[key] = data;
+          }
         }
-      }
-    });
+      });
+    }
 
     let template = Handlebars.compile(templateData.template);
     return {
@@ -356,24 +400,31 @@ export async function executeNode(
   node: NodeDef,
   executeContext: WorkflowContext,
 ): Promise<NodeResult> {
-  let updatedInput = input;
-  if (node.mapping) {
-    updatedInput = mapInput(node, input);
-  }
-  console.log("input: ", updatedInput);
+  console.log("input: ", input);
 
+  let result;
   if (node.nodeType === NodeType.DataSource) {
-    return _handleDataNode(node, executeContext);
+    result = _handleDataNode(node, executeContext);
   } else if (node.nodeType === NodeType.Extract) {
-    return _handleExtractNode(node, input, executeContext);
+    result = _handleExtractNode(node, input, executeContext);
   } else if (node.nodeType === NodeType.Summarize) {
-    return _handleSummarizeNode(node, updatedInput, executeContext);
+    result = _handleSummarizeNode(node, input, executeContext);
   } else if (node.nodeType === NodeType.Template) {
     return _handleTemplateNode(node, input);
   } else if (node.nodeType === NodeType.DataDestination) {
     return _handleDestinationNode(node, input, executeContext);
   } else if (node.nodeType === NodeType.Loop) {
-    return _handleLoopNode(node, updatedInput, executeContext);
+    result = _handleLoopNode(node, input, executeContext);
+  }
+
+  if (result) {
+    return result.then((nodeResult) => {
+      if (node.mapping && node.nodeType !== NodeType.Loop) {
+        return mapInput(node, nodeResult);
+      } else {
+        return nodeResult;
+      }
+    });
   }
 
   return {
@@ -382,38 +433,48 @@ export async function executeNode(
   };
 }
 
-function mapInput(node: NodeDef, input: NodeResult | null): NodeResult | null {
+function mapInput(node: NodeDef, input: NodeResult): NodeResult {
   if (input && node.mapping && !input.error) {
     let newInput = {
       error: input.error,
       status: input.status,
-      data: {} as any,
+      data: {} as ObjectResult,
     };
 
-    if (input.data) {
-      for (let mapping of node.mapping) {
-        let newData;
-        if (isStringToListConversion(mapping.conversion)) {
-          let data = input.data[mapping.from as keyof object] as string;
-          newData = data.split(mapping.conversion.delimiter).map((value) => {
-            return {
-              content: value,
-              type: "string",
-            } as StringContentResult;
-          });
-        } else if (isRename(mapping)) {
-          newData = input.data[mapping.from as keyof object];
-        }
+    const data = input.data;
+    if (data) {
+      let objectData: any;
+      if (isExtractResult(data)) {
+        objectData = data.extractedData;
+      } else {
+        objectData = data;
+      }
 
-        if (mapping.to) {
-          newInput.data[mapping.to] = newData;
+      console.error("Mapping object data", objectData);
+
+      let newData = {} as { [key: string]: any };
+
+      for (let key in objectData) {
+        let mapping = node.mapping.find((mapping) => mapping.from === key);
+        if (mapping) {
+          if (mapping.skip) {
+            continue;
+          } else if (mapping.to) {
+            newData[mapping.to] = objectData[key];
+          } else if (mapping.extract) {
+            newData = objectData[key];
+            break;
+          }
         } else {
-          newInput.data = newData;
+          newData[key] = objectData[key];
         }
       }
-    }
 
-    return newInput;
+      return {
+        status: input.status,
+        data: newData as ObjectResult,
+      };
+    }
   }
   return input;
 }

@@ -8,6 +8,7 @@ import {
   NodeType,
   SummaryDataDef,
   TemplateNodeDef,
+  DataDestinationDef,
 } from "../types/node";
 
 export function createNodeDefFromType(
@@ -26,7 +27,7 @@ export function createNodeDefFromType(
   } else if (nodeType === NodeType.Loop) {
     nodeData = { actions: [] } as ParentDataDef;
   } else if (nodeType === NodeType.DataDestination) {
-    nodeData = {};
+    nodeData = {} as DataDestinationDef;
   } else {
     return undefined;
   }

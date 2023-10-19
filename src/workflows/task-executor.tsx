@@ -14,6 +14,7 @@ import {
   ObjectResult,
   StringContentResult,
   SummaryDataDef,
+  TableDataResult,
 } from "../types/node";
 import {
   interval,
@@ -29,10 +30,10 @@ import {
 } from "rxjs";
 import { UserConnection } from "../components/nodes/sources/connection";
 import { WorkflowContext } from "./workflowinstance";
-
-export const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
+import { getValue } from "../types/typeutils";
+const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 export const API_TOKEN = process.env.REACT_APP_API_TOKEN;
-export const API_CONFIG: AxiosRequestConfig = {
+const API_CONFIG: AxiosRequestConfig = {
   headers: { Authorization: `Bearer ${API_TOKEN}` },
 };
 
@@ -59,7 +60,7 @@ export async function executeConnectionRequest(
   request: ObjectResult,
   token?: string,
 ): Promise<NodeResult> {
-  console.debug('connection request: ', data);
+  console.debug("connection request: ", data);
   // Do some light data validation
   if (!data.connectionId) {
     return {
@@ -85,16 +86,95 @@ export async function executeConnectionRequest(
   }
 
   return await axios
-    .post<ApiResponse<[]>>(
+    .post<ApiResponse<any[]>>(
       `${API_ENDPOINT}/connections/${data.connectionId}`,
       request,
       config,
     )
     .then((resp) => {
       let result = resp.data.result;
+      let header = {};
+      if (result.length > 0) {
+        header = result[0];
+      }
       return {
         status: NodeResultStatus.Ok,
-        data: result,
+        data: {
+          rows: result,
+          headerRow: header,
+        } as TableDataResult,
+      };
+    })
+    .catch((err) => {
+      return {
+        status: NodeResultStatus.Error,
+        error: err.toString(),
+      };
+    });
+}
+
+export async function executeGSheetsHeaderRequest(
+  data: ConnectionDataDef,
+  token?: string,
+): Promise<NodeResult> {
+  console.debug(`connection request: ${data}`);
+  // Do some light data validation
+  if (!data.connectionId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please choose a valid connection.",
+    };
+  } else if (!data.spreadsheetId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please set a valid spreadsheet id.",
+    };
+  }
+
+  // Setup the data request
+  let config: AxiosRequestConfig = {
+    ...API_CONFIG,
+  };
+
+  if (token) {
+    config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+  }
+
+  // todo: refactor to support other integrations
+  let request = {
+    Sheets: {
+      action: "ReadRows",
+      request: {
+        spreadsheetId: data.spreadsheetId ?? "",
+        sheetId: data.sheetId ?? "",
+        range: {
+          start: 0,
+          numRows: 1,
+        },
+      },
+    },
+  };
+
+  return await axios
+    .post<ApiResponse<any[]>>(
+      `${API_ENDPOINT}/connections/${data.connectionId}`,
+      request,
+      config,
+    )
+    .then((resp) => {
+      let result = resp.data.result;
+      let header = {};
+      if (result.length > 0) {
+        header = result[0];
+      }
+      return {
+        status: NodeResultStatus.Ok,
+        data: {
+          rows: result,
+          headerRow: header,
+        } as TableDataResult,
       };
     })
     .catch((err) => {
@@ -192,8 +272,13 @@ export async function executeSummarizeTask(
   config.headers = { Authorization: `Bearer ${token}` };
 
   let text = "";
-  if (input && input.data && "content" in input.data) {
-    text = input.data.content ?? "";
+  if (input && input.data) {
+    let rawInput = getValue(input.data);
+    if (typeof rawInput === "string") {
+      text = rawInput;
+    } else {
+      text = JSON.stringify(rawInput);
+    }
   }
 
   let response: ApiResponse<string> | ApiError = await axios

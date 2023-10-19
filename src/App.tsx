@@ -16,14 +16,13 @@ import {
   NodeType,
   DataNodeType,
   ParentDataDef,
+  OutputDataType,
+  DataNodeDef,
 } from "./types/node";
-import {
-  NodeComponent,
-  ShowNodeResult,
-  WorkflowResult,
-} from "./components/nodes";
+import { NodeComponent, WorkflowResult } from "./components/nodes";
 import { useState } from "react";
 import {
+  getPreviousUuid,
   insertNode,
   loadWorkflow,
   nodeComesAfter,
@@ -37,6 +36,13 @@ import { runWorkflow } from "./workflows";
 import { createNodeDefFromType } from "./utils/nodeUtils";
 import { ConfigureMappingModal } from "./components/modal/ConfigureMappingModal";
 import { API_TOKEN } from "./workflows/task-executor";
+import {
+  InputOutputDefinition,
+  canConfigureMappings,
+  generateInputOutputTypes,
+} from "./types/typeutils";
+import { DropArea } from "./components/nodes/dropArea";
+import { NodeDivider } from "./components/nodes/nodeDivider";
 
 function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
   return (
@@ -52,6 +58,9 @@ function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
 function App() {
   // Is a workflow currently running?
   let [workflow, setWorkflow] = useState<Array<NodeDef>>([]);
+  let [workflowDataTypes, setWorkflowDataTypes] = useState<
+    InputOutputDefinition[]
+  >([]);
   let [nodeResults, setNodeResults] = useState<Map<string, LastRunDetails>>(
     new Map(),
   );
@@ -61,6 +70,9 @@ function App() {
   let [currentNodeRunning, setCurrentNodeRunning] = useState<string | null>(
     null,
   );
+  let [cachedNodeTypes, setCachedNodeTypes] = useState<{
+    [key: string]: InputOutputDefinition;
+  }>({});
   let [endResult, setEndResult] = useState<NodeResult | null>(null);
   let [dragOverUuid, setDragOverUuid] = useState<string | null>(null);
   let [draggedNode, setDraggedNode] = useState<string | null>(null);
@@ -83,6 +95,29 @@ function App() {
           .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
       }
     }
+  };
+
+  const updateNodeDataTypes = (
+    newWorkflow: NodeDef[],
+    cache: { [key: string]: InputOutputDefinition },
+    getAuthToken: () => Promise<string>,
+  ) => {
+    generateInputOutputTypes(newWorkflow, cache, getAuthToken).then(
+      (result) => {
+        const newCache = { ...cachedNodeTypes };
+        for (const node of result) {
+          if (
+            node.outputType === OutputDataType.TableResult &&
+            node.outputSchema
+          ) {
+            newCache[node.uuid] = node;
+          }
+        }
+        setCachedNodeTypes(newCache);
+        setWorkflowDataTypes(result);
+        console.debug("DataType Results", result);
+      },
+    );
   };
 
   let handleRunWorkflow = async () => {
@@ -108,57 +143,80 @@ function App() {
   };
 
   let deleteWorkflowNode = (uuid: string) => {
-    setWorkflow(
-      workflow.flatMap((node) => {
-        if (node.parentNode) {
-          (node.data as ParentDataDef).actions = (
-            node.data as ParentDataDef
-          ).actions.flatMap((node) => {
-            if (node.uuid === uuid) {
-              return [];
-            } else {
-              return node;
-            }
-          });
-        }
-        if (node.uuid === uuid) {
-          return [];
-        } else {
-          return node;
-        }
-      }),
-    );
+    const newCache = { ...cachedNodeTypes };
+    delete newCache[uuid];
+    setCachedNodeTypes(newCache);
+
+    let previousUUID = getPreviousUuid(uuid, workflow);
+    const newWorkflow = workflow.flatMap((node) => {
+      if (node.parentNode) {
+        (node.data as ParentDataDef).actions = (
+          node.data as ParentDataDef
+        ).actions.flatMap((node) => {
+          if (node.uuid === uuid) {
+            return [];
+          } else {
+            return node;
+          }
+        });
+      }
+      if (node.uuid === uuid) {
+        return [];
+      } else {
+        return node;
+      }
+    });
+
+    if (previousUUID) {
+      clearPreviousMapping(previousUUID, newWorkflow);
+    }
+    setWorkflow(newWorkflow);
+
+    updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
   };
 
   let updateWorkflow = (uuid: string, updates: NodeUpdates) => {
-    setWorkflow(
-      workflow.map((node) => {
-        if (node.parentNode) {
-          (node.data as ParentDataDef).actions = (
-            node.data as ParentDataDef
-          ).actions.flatMap((node) => {
-            if (node.uuid === uuid) {
-              return {
-                ...node,
-                label: updates.label ?? node.label,
-                data: updates.data ?? node.data,
-              };
-            } else {
-              return node;
-            }
-          });
-        }
-        if (node.uuid === uuid) {
-          return {
-            ...node,
-            label: updates.label ?? node.label,
-            data: updates.data ?? node.data,
-          };
-        } else {
-          return node;
-        }
-      }),
-    );
+    const newCache = { ...cachedNodeTypes };
+    delete newCache[uuid];
+    setCachedNodeTypes(newCache);
+
+    const newWorkflow = workflow.map((node) => {
+      if (node.parentNode) {
+        (node.data as ParentDataDef).actions = (
+          node.data as ParentDataDef
+        ).actions.flatMap((node) => {
+          if (node.uuid === uuid) {
+            return {
+              ...node,
+              label: updates.label ?? node.label,
+              data: updates.data ?? node.data,
+              mapping: updates.mapping ?? node.mapping,
+            };
+          } else {
+            return node;
+          }
+        });
+      }
+      if (node.uuid === uuid) {
+        return {
+          ...node,
+          label: updates.label ?? node.label,
+          data: updates.data ?? node.data,
+          mapping: updates.mapping ?? node.mapping,
+        };
+      } else {
+        return node;
+      }
+    });
+    setWorkflow(newWorkflow);
+
+    // Want to avoid making the same external request over and over
+    if (
+      updates.data &&
+      !((updates.data as DataNodeDef).type === DataNodeType.Connection)
+    ) {
+      updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
+    }
   };
 
   let clearWorkflow = () => {
@@ -183,6 +241,7 @@ function App() {
     if (newNode) {
       let newWorkflow = [...workflow, newNode];
       setWorkflow(newWorkflow);
+      updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
     }
   };
 
@@ -352,16 +411,15 @@ function App() {
                     setDragNDropAfter={setDragNDropAfter}
                     nodeDropped={nodeDropped}
                   >
-                    {idx < workflow.length - 1 ? (
-                      <ShowNodeResult
-                        result={nodeResults.get(node.uuid)}
-                        onMappingConfigure={() =>
-                          configureMappings(node, workflow[idx + 1])
-                        }
-                      />
-                    ) : (
-                      <ArrowDownIcon className="mt-4 w-4 mx-auto" />
-                    )}
+                    <NodeDivider
+                      steps={workflow}
+                      childNode={node}
+                      dataTypes={workflowDataTypes}
+                      canConfigureMappings={canConfigureMappings}
+                      configureMappings={configureMappings}
+                      currentIndex={idx}
+                      nodeResults={nodeResults}
+                    ></NodeDivider>
                   </DropArea>
                 </div>
 
@@ -402,12 +460,16 @@ function App() {
                               nodeDropped={nodeDropped}
                             >
                               <div className="mt-6">
-                                <ShowNodeResult
-                                  result={nodeResults.get(childNode.uuid)}
-                                  onMappingConfigure={() =>
-                                    configureMappings(node, workflow[idx + 1])
-                                  }
-                                />
+                                <NodeDivider
+                                  parentNode={node}
+                                  dataTypes={workflowDataTypes}
+                                  steps={(node.data as ParentDataDef).actions}
+                                  canConfigureMappings={canConfigureMappings}
+                                  childNode={childNode}
+                                  configureMappings={configureMappings}
+                                  currentIndex={childIdx}
+                                  nodeResults={nodeResults}
+                                ></NodeDivider>
                               </div>
                             </DropArea>
                           </div>
@@ -443,51 +505,24 @@ function App() {
       />
       <ConfigureMappingModal
         modalRef={configureMappingModal}
-        inputNode={inputNode}
-        outputNode={outputNode}
+        dataTypes={workflowDataTypes}
+        fromNode={inputNode}
+        toNode={outputNode}
+        updateWorkflow={updateWorkflow}
       />
     </main>
   );
 }
 
-interface DropAreaProperties {
-  uuid: string;
-  dropAfter: boolean;
-  isValidDropSpot: (dropAfter: boolean, spotUUID: string) => boolean;
-  setDragNDropAfter: (dropAfter: boolean) => void;
-  setDragOverUuid: (string: string | null) => void;
-  nodeDropped: (after: boolean, dropUUID: string) => void;
+function clearPreviousMapping(uuid: string, workflow: NodeDef[]) {
+  const node = workflow.find((node) => node.uuid === uuid);
+  if (node) {
+    node.mapping = [];
+  }
 }
 
-function DropArea(props: React.PropsWithChildren<DropAreaProperties>) {
-  const style = props.isValidDropSpot(props.dropAfter, props.uuid)
-    ? "border-t-4 border-solid border-base-content"
-    : "";
-
-  return (
-    <div
-      className={`${style} w-full md:w-[480px] lg:w-[640px] min-h-6`}
-      onDragOver={(event) => {
-        if (props.isValidDropSpot(props.dropAfter, props.uuid)) {
-          event.preventDefault();
-        }
-
-        props.setDragNDropAfter(props.dropAfter);
-        props.setDragOverUuid(props.uuid);
-      }}
-      onDragLeave={(event) => {
-        event.preventDefault();
-        props.setDragOverUuid(null);
-      }}
-      onDrop={(dropEvent) => {
-        dropEvent.preventDefault();
-        props.nodeDropped(props.dropAfter, props.uuid);
-        props.setDragOverUuid(null);
-      }}
-    >
-      {props.children}
-    </div>
-  );
+async function getAuthToken(): Promise<string> {
+  return `${API_TOKEN}`;
 }
 
 export default App;

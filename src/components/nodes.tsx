@@ -8,12 +8,14 @@ import {
   NodeDataTypes,
   DataNodeDef,
   DataNodeType,
+  NodeDef,
 } from "../types/node";
 import {
   ArrowDownIcon,
   ArrowPathIcon,
   Bars3BottomLeftIcon,
   Bars3Icon,
+  BeakerIcon,
   BoltIcon,
   BookOpenIcon,
   CheckBadgeIcon,
@@ -30,14 +32,14 @@ import {
   XMarkIcon,
 } from "@heroicons/react/20/solid";
 import ExtractNode from "./nodes/extract";
-import TemplateNode from "./nodes/destinations/template";
 import SummarizeNode from "./nodes/summarize";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
-import { DataNodeComponent } from "./nodes/sources";
-import DataDestinationNode from "./nodes/destinations/connection";
 import Loop from "./nodes/loop";
 import { getValue, isStringResult } from "../types/typeutils";
+import { DataNodeComponent } from "./nodes/sources";
+import DataDestinationNode from "./nodes/destinations/connection";
+import TemplateNode from "./nodes/destinations/template";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -361,18 +363,28 @@ export function NodeComponent({
 }
 
 export function ShowNodeResult({
+  node,
   result,
   onMappingConfigure,
+  canShowMapping,
 }: {
+  node: NodeDef;
   result: LastRunDetails | undefined;
   onMappingConfigure: () => void;
+  canShowMapping: boolean;
 }) {
   let [showResult, setShowResult] = useState<boolean>(false);
+
+  const hasMapping = node.mapping !== undefined && node.mapping.length > 0;
 
   if (!result) {
     return (
       <div className="w-full flex justify-center">
-        <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
+        <MappingButton
+          onMappingConfigure={onMappingConfigure}
+          showMapping={canShowMapping}
+          hasMapping={hasMapping}
+        ></MappingButton>
       </div>
     );
   } else if (showResult && result) {
@@ -391,11 +403,41 @@ export function ShowNodeResult({
             View Results
           </div>
         ) : (
-          <div className="w-full flex justify-center">
-            <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
-          </div>
+          <MappingButton
+            onMappingConfigure={onMappingConfigure}
+            showMapping={canShowMapping}
+            hasMapping={hasMapping}
+          ></MappingButton>
         )}
       </div>
     );
+  }
+}
+
+function MappingButton({
+  onMappingConfigure,
+  showMapping,
+  hasMapping,
+}: {
+  onMappingConfigure: () => void;
+  showMapping: boolean;
+  hasMapping: boolean;
+}) {
+  if (showMapping) {
+    let badgeColor = hasMapping ? "badge-primary" : "";
+
+    return (
+      <button
+        className="btn btn-neutral indicator"
+        onClick={() => onMappingConfigure()}
+      >
+        <span className={`indicator-item indicator-end badge ${badgeColor}`}>
+          <BeakerIcon className="h-4 w-4"></BeakerIcon>
+        </span>
+        <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>
+      </button>
+    );
+  } else {
+    return <ArrowDownIcon className="h-4 w-4"></ArrowDownIcon>;
   }
 }
