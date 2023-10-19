@@ -149,7 +149,10 @@ export async function executeGSheetsHeaderRequest(
       request: {
         spreadsheetId: data.spreadsheetId ?? "",
         sheetId: data.sheetId ?? "",
-        range: "1:1",
+        range: {
+          start: 0,
+          numRows: 1,
+        },
       },
     },
   };
