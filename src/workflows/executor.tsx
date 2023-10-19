@@ -160,6 +160,8 @@ async function _handleDestinationNode(
     action = "UpdateRows";
   }
 
+  value = value.filter((update) => update !== undefined && update !== null);
+
   let request = {
     Sheets: {
       action,
