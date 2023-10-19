@@ -30,6 +30,7 @@ import {
 } from "rxjs";
 import { UserConnection } from "../components/nodes/sources/connection";
 import { WorkflowContext } from "./workflowinstance";
+import { getValue } from "../types/typeutils";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 const API_CONFIG: AxiosRequestConfig = {
@@ -281,8 +282,13 @@ export async function executeSummarizeTask(
   }
 
   let text = "";
-  if (input && input.data && "content" in input.data) {
-    text = input.data.content ?? "";
+  if (input && input.data) {
+    let rawInput = getValue(input.data);
+    if (typeof rawInput === "string") {
+      text = rawInput;
+    } else {
+      text = JSON.stringify(rawInput);
+    }
   }
 
   let response: ApiResponse<string> | ApiError = await axios
