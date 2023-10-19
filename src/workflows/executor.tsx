@@ -193,6 +193,12 @@ async function _handleLoopNode(
   input: NodeResult | null,
   executeContext: WorkflowContext,
 ): Promise<NodeResult> {
+  let status = {
+    canceled: false,
+  };
+  let subscription = cancelListener.subscribe(() => {
+    status.canceled = true;
+  });
   if (input && input.data) {
     const loopResult = {
       loopResults: [],
@@ -201,6 +207,14 @@ async function _handleLoopNode(
     const data = input.data;
     if (isTableResult(data)) {
       for (const item of data.rows) {
+        if (status.canceled) {
+          subscription.unsubscribe();
+          return {
+            status: NodeResultStatus.Error,
+            error: "User Canceled",
+            data: loopResult,
+          };
+        }
         let inputData = {
           status: NodeResultStatus.Ok,
           data: item as ObjectResult,
@@ -210,6 +224,14 @@ async function _handleLoopNode(
       }
     } else if (Array.isArray(input.data)) {
       for (const item of input.data as any[]) {
+        if (status.canceled) {
+          subscription.unsubscribe();
+          return {
+            status: NodeResultStatus.Error,
+            error: "User Canceled",
+            data: loopResult,
+          };
+        }
         let inputData = {
           status: NodeResultStatus.Ok,
           data: item as ObjectResult,
@@ -224,6 +246,8 @@ async function _handleLoopNode(
       data: loopResult,
     };
   }
+
+  subscription.unsubscribe();
 
   return {
     status: NodeResultStatus.Error,
