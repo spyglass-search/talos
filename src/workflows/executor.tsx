@@ -128,10 +128,11 @@ async function _handleExtractNode(
 
   let text = "";
   if (input && input.data) {
-    if ("content" in input.data) {
-      text = input.data.content ?? "";
+    let rawValue = getValue(input.data);
+    if (typeof rawValue === "string") {
+      text = rawValue;
     } else {
-      text = JSON.stringify(input.data);
+      text = JSON.stringify(rawValue);
     }
   }
 
