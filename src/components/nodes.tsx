@@ -21,6 +21,7 @@ import {
   CheckBadgeIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  CircleStackIcon,
   CloudIcon,
   CodeBracketIcon,
   DocumentTextIcon,
@@ -31,13 +32,14 @@ import {
   XMarkIcon,
 } from "@heroicons/react/20/solid";
 import ExtractNode from "./nodes/extract";
-import TemplateNode from "./nodes/template";
 import SummarizeNode from "./nodes/summarize";
 import { EditableText } from "./editable";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 import Loop from "./nodes/loop";
 import { getValue, isStringResult } from "../types/typeutils";
 import { DataNodeComponent } from "./nodes/sources";
+import DataDestinationNode from "./nodes/destinations/connection";
+import TemplateNode from "./nodes/destinations/template";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -93,6 +95,8 @@ export function NodeIcon({ nodeType, subType, className }: NodeIconProps) {
     } else if (subType === DataNodeType.Text) {
       icon = <Bars3BottomLeftIcon className={className} />;
     }
+  } else if (nodeType === NodeType.DataDestination) {
+    icon = <CircleStackIcon className={className} />;
   } else if (nodeType === NodeType.Loop) {
     icon = <ArrowPathIcon className={className} />;
   }
@@ -268,9 +272,12 @@ export function NodeComponent({
       return <TemplateNode {...baseProps} />;
     } else if (nodeType === NodeType.Summarize) {
       return <SummarizeNode {...baseProps} />;
+    } else if (nodeType === NodeType.DataDestination) {
+      return <DataDestinationNode {...baseProps} />;
     } else if (nodeType === NodeType.Loop) {
       return <Loop {...baseProps} />;
     }
+
     return null;
   };
 

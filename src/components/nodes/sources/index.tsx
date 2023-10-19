@@ -1,8 +1,8 @@
-import {DataNodeDef, DataNodeType, NodeDataTypes} from '../../../types/node';
-import {ConnectionDataNode} from './connection';
-import {FileDataNode} from './file';
-import {StaticDataNode} from './static';
-import {UrlDataNode} from './url';
+import { DataNodeDef, DataNodeType, NodeDataTypes } from "../../../types/node";
+import { ConnectionDataNode } from "./connection";
+import { FileDataNode } from "./file";
+import { StaticDataNode } from "./static";
+import { UrlDataNode } from "./url";
 
 export interface DataNodeProps {
   data: DataNodeDef;

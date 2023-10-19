@@ -58,7 +58,12 @@ export function getValue(data: NodeDataResultTypes): any {
   if (isStringResult(data)) {
     return data.content;
   } else if (isLoopDataResult(data)) {
-    return data.loopResults;
+    return data.loopResults.map((multiNodeResult) => {
+      const result = multiNodeResult[multiNodeResult.length - 1];
+      if (result.data) {
+        return getValue(result.data);
+      }
+    });
   } else if (isExtractResult(data)) {
     return data.extractedData;
   } else if (isSummaryResult(data)) {

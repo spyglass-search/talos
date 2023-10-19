@@ -1,4 +1,6 @@
 export enum NodeType {
+  // Take a generated output and save it somewhere
+  DataDestination = "DataDestination",
   // Data that is being pulled from:
   // - An integration
   // - A URL
@@ -62,7 +64,8 @@ export type NodeDataTypes =
   | DataNodeDef
   | TemplateNodeDef
   | SummaryDataDef
-  | ParentDataDef;
+  | ParentDataDef
+  | DataDestinationDef;
 
 export type NodeDataResultTypes =
   | StringContentResult
@@ -88,6 +91,10 @@ export enum InputDataType {
   Iterable = "Iterable",
   Object = "Object",
   None = "None",
+}
+
+export interface DataDestinationDef {
+  [key: string]: any;
 }
 
 export type MultiNodeDataResult = NodeResult[];

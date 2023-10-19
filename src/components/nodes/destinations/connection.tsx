@@ -1,48 +1,39 @@
-import { useEffect, useState } from "react";
-import { NodeBodyProps } from "../../nodes";
+import React, { useEffect, useState } from "react";
 import {
   ConnectionDataDef,
   DataConnectionType,
   DataNodeDef,
 } from "../../../types/node";
+import { NodeBodyProps } from "../../nodes";
 import {
   DocumentIcon,
   TableCellsIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
+import { ConnectionDataNode, UserConnection } from "../sources/connection";
 import { listUserConnections } from "../../../workflows/task-executor";
 
-export interface UserConnection {
-  id: number;
-  apiId: string;
-  account: string;
-}
-
-export function ConnectionDataNode({
+export default function DataDestinationNode({
   data,
   onUpdateData = () => {},
-  getAuthToken,
 }: NodeBodyProps) {
-  let nodeData = data as DataNodeDef;
-  let [type, setType] = useState(nodeData.type);
+  let [action, setAction] = useState<string>("update");
+  let actions = [
+    { label: "Update Rows", id: "update" },
+    { label: "Append to End", id: "append" },
+  ];
 
+  let nodeData = data as DataNodeDef;
   let [userConns, setUserConns] = useState<UserConnection[]>([]);
   let [connectionId, setConnectionId] = useState<number | null>(null);
   let [spreadsheetId, setSpreadsheetID] = useState<string | null>(null);
   let [sheetId, setSheetId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (getAuthToken) {
-      getAuthToken()
-        .then((token) => listUserConnections(token))
-        .then((conns) => setUserConns(conns));
-    } else {
-      listUserConnections().then((conns) => setUserConns(conns));
-    }
-  }, [getAuthToken]);
+    listUserConnections().then((conns) => setUserConns(conns));
+  }, []);
 
   useEffect(() => {
-    setType(nodeData.type);
     if (nodeData.connectionData) {
       let data = nodeData.connectionData;
       setSpreadsheetID(data.spreadsheetId ?? null);
@@ -56,14 +47,36 @@ export function ConnectionDataNode({
         connectionId: newData.connectionId ?? connectionId,
         spreadsheetId: newData.spreadsheetId ?? spreadsheetId,
         sheetId: newData.sheetId ?? sheetId,
-        connectionType: DataConnectionType.GSheets,
+        connectionType: newData.connectionType ?? DataConnectionType.GSheets,
+        action,
       },
-      type,
     });
   };
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="tabs tabs-boxed">
+        {actions.map((tab) => {
+          let selected = tab.id === action ? "tab-active" : "";
+          return (
+            <div
+              key={tab.id}
+              className={`tab ${selected}`}
+              onClick={() => {
+                setAction(tab.id);
+                updateNodeData({});
+              }}
+            >
+              {tab.label}
+            </div>
+          );
+        })}
+      </div>
+      <caption className="text-sm">
+        {action === "update"
+          ? "Row data must have `_idx` field to indicate which row to update."
+          : "Row data will be added to the end of the specified sheet."}
+      </caption>
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
           <UserCircleIcon className="w-4" />
@@ -74,7 +87,9 @@ export function ConnectionDataNode({
             let connectionId = Number.parseInt(event.target.value);
             if (connectionId) {
               setConnectionId(connectionId);
-              updateNodeData({ connectionId });
+              updateNodeData({
+                connectionId,
+              });
             }
           }}
           defaultValue={connectionId || ""}
@@ -87,7 +102,6 @@ export function ConnectionDataNode({
           ))}
         </select>
       </div>
-
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
           <TableCellsIcon className="w-4" />
@@ -99,7 +113,9 @@ export function ConnectionDataNode({
           onChange={(event) => {
             let spreadsheetId = event.target.value ?? "";
             setSpreadsheetID(spreadsheetId);
-            updateNodeData({ spreadsheetId });
+            updateNodeData({
+              spreadsheetId,
+            });
           }}
         />
       </div>
@@ -115,7 +131,9 @@ export function ConnectionDataNode({
           onChange={(event) => {
             let sheetId = event.target.value ?? "";
             setSheetId(sheetId);
-            updateNodeData({ sheetId });
+            updateNodeData({
+              sheetId,
+            });
           }}
         />
       </div>

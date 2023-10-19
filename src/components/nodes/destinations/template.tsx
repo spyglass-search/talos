@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { TemplateNodeDef } from "../../types/node";
-import { NodeBodyProps } from "../nodes";
+import { TemplateNodeDef } from "../../../types/node";
+import { NodeBodyProps } from "../../nodes";
 import { parse } from "@handlebars/parser";
 import {
   BlockStatement,
@@ -8,7 +8,7 @@ import {
   PathExpression,
   Program,
 } from "@handlebars/parser/types/ast";
-import { EditableText, EditableTextarea } from "../editable";
+import { EditableText, EditableTextarea } from "../../editable";
 
 function checkTemplate(ast: Program, vars: Array<string>) {
   ast.body.forEach((item) => {

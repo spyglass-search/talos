@@ -8,6 +8,7 @@ import {
   NodeType,
   SummaryDataDef,
   TemplateNodeDef,
+  DataDestinationDef,
 } from "../types/node";
 
 export function createNodeDefFromType(
@@ -25,6 +26,8 @@ export function createNodeDefFromType(
     nodeData = { template: "", varMapping: {} } as TemplateNodeDef;
   } else if (nodeType === NodeType.Loop) {
     nodeData = { actions: [] } as ParentDataDef;
+  } else if (nodeType === NodeType.DataDestination) {
+    nodeData = {} as DataDestinationDef;
   } else {
     return undefined;
   }
@@ -36,6 +39,7 @@ export function createNodeDefFromType(
     data: nodeData,
     parentNode: nodeType === NodeType.Loop,
   };
+
   return newNode;
 }
 

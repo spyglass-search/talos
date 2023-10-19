@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import axios from "axios";
 import {
   ArrowDownIcon,
@@ -16,15 +16,10 @@ import {
   NodeType,
   DataNodeType,
   ParentDataDef,
-  NodePropertyDefinition,
   OutputDataType,
   DataNodeDef,
 } from "./types/node";
-import {
-  NodeComponent,
-  ShowNodeResult,
-  WorkflowResult,
-} from "./components/nodes";
+import { NodeComponent, WorkflowResult } from "./components/nodes";
 import { useState } from "react";
 import {
   getPreviousUuid,
@@ -40,6 +35,7 @@ import AddNodeModal from "./components/modal/AddNodeModal";
 import { runWorkflow } from "./workflows";
 import { createNodeDefFromType } from "./utils/nodeUtils";
 import { ConfigureMappingModal } from "./components/modal/ConfigureMappingModal";
+import { API_TOKEN } from "./workflows/task-executor";
 import {
   InputOutputDefinition,
   canConfigureMappings,
@@ -86,20 +82,6 @@ function App() {
   let fileInput = useRef(null);
   let exampleSelection = useRef(null);
   let addNodeModal = useRef(null);
-
-  // // Initialize workflow
-  // useEffect(() => {
-  //   const fetchInitialData = async () => {
-  //     await axios
-  //       .get<Array<NodeDef>>(
-  //         `${process.env.PUBLIC_URL}/workflow-examples/initial.json`,
-  //       )
-  //       .then((resp) => resp.data)
-  //       .then((workflow) => setWorkflow(workflow as Array<NodeDef>));
-  //   };
-
-  //   fetchInitialData().catch(console.error);
-  // }, []);
 
   let loadExample = async () => {
     if (exampleSelection.current) {
@@ -149,6 +131,9 @@ function App() {
       },
       (currentResults) => {
         setNodeResults(currentResults);
+      },
+      async () => {
+        return API_TOKEN ?? "";
       },
     );
 
@@ -537,7 +522,7 @@ function clearPreviousMapping(uuid: string, workflow: NodeDef[]) {
 }
 
 async function getAuthToken(): Promise<string> {
-  return `${process.env.REACT_APP_API_TOKEN}`;
+  return `${API_TOKEN}`;
 }
 
 export default App;
