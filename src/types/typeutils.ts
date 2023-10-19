@@ -58,11 +58,12 @@ export function getValue(data: NodeDataResultTypes): any {
   if (isStringResult(data)) {
     return data.content;
   } else if (isLoopDataResult(data)) {
-    return data.loopResults.map((multiNodeResult) => {
+    return data.loopResults.flatMap((multiNodeResult) => {
       const result = multiNodeResult[multiNodeResult.length - 1];
-      if (result.data) {
-        return getValue(result.data);
+      if (result && result.data) {
+        return [getValue(result.data)];
       }
+      return [];
     });
   } else if (isExtractResult(data)) {
     return data.extractedData;

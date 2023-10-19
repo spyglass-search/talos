@@ -268,7 +268,7 @@ export async function executeSummarizeTask(
     ...API_CONFIG,
   };
 
-  const token = executeContext.getAuthToken();
+  const token = await executeContext.getAuthToken();
   config.headers = { Authorization: `Bearer ${token}` };
 
   let text = "";

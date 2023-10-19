@@ -450,8 +450,6 @@ function mapInput(node: NodeDef, input: NodeResult): NodeResult {
         objectData = data;
       }
 
-      console.error("Mapping object data", objectData);
-
       let newData = {} as { [key: string]: any };
 
       for (let key in objectData) {
