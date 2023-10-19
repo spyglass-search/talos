@@ -30,7 +30,9 @@ import {
 import { WorkflowContext } from "./workflowinstance";
 import { MappedTypeNode } from "typescript";
 import {
+  getValue,
   isExtractResult,
+  isStringResult,
   isSummaryResult,
   isTableResult,
 } from "../types/typeutils";
@@ -245,23 +247,30 @@ async function _executeLoop(
   loopResult.loopResults.push(multiResult);
 }
 
-export function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
+async function _handleTemplateNode(node: NodeDef, input: NodeResult | null) {
   let context: any = {};
   let templateData = node.data as TemplateNodeDef;
-  if (input?.data) {
-    Object.keys(templateData.varMapping).forEach((key) => {
-      let value = templateData.varMapping[key as keyof object];
-      if (input.data && input.data[value as keyof object]) {
-        let data: any = input.data[value as keyof object];
 
-        // Use SafeString here so that html is correctly embedded.
-        if ("content" in input.data) {
-          context[key] = new Handlebars.SafeString(data);
-        } else {
-          context[key] = data;
+  if (input?.data) {
+    const inputValue = getValue(input?.data);
+
+    if (isStringResult(input.data) || Array.isArray(inputValue)) {
+      context["content"] = inputValue;
+    } else {
+      Object.keys(templateData.varMapping).forEach((key) => {
+        let value = templateData.varMapping[key as keyof object];
+        if (inputValue && inputValue[value as keyof object]) {
+          let data: any = inputValue[value as keyof object];
+
+          // Use SafeString here so that html is correctly embedded.
+          if ("content" in inputValue) {
+            context[key] = new Handlebars.SafeString(data);
+          } else {
+            context[key] = data;
+          }
         }
-      }
-    });
+      });
+    }
 
     let template = Handlebars.compile(templateData.template);
     return {
@@ -284,22 +293,29 @@ export async function executeNode(
   node: NodeDef,
   executeContext: WorkflowContext,
 ): Promise<NodeResult> {
-  let updatedInput = input;
-  if (node.mapping && node.nodeType !== NodeType.Loop) {
-    updatedInput = mapInput(node, input);
-  }
-  console.log("input: ", updatedInput);
+  console.log("input: ", input);
 
+  let result;
   if (node.nodeType === NodeType.DataSource) {
-    return _handleDataNode(node, executeContext);
+    result = _handleDataNode(node, executeContext);
   } else if (node.nodeType === NodeType.Extract) {
-    return _handleExtractNode(node, input, executeContext);
+    result = _handleExtractNode(node, input, executeContext);
   } else if (node.nodeType === NodeType.Summarize) {
-    return _handleSummarizeNode(node, updatedInput, executeContext);
+    result = _handleSummarizeNode(node, input, executeContext);
   } else if (node.nodeType === NodeType.Template) {
-    return _handleTemplateNode(node, input);
+    result = _handleTemplateNode(node, input);
   } else if (node.nodeType === NodeType.Loop) {
-    return _handleLoopNode(node, updatedInput, executeContext);
+    result = _handleLoopNode(node, input, executeContext);
+  }
+
+  if (result) {
+    return result.then((nodeResult) => {
+      if (node.mapping && node.nodeType !== NodeType.Loop) {
+        return mapInput(node, nodeResult);
+      } else {
+        return nodeResult;
+      }
+    });
   }
 
   return {
@@ -308,7 +324,7 @@ export async function executeNode(
   };
 }
 
-function mapInput(node: NodeDef, input: NodeResult | null): NodeResult | null {
+function mapInput(node: NodeDef, input: NodeResult): NodeResult {
   if (input && node.mapping && !input.error) {
     let newInput = {
       error: input.error,
@@ -324,6 +340,8 @@ function mapInput(node: NodeDef, input: NodeResult | null): NodeResult | null {
       } else {
         objectData = data;
       }
+
+      console.error("Mapping object data", objectData);
 
       let newData = {} as { [key: string]: any };
 

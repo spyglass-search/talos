@@ -65,6 +65,8 @@ export function getValue(data: NodeDataResultTypes): any {
     return data;
   } else if (Array.isArray(data)) {
     return data;
+  } else {
+    return data;
   }
 }
 
