@@ -279,7 +279,13 @@ function App() {
     updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
     setDragOverUuid(null);
     setDraggedNode(null);
-    setWorkflow(newWorkflow);
+    setNodeResults(new Map());
+    setEndResult(null);
+    setWorkflow(
+      newWorkflow.map((node) => {
+        return { ...node, lastRun: undefined };
+      }),
+    );
   };
 
   const isValidDropSpot = (dropAfter: boolean, spotUUID: string) => {

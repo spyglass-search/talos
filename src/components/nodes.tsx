@@ -147,11 +147,15 @@ function LastRunSummary({
 }) {
   let scrollToRef = useRef(null);
 
-  if (lastRun.nodeResult.status.toLowerCase() === "ok") {
-    if (scrollToRef.current) {
-      (scrollToRef.current as HTMLElement).scrollIntoView();
+  useEffect(() => {
+    if (lastRun.nodeResult.status.toLowerCase() === "ok") {
+      if (scrollToRef.current) {
+        (scrollToRef.current as HTMLElement).scrollIntoView();
+      }
     }
+  }, [lastRun]);
 
+  if (lastRun.nodeResult.status.toLowerCase() === "ok") {
     let duration = DateTime.fromJSDate(lastRun.endTimestamp).diff(
       DateTime.fromJSDate(lastRun.startTimestamp),
       "seconds",
