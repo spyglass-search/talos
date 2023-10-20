@@ -9,6 +9,7 @@ import {
   DataNodeDef,
   DataNodeType,
   NodeDef,
+  NodeState,
 } from "../types/node";
 import {
   ArrowDownIcon,
@@ -52,11 +53,13 @@ export interface BaseNodeProps {
   nodeType: NodeType;
   isRunning?: boolean;
   lastRun?: LastRunDetails;
+  nodeState?: NodeState;
   workflowValidation?: WorkflowValidationResult;
   // Request node deletion
   onDelete?: () => void;
   // Request node update
   onUpdate?: (nodeUpdates: NodeUpdates) => void;
+  onStateChange?: (nodeSate: NodeState) => void;
   dragUpdate: (uuid: string | null) => void;
   getAuthToken?: () => Promise<string>;
 }
@@ -263,8 +266,10 @@ export function NodeComponent({
   isRunning,
   lastRun,
   workflowValidation,
+  nodeState,
   onUpdate = () => {},
   onDelete = () => {},
+  onStateChange = () => {},
   dragUpdate,
   getAuthToken,
 }: BaseNodeProps) {
@@ -276,6 +281,14 @@ export function NodeComponent({
   let [validationResult, setValidationResult] = useState<
     ValidationError | undefined
   >(undefined);
+
+  useEffect(() => {
+    if (nodeState) {
+      if (nodeState.expanded !== undefined) {
+        setIsCollapsed(!nodeState.expanded);
+      }
+    }
+  }, [nodeState]);
 
   useEffect(() => {
     if (lastRun?.nodeResult.status === "error") {
@@ -360,7 +373,14 @@ export function NodeComponent({
           <div className="flex flex-row gap-2">
             <button
               className="btn btn-circle btn-xs btn-neutral btn-outline"
-              onClick={() => setIsCollapsed(!isCollapsed)}
+              onClick={() => {
+                const state = nodeState ?? ({} as NodeState);
+                const newState = !isCollapsed;
+                setIsCollapsed(newState);
+
+                state.expanded = !newState;
+                onStateChange(state);
+              }}
             >
               {isCollapsed ? (
                 <ChevronDownIcon className="w-4 text-gray" />

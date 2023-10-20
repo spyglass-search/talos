@@ -169,6 +169,10 @@ export enum NodeResultStatus {
   Error = "error",
 }
 
+export interface NodeState {
+  expanded: boolean;
+}
+
 export interface NodeResult {
   status: NodeResultStatus;
   data?: NodeDataResultTypes;
