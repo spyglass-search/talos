@@ -18,6 +18,7 @@ import {
   ParentDataDef,
   OutputDataType,
   DataNodeDef,
+  NodeResultStatus,
 } from "./types/node";
 import { NodeComponent, WorkflowResult } from "./components/nodes";
 import { useState } from "react";
@@ -43,6 +44,11 @@ import {
 } from "./types/typeutils";
 import { DropArea } from "./components/nodes/dropArea";
 import { NodeDivider } from "./components/nodes/nodeDivider";
+import {
+  ValidationStatus,
+  WorkflowValidationResult,
+  validateWorkflow,
+} from "./utils/workflowValidator";
 
 function AddAction({ onAdd = () => {} }: { onAdd: () => void }) {
   return (
@@ -61,6 +67,9 @@ function App() {
   let [workflowDataTypes, setWorkflowDataTypes] = useState<
     InputOutputDefinition[]
   >([]);
+  let [validationResult, setValidationResult] = useState<
+    WorkflowValidationResult | undefined
+  >(undefined);
   let [nodeResults, setNodeResults] = useState<Map<string, LastRunDetails>>(
     new Map(),
   );
@@ -121,25 +130,34 @@ function App() {
   };
 
   let handleRunWorkflow = async () => {
-    setIsRunning(true);
-    setEndResult(null);
+    let newWorkflowValidation = validateWorkflow(workflowDataTypes);
+    setValidationResult(newWorkflowValidation);
 
-    let lastResult = await runWorkflow(
-      workflow,
-      (uuid) => {
-        setCurrentNodeRunning(uuid);
-      },
-      (currentResults) => {
-        setNodeResults(currentResults);
-      },
-      async () => {
-        return API_TOKEN ?? "";
-      },
-    );
+    if (newWorkflowValidation.result === ValidationStatus.Success) {
+      setIsRunning(true);
+      setEndResult(null);
+      let lastResult = await runWorkflow(
+        workflow,
+        (uuid) => {
+          setCurrentNodeRunning(uuid);
+        },
+        (currentResults) => {
+          setNodeResults(currentResults);
+        },
+        async () => {
+          return API_TOKEN ?? "";
+        },
+      );
 
-    setEndResult(lastResult);
-    setIsRunning(false);
-    setCurrentNodeRunning(null);
+      setEndResult(lastResult);
+      setIsRunning(false);
+      setCurrentNodeRunning(null);
+    } else {
+      setEndResult({
+        status: NodeResultStatus.Error,
+        data: newWorkflowValidation.validationErrors,
+      });
+    }
   };
 
   let deleteWorkflowNode = (uuid: string) => {
@@ -212,8 +230,9 @@ function App() {
 
     // Want to avoid making the same external request over and over
     if (
-      updates.data &&
-      !((updates.data as DataNodeDef).type === DataNodeType.Connection)
+      (updates.data &&
+        !((updates.data as DataNodeDef).type === DataNodeType.Connection)) ||
+      updates.mapping
     ) {
       updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
     }
@@ -221,6 +240,7 @@ function App() {
 
   let clearWorkflow = () => {
     setNodeResults(new Map());
+    setValidationResult(undefined);
     setEndResult(null);
     setWorkflow(
       workflow.map((node) => {
@@ -255,9 +275,17 @@ function App() {
       insertNode(newWorkflow, after, dropUUID, dragNode);
     }
 
+    setValidationResult(undefined);
+    updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
     setDragOverUuid(null);
     setDraggedNode(null);
-    setWorkflow(newWorkflow);
+    setNodeResults(new Map());
+    setEndResult(null);
+    setWorkflow(
+      newWorkflow.map((node) => {
+        return { ...node, lastRun: undefined };
+      }),
+    );
   };
 
   const isValidDropSpot = (dropAfter: boolean, spotUUID: string) => {
@@ -397,6 +425,7 @@ function App() {
                 <div key={`node-${idx}`} className="flex flex-col gap-4">
                   <NodeComponent
                     {...node}
+                    workflowValidation={validationResult}
                     isRunning={node.uuid === currentNodeRunning}
                     lastRun={nodeResults.get(node.uuid)}
                     onDelete={() => deleteWorkflowNode(node.uuid)}
@@ -441,6 +470,7 @@ function App() {
                             <NodeComponent
                               key={`node-${idx}-${childIdx}`}
                               {...childNode}
+                              workflowValidation={validationResult}
                               isRunning={childNode.uuid === currentNodeRunning}
                               lastRun={nodeResults.get(childNode.uuid)}
                               onDelete={() =>

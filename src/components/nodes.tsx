@@ -40,6 +40,10 @@ import { getValue, isStringResult } from "../types/typeutils";
 import { DataNodeComponent } from "./nodes/sources";
 import DataDestinationNode from "./nodes/destinations/connection";
 import TemplateNode from "./nodes/destinations/template";
+import {
+  ValidationError,
+  WorkflowValidationResult,
+} from "../utils/workflowValidator";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -48,6 +52,7 @@ export interface BaseNodeProps {
   nodeType: NodeType;
   isRunning?: boolean;
   lastRun?: LastRunDetails;
+  workflowValidation?: WorkflowValidationResult;
   // Request node deletion
   onDelete?: () => void;
   // Request node update
@@ -120,14 +125,37 @@ export function NodeHeader({
   );
 }
 
-function LastRunSummary({ lastRun }: { lastRun: LastRunDetails }) {
+function ValidationErrorStatus({
+  validationError,
+}: {
+  validationError: ValidationError;
+}) {
+  return (
+    <div className="flex flex-row gap-2 text-xs text-error">
+      <ExclamationCircleIcon className="w-4" />
+      {validationError.error}
+    </div>
+  );
+}
+
+function LastRunSummary({
+  lastRun,
+  validationError,
+}: {
+  lastRun: LastRunDetails;
+  validationError?: ValidationError;
+}) {
   let scrollToRef = useRef(null);
 
-  if (lastRun.nodeResult.status.toLowerCase() === "ok") {
-    if (scrollToRef.current) {
-      (scrollToRef.current as HTMLElement).scrollIntoView();
+  useEffect(() => {
+    if (lastRun.nodeResult.status.toLowerCase() === "ok") {
+      if (scrollToRef.current) {
+        (scrollToRef.current as HTMLElement).scrollIntoView();
+      }
     }
+  }, [lastRun]);
 
+  if (lastRun.nodeResult.status.toLowerCase() === "ok") {
     let duration = DateTime.fromJSDate(lastRun.endTimestamp).diff(
       DateTime.fromJSDate(lastRun.startTimestamp),
       "seconds",
@@ -141,6 +169,13 @@ function LastRunSummary({ lastRun }: { lastRun: LastRunDetails }) {
             DateTime.DATETIME_FULL,
           )}
         </div>
+      </div>
+    );
+  } else if (validationError) {
+    return (
+      <div className="flex flex-row gap-2 text-xs text-error">
+        <ExclamationCircleIcon className="w-4" />
+        {validationError.error}
       </div>
     );
   } else {
@@ -227,6 +262,7 @@ export function NodeComponent({
   data,
   isRunning,
   lastRun,
+  workflowValidation,
   onUpdate = () => {},
   onDelete = () => {},
   dragUpdate,
@@ -237,6 +273,9 @@ export function NodeComponent({
   let [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   let [error, setError] = useState<string | null>(null);
   let [canDrag, setCanDrag] = useState<boolean>(false);
+  let [validationResult, setValidationResult] = useState<
+    ValidationError | undefined
+  >(undefined);
 
   useEffect(() => {
     if (lastRun?.nodeResult.status === "error") {
@@ -245,6 +284,13 @@ export function NodeComponent({
       setError(null);
     }
   }, [lastRun]);
+
+  useEffect(() => {
+    const result = workflowValidation?.validationErrors?.find(
+      (errors) => errors.uuid === uuid,
+    );
+    setValidationResult(result);
+  }, [workflowValidation]);
 
   useEffect(() => {
     if (isRunning && scrollToRef.current) {
@@ -349,9 +395,17 @@ export function NodeComponent({
             Executing...
           </div>
         ) : null}
+        {validationResult && !lastRun && !isRunning ? (
+          <ValidationErrorStatus
+            validationError={validationResult}
+          ></ValidationErrorStatus>
+        ) : null}
         {lastRun && !isRunning ? (
-          <LastRunSummary lastRun={lastRun} />
-        ) : !isRunning ? (
+          <LastRunSummary
+            lastRun={lastRun}
+            validationError={validationResult}
+          />
+        ) : !isRunning && !validationResult ? (
           <div className="text-sm text-neutral-content flex flex-row items-center gap-2">
             <NoSymbolIcon className="w-4" />
             Has not been run.

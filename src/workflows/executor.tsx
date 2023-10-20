@@ -6,12 +6,11 @@ import {
   executeParseFile,
   executeSummarizeTask,
 } from "./task-executor";
-import { Subject, last } from "rxjs";
+import { Subject } from "rxjs";
 import {
   DataNodeDef,
   DataNodeType,
   ExtractNodeDef,
-  ExtractResponse,
   LoopNodeDataResult,
   MultiNodeDataResult,
   NodeDef,
@@ -27,12 +26,10 @@ import {
   TemplateNodeDef,
 } from "../types/node";
 import { WorkflowContext } from "./workflowinstance";
-import { MappedTypeNode } from "typescript";
 import {
   getValue,
   isExtractResult,
   isStringResult,
-  isSummaryResult,
   isTableResult,
 } from "../types/typeutils";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
@@ -156,7 +153,7 @@ async function _handleDestinationNode(
   }
 
   let action = "AppendRows";
-  if (data.action && data.action == "update") {
+  if (data.action && data.action === "update") {
     action = "UpdateRows";
   }
 
@@ -435,12 +432,6 @@ export async function executeNode(
 
 function mapInput(node: NodeDef, input: NodeResult): NodeResult {
   if (input && node.mapping && !input.error) {
-    let newInput = {
-      error: input.error,
-      status: input.status,
-      data: {} as ObjectResult,
-    };
-
     const data = input.data;
     if (data) {
       let objectData: any;
@@ -449,8 +440,6 @@ function mapInput(node: NodeDef, input: NodeResult): NodeResult {
       } else {
         objectData = data;
       }
-
-      console.error("Mapping object data", objectData);
 
       let newData = {} as { [key: string]: any };
 
