@@ -303,7 +303,7 @@ export function NodeComponent({
       (errors) => errors.uuid === uuid,
     );
     setValidationResult(result);
-  }, [workflowValidation]);
+  }, [workflowValidation, uuid]);
 
   useEffect(() => {
     if (isRunning && scrollToRef.current) {

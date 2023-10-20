@@ -1,12 +1,4 @@
-import {
-  DataNodeDef,
-  DataNodeType,
-  InputDataType,
-  NodeDef,
-  NodeType,
-  OutputDataType,
-  PropertyType,
-} from "../types/node";
+import { InputDataType, OutputDataType, PropertyType } from "../types/node";
 import { InputOutputDefinition } from "../types/typeutils";
 
 export interface WorkflowValidationResult {

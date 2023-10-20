@@ -10,7 +10,7 @@ import {
   TableCellsIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
-import { ConnectionDataNode, UserConnection } from "../sources/connection";
+import { UserConnection } from "../sources/connection";
 import { listUserConnections } from "../../../workflows/task-executor";
 
 export default function DataDestinationNode({
