@@ -19,6 +19,7 @@ import {
   OutputDataType,
   DataNodeDef,
   NodeResultStatus,
+  NodeState,
 } from "./types/node";
 import { NodeComponent, WorkflowResult } from "./components/nodes";
 import { useState } from "react";
@@ -73,6 +74,7 @@ function App() {
   let [nodeResults, setNodeResults] = useState<Map<string, LastRunDetails>>(
     new Map(),
   );
+  let [nodeStates, setNodeStates] = useState<Map<string, NodeState>>(new Map());
   let [dragNDropAfter, setDragNDropAfter] = useState<boolean>(true);
   let [isRunning, setIsRunning] = useState<boolean>(false);
   let [isLoading, setIsLoading] = useState<boolean>(false);
@@ -165,6 +167,9 @@ function App() {
     delete newCache[uuid];
     setCachedNodeTypes(newCache);
 
+    nodeStates.delete(uuid);
+    setNodeStates(nodeStates);
+
     let previousUUID = getPreviousUuid(uuid, workflow);
     const newWorkflow = workflow.flatMap((node) => {
       if (node.parentNode) {
@@ -191,6 +196,12 @@ function App() {
     setWorkflow(newWorkflow);
 
     updateNodeDataTypes(newWorkflow, cachedNodeTypes, getAuthToken);
+  };
+
+  let updateNodeState = (uuid: string, update: NodeState) => {
+    const newStates = new Map(nodeStates);
+    newStates.set(uuid, update);
+    setNodeStates(newStates);
   };
 
   let updateWorkflow = (uuid: string, updates: NodeUpdates) => {
@@ -428,6 +439,8 @@ function App() {
                     workflowValidation={validationResult}
                     isRunning={node.uuid === currentNodeRunning}
                     lastRun={nodeResults.get(node.uuid)}
+                    nodeState={nodeStates.get(node.uuid)}
+                    onStateChange={(state) => updateNodeState(node.uuid, state)}
                     onDelete={() => deleteWorkflowNode(node.uuid)}
                     onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
                     dragUpdate={(uuid) => setDraggedNode(uuid)}
@@ -471,6 +484,10 @@ function App() {
                               key={`node-${idx}-${childIdx}`}
                               {...childNode}
                               workflowValidation={validationResult}
+                              nodeState={nodeStates.get(childNode.uuid)}
+                              onStateChange={(state) =>
+                                updateNodeState(childNode.uuid, state)
+                              }
                               isRunning={childNode.uuid === currentNodeRunning}
                               lastRun={nodeResults.get(childNode.uuid)}
                               onDelete={() =>
