@@ -15,6 +15,7 @@ import { listUserConnections } from "../../../workflows/task-executor";
 
 export default function DataDestinationNode({
   data,
+  getAuthToken,
   onUpdateData = () => {},
 }: NodeBodyProps) {
   let [action, setAction] = useState<string>("update");
@@ -30,7 +31,13 @@ export default function DataDestinationNode({
   let [sheetId, setSheetId] = useState<string | null>(null);
 
   useEffect(() => {
-    listUserConnections().then((conns) => setUserConns(conns));
+    if (getAuthToken) {
+      getAuthToken().then((token) => {
+        listUserConnections(token).then((conns) => setUserConns(conns));
+      });
+    } else {
+      listUserConnections().then((conns) => setUserConns(conns));
+    }
   }, []);
 
   useEffect(() => {

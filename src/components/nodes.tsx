@@ -313,6 +313,7 @@ export function NodeComponent({
 
   let baseProps = {
     data: data,
+    getAuthToken,
     onUpdateData: (data: any) => onUpdate({ data }),
   };
 
