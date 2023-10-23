@@ -144,6 +144,11 @@ async function _handleDestinationNode(
   if (input && input.data) {
     value = getValue(input.data);
   }
+
+  if (!Array.isArray(value) && typeof value === "object") {
+    value = [value];
+  }
+
   // Check if the input data is a valid array.
   if (!input || !input.data || !Array.isArray(value)) {
     return {
