@@ -54,6 +54,10 @@ export function isSummaryResult(
   );
 }
 
+export function getTableRowIndex(row: any): string | undefined {
+  return row["_idx"];
+}
+
 export function getValue(data: NodeDataResultTypes): any {
   if (isStringResult(data)) {
     return data.content;

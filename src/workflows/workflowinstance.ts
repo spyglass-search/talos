@@ -17,8 +17,15 @@ export interface WorkflowRunContext {
   isInLoop(uuid: string): boolean;
 }
 
+export interface LoopContext {
+  isInLoop: boolean;
+  loopIndex: number;
+  rowUuid?: string;
+}
+
 export class WorkflowContext implements WorkflowRunContext {
   private nodeResults: Map<string, LastRunDetails>;
+  private loopContext?: LoopContext;
   constructor(
     public workflow: Array<NodeDef>,
     public onRunningNodeChange: (uuid: string) => void,
@@ -122,5 +129,13 @@ export class WorkflowContext implements WorkflowRunContext {
     }
 
     return lastResult;
+  }
+
+  public setLoopContext(loopContext: LoopContext | undefined): void {
+    this.loopContext = loopContext;
+  }
+
+  public getLoopContext(): LoopContext | undefined {
+    return this.loopContext;
   }
 }
