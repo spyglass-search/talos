@@ -38,13 +38,14 @@ export default function DataDestinationNode({
     } else {
       listUserConnections().then((conns) => setUserConns(conns));
     }
-  }, []);
+  }, [getAuthToken]);
 
   useEffect(() => {
     if (nodeData.connectionData) {
       let data = nodeData.connectionData;
       setSpreadsheetID(data.spreadsheetId ?? null);
       setSheetId(data.sheetId ?? null);
+      setAction(data.action ?? "update");
     }
   }, [nodeData]);
 
@@ -55,7 +56,7 @@ export default function DataDestinationNode({
         spreadsheetId: newData.spreadsheetId ?? spreadsheetId,
         sheetId: newData.sheetId ?? sheetId,
         connectionType: newData.connectionType ?? DataConnectionType.GSheets,
-        action,
+        action: newData.action ?? action,
       },
     });
   };
@@ -71,7 +72,9 @@ export default function DataDestinationNode({
               className={`tab ${selected}`}
               onClick={() => {
                 setAction(tab.id);
-                updateNodeData({});
+                updateNodeData({
+                  action: tab.id,
+                });
               }}
             >
               {tab.label}
