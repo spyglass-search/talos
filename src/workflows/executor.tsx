@@ -25,8 +25,9 @@ import {
   StringToListConversion,
   TemplateNodeDef,
 } from "../types/node";
-import { WorkflowContext } from "./workflowinstance";
+import { LoopContext, WorkflowContext } from "./workflowinstance";
 import {
+  getTableRowIndex,
   getValue,
   isExtractResult,
   isStringResult,
@@ -144,6 +145,16 @@ async function _handleDestinationNode(
   if (input && input.data) {
     value = getValue(input.data);
   }
+
+  if (!Array.isArray(value) && typeof value === "object") {
+    const loopContext = executeContext.getLoopContext();
+    const index = getTableRowIndex(value);
+    if (!index && loopContext && loopContext.isInLoop && loopContext.rowUuid) {
+      value["_idx"] = loopContext.rowUuid;
+    }
+    value = [value];
+  }
+
   // Check if the input data is a valid array.
   if (!input || !input.data || !Array.isArray(value)) {
     return {
@@ -285,8 +296,17 @@ async function _handleLoopNode(
 
     const data = input.data;
     if (isTableResult(data)) {
-      for (const item of data.rows) {
+      let rowCount = data.rows.length;
+      for (let i = 0; i < rowCount; i++) {
+        const item = data.rows[i];
+        const loopContext: LoopContext = {
+          isInLoop: true,
+          loopIndex: i,
+          rowUuid: getTableRowIndex(item),
+        };
+
         if (status.canceled) {
+          executeContext.setLoopContext(undefined);
           subscription.unsubscribe();
           return {
             status: NodeResultStatus.Error,
@@ -298,12 +318,18 @@ async function _handleLoopNode(
           status: NodeResultStatus.Ok,
           data: item as ObjectResult,
         };
+
+        executeContext.setLoopContext(loopContext);
         const newInput = mapInput(node, inputData);
         await _executeLoop(node, newInput, executeContext, loopResult);
       }
     } else if (Array.isArray(input.data)) {
-      for (const item of input.data as any[]) {
+      const rows: any[] = input.data as any[];
+      let rowCount = rows.length;
+      for (let i = 0; i < rowCount; i++) {
+        const item = rows[i];
         if (status.canceled) {
+          executeContext.setLoopContext(undefined);
           subscription.unsubscribe();
           return {
             status: NodeResultStatus.Error,
@@ -315,11 +341,18 @@ async function _handleLoopNode(
           status: NodeResultStatus.Ok,
           data: item as ObjectResult,
         };
+
+        const loopContext: LoopContext = {
+          isInLoop: true,
+          loopIndex: i,
+        };
+        executeContext.setLoopContext(loopContext);
         const newInput = mapInput(node, inputData);
         await _executeLoop(node, newInput, executeContext, loopResult);
       }
     }
 
+    executeContext.setLoopContext(undefined);
     return {
       status: NodeResultStatus.Ok,
       data: loopResult,
