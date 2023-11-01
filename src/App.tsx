@@ -131,34 +131,46 @@ function App() {
     );
   };
 
+  const internalRunWorkflow = async () => {
+    setIsRunning(true);
+    setEndResult(null);
+    let lastResult = await runWorkflow(
+      workflow,
+      (uuid) => {
+        setCurrentNodeRunning(uuid);
+      },
+      (currentResults) => {
+        setNodeResults(currentResults);
+      },
+      async () => {
+        return API_TOKEN ?? "";
+      },
+    );
+
+    setEndResult(lastResult);
+    setIsRunning(false);
+    setCurrentNodeRunning(null);
+  };
+
   let handleRunWorkflow = async () => {
     let newWorkflowValidation = validateWorkflow(workflowDataTypes);
-    setValidationResult(newWorkflowValidation);
-
-    if (newWorkflowValidation.result === ValidationStatus.Success) {
-      setIsRunning(true);
-      setEndResult(null);
-      let lastResult = await runWorkflow(
-        workflow,
-        (uuid) => {
-          setCurrentNodeRunning(uuid);
-        },
-        (currentResults) => {
-          setNodeResults(currentResults);
-        },
-        async () => {
-          return API_TOKEN ?? "";
+    if (newWorkflowValidation.result === ValidationStatus.Failure) {
+      generateInputOutputTypes(workflow, cachedNodeTypes, getAuthToken).then(
+        (result) => {
+          let newWorkflowValidation = validateWorkflow(result);
+          setValidationResult(newWorkflowValidation);
+          if (newWorkflowValidation.result === ValidationStatus.Success) {
+            internalRunWorkflow();
+          } else {
+            setEndResult({
+              status: NodeResultStatus.Error,
+              data: newWorkflowValidation.validationErrors,
+            });
+          }
         },
       );
-
-      setEndResult(lastResult);
-      setIsRunning(false);
-      setCurrentNodeRunning(null);
     } else {
-      setEndResult({
-        status: NodeResultStatus.Error,
-        data: newWorkflowValidation.validationErrors,
-      });
+      internalRunWorkflow();
     }
   };
 

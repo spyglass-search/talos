@@ -43,6 +43,7 @@ export function HubspotConfig({ data, updateNodeData }: ConnectionConfig) {
           }}
           defaultValue={objectType || ""}
         >
+          <option>Select an object type</option>
           <option value="contacts">Contacts</option>
           <option value="calls">Calls</option>
           <option value="emails">Emails</option>
