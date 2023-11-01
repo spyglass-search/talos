@@ -4,6 +4,7 @@ import {
   ConnectionDataDef,
   DataConnectionType,
   DataNodeDef,
+  NodeDataTypes,
 } from "../../../types/node";
 import {
   DocumentIcon,
@@ -11,11 +12,20 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
 import { listUserConnections } from "../../../workflows/task-executor";
+import { GoogleSheetConfig } from "./connectionConfig/googleSheetConfig";
+import { HubspotConfig } from "./connectionConfig/hubspotConfig";
+
+import { SiGooglesheets, SiHubspot } from "@icons-pack/react-simple-icons";
 
 export interface UserConnection {
   id: number;
   apiId: string;
   account: string;
+}
+
+export interface ConnectionConfig {
+  data: NodeDataTypes;
+  updateNodeData: (newData: Partial<ConnectionDataDef>) => void;
 }
 
 export function ConnectionDataNode({
@@ -28,8 +38,9 @@ export function ConnectionDataNode({
 
   let [userConns, setUserConns] = useState<UserConnection[]>([]);
   let [connectionId, setConnectionId] = useState<number | null>(null);
-  let [spreadsheetId, setSpreadsheetID] = useState<string | null>(null);
-  let [sheetId, setSheetId] = useState<string | null>(null);
+  let [connectionType, setConnectionType] = useState<DataConnectionType | null>(
+    null,
+  );
 
   useEffect(() => {
     if (getAuthToken) {
@@ -37,7 +48,9 @@ export function ConnectionDataNode({
         .then((token) => listUserConnections(token))
         .then((conns) => setUserConns(conns));
     } else {
-      listUserConnections().then((conns) => setUserConns(conns));
+      listUserConnections().then((conns) => {
+        setUserConns(conns);
+      });
     }
   }, [getAuthToken]);
 
@@ -45,28 +58,59 @@ export function ConnectionDataNode({
     setType(nodeData.type);
     if (nodeData.connectionData) {
       let data = nodeData.connectionData;
-      setSpreadsheetID(data.spreadsheetId ?? null);
-      setSheetId(data.sheetId ?? null);
+      setConnectionType(data.connectionType ?? null);
     }
   }, [nodeData]);
 
   let updateNodeData = (newData: Partial<ConnectionDataDef>) => {
-    onUpdateData({
+    let update: NodeDataTypes = {
       connectionData: {
         connectionId: newData.connectionId ?? connectionId,
-        spreadsheetId: newData.spreadsheetId ?? spreadsheetId,
-        sheetId: newData.sheetId ?? sheetId,
-        connectionType: DataConnectionType.GSheets,
+        connectionType: newData.connectionType ?? connectionType,
       },
       type,
-    });
+    };
+
+    for (const key in nodeData.connectionData) {
+      update.connectionData[key] = nodeData.connectionData[key];
+    }
+
+    for (const key in newData) {
+      update.connectionData[key] = newData[key];
+    }
+
+    if (newData.connectionId) {
+      const connection = userConns.find((connection) => {
+        return connection.id === newData.connectionId;
+      });
+      let connectionType;
+      if (connection?.apiId === "hubspot.com") {
+        connectionType = DataConnectionType.Hubspot;
+      } else if (connection?.apiId === "sheets.google.com") {
+        connectionType = DataConnectionType.GSheets;
+      } else {
+        // Default ATM
+        connectionType = DataConnectionType.GSheets;
+      }
+
+      setConnectionType(connectionType);
+      update.connectionData.connectionType = connectionType;
+    }
+
+    onUpdateData(update);
   };
 
   return (
     <div className="flex flex-col gap-4">
       <div className="join items-center bg-base-100">
         <div className="join-item pl-4">
-          <UserCircleIcon className="w-4" />
+          {connectionType === DataConnectionType.GSheets ? (
+            <SiGooglesheets className="join-item w-8 h-8 text-[#34A853]"></SiGooglesheets>
+          ) : connectionType === DataConnectionType.Hubspot ? (
+            <SiHubspot className="join-item w-8 h-8 text-[#FF7A59]"></SiHubspot>
+          ) : (
+            <UserCircleIcon className="w-4" />
+          )}
         </div>
         <select
           className="input join-item w-full placeholder:text-gray-700"
@@ -75,6 +119,9 @@ export function ConnectionDataNode({
             if (connectionId) {
               setConnectionId(connectionId);
               updateNodeData({ connectionId });
+            } else {
+              setConnectionId(null);
+              setConnectionType(null);
             }
           }}
           defaultValue={connectionId || ""}
@@ -87,38 +134,18 @@ export function ConnectionDataNode({
           ))}
         </select>
       </div>
-
-      <div className="join items-center bg-base-100">
-        <div className="join-item pl-4">
-          <TableCellsIcon className="w-4" />
-        </div>
-        <input
-          className="input join-item w-full placeholder:text-gray-700"
-          placeholder="Spreadsheet ID"
-          value={spreadsheetId || ""}
-          onChange={(event) => {
-            let spreadsheetId = event.target.value ?? "";
-            setSpreadsheetID(spreadsheetId);
-            updateNodeData({ spreadsheetId });
-          }}
-        />
-      </div>
-
-      <div className="join items-center bg-base-100">
-        <div className="join-item pl-4">
-          <DocumentIcon className="w-4" />
-        </div>
-        <input
-          className="input join-item w-full placeholder:text-gray-700"
-          placeholder="Sheet title, defaults to first sheet if blank"
-          value={sheetId || ""}
-          onChange={(event) => {
-            let sheetId = event.target.value ?? "";
-            setSheetId(sheetId);
-            updateNodeData({ sheetId });
-          }}
-        />
-      </div>
+      {connectionType === DataConnectionType.GSheets ? (
+        <GoogleSheetConfig
+          data={data}
+          updateNodeData={updateNodeData}
+        ></GoogleSheetConfig>
+      ) : null}
+      {connectionType === DataConnectionType.Hubspot ? (
+        <HubspotConfig
+          data={data}
+          updateNodeData={updateNodeData}
+        ></HubspotConfig>
+      ) : null}
     </div>
   );
 }

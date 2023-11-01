@@ -43,6 +43,7 @@ export enum DataConnectionType {
   GDocs = "GDocs",
   GSlides = "GSlides",
   GForms = "GForms",
+  Hubspot = "Hubspot",
 }
 
 export interface TemplateNodeDef {
@@ -197,4 +198,5 @@ export enum PropertyType {
   String = "string",
   Enum = "enum",
   None = "none",
+  Boolean = "boolean",
 }

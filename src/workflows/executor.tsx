@@ -8,6 +8,8 @@ import {
 } from "./task-executor";
 import { Subject } from "rxjs";
 import {
+  ConnectionDataDef,
+  DataConnectionType,
   DataNodeDef,
   DataNodeType,
   ExtractNodeDef,
@@ -70,21 +72,13 @@ async function _handleDataNode(
   console.debug(`Handling data node type: ${data.type}`);
   if (data.type === DataNodeType.Connection && data.connectionData) {
     const cdata = data.connectionData;
-    let request = {
-      Sheets: {
-        action: "ReadRows",
-        request: {
-          spreadsheetId: cdata.spreadsheetId ?? "",
-          sheetId: cdata.sheetId ?? "",
-          // note: starts on the second row, assuming the first one are the
-          // column headers.
-          range: {
-            start: 2,
-            numRows: 100,
-          },
-        },
-      },
-    };
+
+    let request;
+    if (cdata.connectionType === DataConnectionType.GSheets) {
+      request = _buildGSheetsRequest(cdata);
+    } else {
+      request = _buildHubSpotRequest(cdata);
+    }
 
     return await executeConnectionRequest(
       cdata,
@@ -111,6 +105,36 @@ async function _handleDataNode(
       content: data.content,
       type: "string",
     } as StringContentResult,
+  };
+}
+
+function _buildGSheetsRequest(cdata: ConnectionDataDef): ObjectResult {
+  return {
+    Sheets: {
+      action: "ReadRows",
+      request: {
+        spreadsheetId: cdata.spreadsheetId ?? "",
+        sheetId: cdata.sheetId ?? "",
+        // note: starts on the second row, assuming the first one are the
+        // column headers.
+        range: {
+          start: 2,
+          numRows: 100,
+        },
+      },
+    },
+  };
+}
+
+function _buildHubSpotRequest(cdata: ConnectionDataDef): ObjectResult {
+  return {
+    HubSpot: {
+      action: "ReadObject",
+      request: {
+        objectType: cdata.objectType ?? "",
+        objectId: cdata.objectId ?? "",
+      },
+    },
   };
 }
 

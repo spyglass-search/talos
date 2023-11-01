@@ -300,41 +300,77 @@ async function getObjectDefinition(
     if (
       dataNode &&
       dataNode.type === DataNodeType.Connection &&
-      dataNode.connectionData &&
-      dataNode.connectionData.connectionType === DataConnectionType.GSheets
+      dataNode.connectionData
     ) {
-      const cachedValue = cache[node.uuid];
-      if (cachedValue) {
-        if (processNodeMappings && cachedValue.outputSchemaWithMapping) {
-          return cachedValue.outputSchemaWithMapping;
-        } else if (cachedValue.outputSchema) {
-          return cachedValue.outputSchema;
+      if (
+        dataNode.connectionData.connectionType === DataConnectionType.GSheets
+      ) {
+        const cachedValue = cache[node.uuid];
+        if (cachedValue) {
+          if (processNodeMappings && cachedValue.outputSchemaWithMapping) {
+            return cachedValue.outputSchemaWithMapping;
+          } else if (cachedValue.outputSchema) {
+            return cachedValue.outputSchema;
+          }
         }
-      }
-      let token = await getAuthToken();
-      const rowResponse = await executeGSheetsHeaderRequest(
-        dataNode.connectionData,
-        token,
-      );
+        let token = await getAuthToken();
+        const rowResponse = await executeGSheetsHeaderRequest(
+          dataNode.connectionData,
+          token,
+        );
 
-      if (rowResponse.status === NodeResultStatus.Ok && rowResponse.data) {
-        let tableData = rowResponse.data as TableDataResult;
-        let properties: ObjectTypeDefinition = {};
-        for (const key in tableData.headerRow) {
-          properties[key] = {
-            type: PropertyType.String,
+        if (rowResponse.status === NodeResultStatus.Ok && rowResponse.data) {
+          let tableData = rowResponse.data as TableDataResult;
+          let properties: ObjectTypeDefinition = {};
+          for (const key in tableData.headerRow) {
+            properties[key] = {
+              type: PropertyType.String,
+            };
+          }
+
+          return {
+            type: PropertyType.Array,
+            items: {
+              type: PropertyType.Object,
+              properties: properties,
+            },
+          };
+        } else {
+          return null;
+        }
+      } else if (
+        dataNode.connectionData.connectionType === DataConnectionType.Hubspot
+      ) {
+        let objectType = dataNode.connectionData.objectType;
+        if (objectType && objectType === "contacts") {
+          return {
+            type: PropertyType.Object,
+            properties: {
+              id: {
+                type: PropertyType.String,
+              },
+              created_at: {
+                type: PropertyType.String,
+              },
+              updated_at: {
+                type: PropertyType.String,
+              },
+              archived: {
+                type: PropertyType.Boolean,
+              },
+              archived_at: {
+                type: PropertyType.String,
+              },
+              properties: {
+                type: PropertyType.Object,
+              },
+            },
+          };
+        } else {
+          return {
+            type: PropertyType.Object,
           };
         }
-
-        return {
-          type: PropertyType.Array,
-          items: {
-            type: PropertyType.Object,
-            properties: properties,
-          },
-        };
-      } else {
-        return null;
       }
     }
   } else if (node.nodeType === NodeType.Summarize) {
