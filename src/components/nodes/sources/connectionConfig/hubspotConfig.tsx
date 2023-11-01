@@ -7,7 +7,7 @@ import { SiHubspot } from "@icons-pack/react-simple-icons";
 export function HubspotConfig({ data, updateNodeData }: ConnectionConfig) {
   let nodeData = data as DataNodeDef;
 
-  let [objectType, setObjectType] = useState<string | null>(null);
+  let [objectType, setObjectType] = useState<string | undefined>(undefined);
   let [objectId, setObjectId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,6 +41,7 @@ export function HubspotConfig({ data, updateNodeData }: ConnectionConfig) {
               updateNodeData({ objectType });
             }
           }}
+          value={objectType}
           defaultValue={objectType || ""}
         >
           <option>Select an object type</option>
