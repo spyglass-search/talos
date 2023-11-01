@@ -6,11 +6,7 @@ import {
   DataNodeDef,
   NodeDataTypes,
 } from "../../../types/node";
-import {
-  DocumentIcon,
-  TableCellsIcon,
-  UserCircleIcon,
-} from "@heroicons/react/20/solid";
+import { UserCircleIcon } from "@heroicons/react/20/solid";
 import { listUserConnections } from "../../../workflows/task-executor";
 import { GoogleSheetConfig } from "./connectionConfig/googleSheetConfig";
 import { HubspotConfig } from "./connectionConfig/hubspotConfig";
@@ -37,7 +33,7 @@ export function ConnectionDataNode({
   let [type, setType] = useState(nodeData.type);
 
   let [userConns, setUserConns] = useState<UserConnection[]>([]);
-  let [connectionId, setConnectionId] = useState<number | null>(null);
+  let [connectionId, setConnectionId] = useState<number | undefined>();
   let [connectionType, setConnectionType] = useState<DataConnectionType | null>(
     null,
   );
@@ -59,6 +55,7 @@ export function ConnectionDataNode({
     if (nodeData.connectionData) {
       let data = nodeData.connectionData;
       setConnectionType(data.connectionType ?? null);
+      setConnectionId(data.connectionId);
     }
   }, [nodeData]);
 
@@ -120,10 +117,11 @@ export function ConnectionDataNode({
               setConnectionId(connectionId);
               updateNodeData({ connectionId });
             } else {
-              setConnectionId(null);
+              setConnectionId(undefined);
               setConnectionType(null);
             }
           }}
+          value={connectionId}
           defaultValue={connectionId || ""}
         >
           <option>Select an account</option>
