@@ -9,6 +9,7 @@ import {
 } from "../types/spyglassApi";
 import {
   ConnectionDataDef,
+  DataConnectionType,
   NodeResult,
   NodeResultStatus,
   ObjectResult,
@@ -60,7 +61,85 @@ export async function executeConnectionRequest(
   request: ObjectResult,
   token?: string,
 ): Promise<NodeResult> {
-  console.debug("connection request: ", data);
+  if (data.connectionType === DataConnectionType.GSheets) {
+    return executeGSheetsConnectionRequest(data, request, token);
+  } else if (data.connectionType === DataConnectionType.Hubspot) {
+    return executeHubSpotConnectionRequest(data, request, token);
+  } else {
+    console.error("Unknown connection type ", data.connectionType);
+    return {
+      status: NodeResultStatus.Error,
+      error: "Unknown connection type",
+    };
+  }
+}
+
+export async function executeHubSpotConnectionRequest(
+  data: ConnectionDataDef,
+  request: ObjectResult,
+  token?: string,
+): Promise<NodeResult> {
+  console.debug("HubSpot request: ", data);
+  // Do some light data validation
+  if (!data.connectionId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please choose a valid connection.",
+    };
+  } else if (!data.objectType) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please select a HubSpot object type",
+    };
+  } else if (!data.objectId) {
+    return {
+      status: NodeResultStatus.Error,
+      error: "Please enter in a HubSpot object id",
+    };
+  }
+
+  // Setup the data request
+  let config: AxiosRequestConfig = {
+    ...API_CONFIG,
+  };
+
+  if (token) {
+    config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+  }
+
+  return await axios
+    .post<ApiResponse<any>>(
+      `${API_ENDPOINT}/connections/${data.connectionId}`,
+      request,
+      config,
+    )
+    .then((resp) => {
+      let result = resp.data.result;
+      let header = {};
+      if (result.length > 0) {
+        header = result[0];
+      }
+      return {
+        status: NodeResultStatus.Ok,
+        data: result,
+      };
+    })
+    .catch((err) => {
+      return {
+        status: NodeResultStatus.Error,
+        error: err.toString(),
+      };
+    });
+}
+
+export async function executeGSheetsConnectionRequest(
+  data: ConnectionDataDef,
+  request: ObjectResult,
+  token?: string,
+): Promise<NodeResult> {
+  console.debug("Google Sheets request: ", data);
   // Do some light data validation
   if (!data.connectionId) {
     return {
