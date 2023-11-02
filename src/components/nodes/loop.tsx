@@ -1,5 +1,6 @@
 import {
   ArrowDownIcon,
+  BoltIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   PlusCircleIcon,
@@ -12,12 +13,11 @@ import { ModalType } from "../../types";
 import { createNodeDefFromType } from "../../utils/nodeUtils";
 
 interface LoopNodeProps extends NodeBodyProps {
-  uuid: string;
+  parentUUID: string;
   label: string;
 }
 
 export default function Loop({
-  uuid,
   label,
   data,
   onUpdateData,
@@ -43,11 +43,6 @@ export default function Loop({
     }
   };
 
-  let numActionsLabel =
-    actions.length === 0 || actions.length > 1
-      ? `${actions.length} actions`
-      : `${actions.length} action`;
-
   return (
     <div className="flex flex-col gap-4 rounded">
       <div className="card shadow-xl w-full md:w-[480px] lg:w-[640px] bg-primary">
@@ -65,7 +60,10 @@ export default function Loop({
             </button>
             <div>{label}</div>
           </div>
-          <div className="text-base">{numActionsLabel}</div>
+          <div className="text-base flex flex-row gap-2">
+            <div>{actions.length}</div>
+            <BoltIcon className="w-4" />
+          </div>
         </div>
       </div>
       {!isCollapsed && (
