@@ -26,6 +26,8 @@ export function HubspotConfig({ data, updateNodeData }: ConnectionConfig) {
 
       if (nodeData.connectionData.action) {
         setAction(nodeData.connectionData.action);
+      } else {
+        updateNodeData({ action: "singleObject" });
       }
 
       if (nodeData.connectionData.relatedObjectType) {
