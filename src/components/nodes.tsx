@@ -55,7 +55,7 @@ export interface BaseNodeProps {
   lastRun?: LastRunDetails;
   nodeState?: NodeState;
   workflowValidation?: WorkflowValidationResult;
-  onDelete?: () => void;
+  onDelete?: (uuid: string) => void;
   // Request node update
   onUpdate?: (nodeUpdates: NodeUpdates) => void;
   onStateChange?: (nodeSate: NodeState) => void;
@@ -397,7 +397,7 @@ export function NodeComponent({
             </button>
             <button
               className="btn btn-circle btn-xs btn-error btn-outline"
-              onClick={() => onDelete()}
+              onClick={() => onDelete(uuid)}
             >
               <XMarkIcon className="w-4 text-gray" />
             </button>

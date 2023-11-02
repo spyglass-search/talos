@@ -20,7 +20,7 @@ interface LoopNodeProps extends NodeBodyProps {
 export default function Loop({
   label,
   data,
-  onUpdateData,
+  onUpdateData = () => {},
   currentNodeRunning,
 }: LoopNodeProps) {
   let [isCollapsed, setIsCollapsed] = useState<boolean>(false);
@@ -35,12 +35,24 @@ export default function Loop({
     let loopData = data as ParentDataDef;
     if (newNode) {
       let newActions = [...loopData.actions, newNode];
-      if (onUpdateData) {
-        onUpdateData({
-          actions: newActions,
-        });
+      onUpdateData({
+        actions: newActions,
+      });
+    }
+  };
+
+  const onDeleteChild = (childUUID: string) => {
+    let updatedActions = [];
+    let loopData = data as ParentDataDef;
+    for (var i = 0; i < loopData.actions.length; i++) {
+      let node = loopData.actions[i];
+      if (node.uuid !== childUUID) {
+        updatedActions.push(node);
       }
     }
+    onUpdateData({
+      actions: updatedActions
+    });
   };
 
   return (
@@ -76,7 +88,7 @@ export default function Loop({
                     key={`node-${idx}`}
                     {...childNode}
                     isRunning={childNode.uuid === currentNodeRunning}
-                    onDelete={() => {}}
+                    onDelete={() => onDeleteChild(childNode.uuid)}
                     onUpdate={(updates) => {}}
                     dragUpdate={() => {}}
                   />

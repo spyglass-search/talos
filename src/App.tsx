@@ -452,7 +452,7 @@ function App() {
                   lastRun={nodeResults.get(node.uuid)}
                   nodeState={nodeStates.get(node.uuid)}
                   onStateChange={(state) => updateNodeState(node.uuid, state)}
-                  onDelete={() => deleteWorkflowNode(node.uuid)}
+                  onDelete={deleteWorkflowNode}
                   onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
                   dragUpdate={(uuid) => setDraggedNode(uuid)}
                 />
