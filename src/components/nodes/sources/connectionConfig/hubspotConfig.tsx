@@ -34,7 +34,7 @@ export function HubspotConfig({ data, updateNodeData }: ConnectionConfig) {
         setRelatedObjectType(nodeData.connectionData.relatedObjectType);
       }
     }
-  }, [nodeData]);
+  }, [nodeData, updateNodeData]);
 
   const updateAction = (newAction: string) => {
     setAction(newAction);

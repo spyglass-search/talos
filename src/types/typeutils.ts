@@ -385,7 +385,7 @@ function get_hubspot_type_definition(
   action: string,
   dataNode: ConnectionDataDef,
 ) {
-  if (action == "singleObject") {
+  if (action === "singleObject") {
     return {
       type: PropertyType.Object,
       properties: {
@@ -409,7 +409,7 @@ function get_hubspot_type_definition(
         },
       },
     };
-  } else if (action == "relatedObjects" || action === "all") {
+  } else if (action === "relatedObjects" || action === "all") {
     return {
       type: PropertyType.Array,
       items: {

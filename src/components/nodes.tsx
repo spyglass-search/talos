@@ -55,19 +55,20 @@ export interface BaseNodeProps {
   lastRun?: LastRunDetails;
   nodeState?: NodeState;
   workflowValidation?: WorkflowValidationResult;
-  // Request node deletion
   onDelete?: () => void;
   // Request node update
   onUpdate?: (nodeUpdates: NodeUpdates) => void;
   onStateChange?: (nodeSate: NodeState) => void;
   dragUpdate: (uuid: string | null) => void;
   getAuthToken?: () => Promise<string>;
+  currentNodeRunning?: string | null;
 }
 
 export interface NodeBodyProps {
   data: NodeDataTypes;
   onUpdateData?: (dataUpdates: NodeDataTypes) => void;
   getAuthToken?: () => Promise<string>;
+  currentNodeRunning?: string | null;
 }
 
 export interface NodeHeaderProps {
@@ -335,7 +336,7 @@ export function NodeComponent({
     } else if (nodeType === NodeType.DataDestination) {
       return <DataDestinationNode {...baseProps} />;
     } else if (nodeType === NodeType.Loop) {
-      return <Loop {...baseProps} />;
+      return <Loop uuid={uuid} label={label} {...baseProps} />;
     }
 
     return null;
@@ -348,6 +349,11 @@ export function NodeComponent({
     } else {
       borderColor = "border-error";
     }
+  }
+
+  // Handle loop nodes specially
+  if (nodeType === NodeType.Loop) {
+    return renderNodeBody();
   }
 
   return (
