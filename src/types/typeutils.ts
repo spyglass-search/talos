@@ -1,5 +1,6 @@
 import { executeGSheetsHeaderRequest } from "../workflows/task-executor";
 import {
+  ConnectionDataDef,
   DataConnectionType,
   DataNodeDef,
   DataNodeType,
@@ -342,34 +343,13 @@ async function getObjectDefinition(
         dataNode.connectionData.connectionType === DataConnectionType.Hubspot
       ) {
         let objectType = dataNode.connectionData.objectType;
-        if (objectType && objectType === "contacts") {
-          return {
-            type: PropertyType.Object,
-            properties: {
-              id: {
-                type: PropertyType.String,
-              },
-              created_at: {
-                type: PropertyType.String,
-              },
-              updated_at: {
-                type: PropertyType.String,
-              },
-              archived: {
-                type: PropertyType.Boolean,
-              },
-              archived_at: {
-                type: PropertyType.String,
-              },
-              properties: {
-                type: PropertyType.Object,
-              },
-            },
-          };
-        } else {
-          return {
-            type: PropertyType.Object,
-          };
+        let action = dataNode.connectionData.action;
+        if (objectType && action) {
+          return get_hubspot_type_definition(
+            objectType,
+            action,
+            dataNode.connectionData,
+          );
         }
       }
     }
@@ -398,4 +378,67 @@ function processMappings(
     return schema.properties[extracted.from];
   }
   return schema;
+}
+
+function get_hubspot_type_definition(
+  objectType: string,
+  action: string,
+  dataNode: ConnectionDataDef,
+) {
+  if (action == "singleObject") {
+    return {
+      type: PropertyType.Object,
+      properties: {
+        id: {
+          type: PropertyType.String,
+        },
+        created_at: {
+          type: PropertyType.String,
+        },
+        updated_at: {
+          type: PropertyType.String,
+        },
+        archived: {
+          type: PropertyType.Boolean,
+        },
+        archived_at: {
+          type: PropertyType.String,
+        },
+        properties: {
+          type: PropertyType.Object,
+        },
+      },
+    };
+  } else if (action == "relatedObjects" || action === "all") {
+    return {
+      type: PropertyType.Array,
+      items: {
+        type: PropertyType.Object,
+        properties: {
+          id: {
+            type: PropertyType.String,
+          },
+          created_at: {
+            type: PropertyType.String,
+          },
+          updated_at: {
+            type: PropertyType.String,
+          },
+          archived: {
+            type: PropertyType.Boolean,
+          },
+          archived_at: {
+            type: PropertyType.String,
+          },
+          properties: {
+            type: PropertyType.Object,
+          },
+        },
+      },
+    };
+  } else {
+    return {
+      type: PropertyType.Object,
+    };
+  }
 }

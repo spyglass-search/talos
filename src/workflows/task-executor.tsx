@@ -117,10 +117,6 @@ export async function executeHubSpotConnectionRequest(
     )
     .then((resp) => {
       let result = resp.data.result;
-      let header = {};
-      if (result.length > 0) {
-        header = result[0];
-      }
       return {
         status: NodeResultStatus.Ok,
         data: result,

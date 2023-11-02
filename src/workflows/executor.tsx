@@ -13,6 +13,7 @@ import {
   DataNodeDef,
   DataNodeType,
   ExtractNodeDef,
+  HubSpotActions,
   LoopNodeDataResult,
   MultiNodeDataResult,
   NodeDef,
@@ -127,13 +128,28 @@ function _buildGSheetsRequest(cdata: ConnectionDataDef): ObjectResult {
 }
 
 function _buildHubSpotRequest(cdata: ConnectionDataDef): ObjectResult {
+  const request: any = {
+    objectType: cdata.objectType ?? "",
+  };
+
+  let action;
+  if (cdata.action === HubSpotActions.GetOne) {
+    action = "ReadObject";
+    request.objectId = cdata.objectId ?? "";
+  } else if (cdata.action === HubSpotActions.GetRelatedObjects) {
+    action = "GetRelated";
+    request.objectId = cdata.objectId ?? "";
+    request.relatedObjectType = cdata.relatedObjectType ?? "";
+  } else if (cdata.action === HubSpotActions.GetAll) {
+    action = "ReadAll";
+  } else {
+    action = "ReadObject";
+    request.objectId = cdata.objectId ?? "";
+  }
   return {
     HubSpot: {
-      action: "ReadObject",
-      request: {
-        objectType: cdata.objectType ?? "",
-        objectId: cdata.objectId ?? "",
-      },
+      action: action,
+      request: request,
     },
   };
 }
