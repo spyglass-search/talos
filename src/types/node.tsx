@@ -46,6 +46,13 @@ export enum DataConnectionType {
   Hubspot = "Hubspot",
 }
 
+export enum HubSpotActions {
+  GetOne = "singleObject",
+  GetRelatedObjects = "relatedObjects",
+  GetAll = "all",
+  GetMatching = "matching",
+}
+
 export interface TemplateNodeDef {
   template: string;
   varMapping: object;
