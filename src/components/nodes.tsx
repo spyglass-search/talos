@@ -244,7 +244,7 @@ export function WorkflowResult({
           </button>
         )}
         <button
-          className="btn btn-neutral disabled:btn-info btn-sm"
+          className="btn btn-neutral btn-sm"
           disabled={isCopying}
           onClick={() => handleCopy()}
         >
