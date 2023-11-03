@@ -91,11 +91,27 @@ export async function executeHubSpotConnectionRequest(
       status: NodeResultStatus.Error,
       error: "Please select a HubSpot object type",
     };
-  } else if (!data.objectId) {
-    return {
-      status: NodeResultStatus.Error,
-      error: "Please enter in a HubSpot object id",
-    };
+  }
+
+  if (
+    request.HubSpot.action === "ReadObject" ||
+    request.HubSpot.action === "GetRelated"
+  ) {
+    if (!data.objectId) {
+      return {
+        status: NodeResultStatus.Error,
+        error: "Please enter in the HubSpot Record Id",
+      };
+    }
+  }
+
+  if (request.HubSpot.action === "GetRelated") {
+    if (!data.relatedObjectType) {
+      return {
+        status: NodeResultStatus.Error,
+        error: "Please select a related HubSpot object type",
+      };
+    }
   }
 
   // Setup the data request
