@@ -9,23 +9,20 @@ export function GoogleSheetConfig({ data, updateNodeData }: ConnectionConfig) {
 
   let [spreadsheetId, setSpreadsheetID] = useState<string | null>(null);
   let [sheetId, setSheetId] = useState<string | null>(null);
+  let [numRows, setNumRows] = useState<number | null>(null);
 
   useEffect(() => {
     if (nodeData.connectionData) {
-      if (nodeData.connectionData.spreadsheetId) {
-        setSpreadsheetID(nodeData.connectionData.spreadsheetId);
-      }
-
-      if (nodeData.connectionData.sheetId) {
-        setSheetId(nodeData.connectionData.sheetId);
-      }
+      setSpreadsheetID(nodeData.connectionData.spreadsheetId ?? null);
+      setSheetId(nodeData.connectionData.sheetId ?? null);
+      setNumRows(nodeData.connectionData.numRows ?? null);
     }
   }, [nodeData]);
 
   return (
-    <div className="flex flex-col gap-2 bg-base-200 rounded-box">
-      <div className="flex flex-row gap-2 justify-center items-center bg-base-200 rounded-box py-3">
-        <SiGooglesheets className="w-8 h-8 text-[#34A853]"></SiGooglesheets>
+    <div className="flex flex-col gap-2 rounded-box">
+      <div className="flex flex-row gap-2 justify-center items-center rounded-box py-3">
+        <SiGooglesheets className="w-8 h-8 text-[#34A853]" />
         <span className="text-lg">Google Sheets</span>
       </div>
       <div className="join items-center bg-base-100">
@@ -56,6 +53,22 @@ export function GoogleSheetConfig({ data, updateNodeData }: ConnectionConfig) {
             let sheetId = event.target.value ?? "";
             setSheetId(sheetId);
             updateNodeData({ sheetId });
+          }}
+        />
+      </div>
+
+      <div className="join items-center bg-base-100">
+        <div className="join-item pl-4">
+          <DocumentIcon className="w-4" />
+        </div>
+        <input
+          className="input join-item w-full placeholder:text-gray-700"
+          placeholder="Number of rows to read, leave blank for all rows"
+          value={numRows || ""}
+          onChange={(event) => {
+            let numRows = parseInt(event.target.value ?? "");
+            setNumRows(numRows ?? null);
+            updateNodeData({ numRows });
           }}
         />
       </div>

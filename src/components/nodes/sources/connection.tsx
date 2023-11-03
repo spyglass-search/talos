@@ -97,18 +97,17 @@ export function ConnectionDataNode({
     onUpdateData(update);
   };
 
+  let icon = <UserCircleIcon className="w-4" />;
+  if (connectionType === DataConnectionType.GSheets) {
+    icon = <SiGooglesheets className="join-item w-8 h-8 text-[#34A853]" />;
+  } else if (connectionType === DataConnectionType.Hubspot) {
+    icon = <SiHubspot className="join-item w-8 h-8 text-[#FF7A59]" />;
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="join items-center bg-base-100">
-        <div className="join-item pl-4">
-          {connectionType === DataConnectionType.GSheets ? (
-            <SiGooglesheets className="join-item w-8 h-8 text-[#34A853]"></SiGooglesheets>
-          ) : connectionType === DataConnectionType.Hubspot ? (
-            <SiHubspot className="join-item w-8 h-8 text-[#FF7A59]"></SiHubspot>
-          ) : (
-            <UserCircleIcon className="w-4" />
-          )}
-        </div>
+        <div className="join-item pl-4">{icon}</div>
         <select
           className="input join-item w-full placeholder:text-gray-700"
           onChange={(event) => {
@@ -136,13 +135,13 @@ export function ConnectionDataNode({
         <GoogleSheetConfig
           data={data}
           updateNodeData={updateNodeData}
-        ></GoogleSheetConfig>
+        />
       ) : null}
       {connectionType === DataConnectionType.Hubspot ? (
         <HubspotConfig
           data={data}
           updateNodeData={updateNodeData}
-        ></HubspotConfig>
+        />
       ) : null}
     </div>
   );

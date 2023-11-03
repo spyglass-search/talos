@@ -120,7 +120,7 @@ function _buildGSheetsRequest(cdata: ConnectionDataDef): ObjectResult {
         // column headers.
         range: {
           start: 2,
-          numRows: 100,
+          numRows: cdata.numRows ?? 100,
         },
       },
     },
