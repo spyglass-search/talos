@@ -14,7 +14,7 @@ import { HubspotConfig } from "./connectionConfig/hubspotConfig";
 import { SiGooglesheets, SiHubspot } from "@icons-pack/react-simple-icons";
 
 export interface UserConnection {
-  id: number;
+  id: string;
   apiId: string;
   account: string;
 }
@@ -33,7 +33,7 @@ export function ConnectionDataNode({
   let [type, setType] = useState(nodeData.type);
 
   let [userConns, setUserConns] = useState<UserConnection[]>([]);
-  let [connectionId, setConnectionId] = useState<number | undefined>();
+  let [connectionId, setConnectionId] = useState<string | undefined>();
   let [connectionType, setConnectionType] = useState<DataConnectionType | null>(
     null,
   );
@@ -112,7 +112,7 @@ export function ConnectionDataNode({
         <select
           className="input join-item w-full placeholder:text-gray-700"
           onChange={(event) => {
-            let connectionId = Number.parseInt(event.target.value);
+            let connectionId = event.target.value;
             if (connectionId) {
               setConnectionId(connectionId);
               updateNodeData({ connectionId });
