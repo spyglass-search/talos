@@ -184,7 +184,7 @@ export async function executeGSheetsHeaderRequest(
   data: ConnectionDataDef,
   token?: string,
 ): Promise<NodeResult> {
-  console.debug(`connection request: ${data}`);
+  console.debug('connection request', data);
   // Do some light data validation
   if (!data.connectionId) {
     return {
@@ -217,7 +217,7 @@ export async function executeGSheetsHeaderRequest(
         spreadsheetId: data.spreadsheetId ?? "",
         sheetId: data.sheetId ?? "",
         range: {
-          start: 0,
+          start: 1,
           numRows: 1,
         },
       },
