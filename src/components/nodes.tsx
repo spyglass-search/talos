@@ -336,7 +336,11 @@ export function NodeComponent({
     } else if (nodeType === NodeType.DataDestination) {
       return <DataDestinationNode {...baseProps} />;
     } else if (nodeType === NodeType.Loop) {
-      return <Loop parentUUID={uuid} label={label} {...baseProps} />;
+      return <Loop
+        parentUUID={uuid}
+        label={label}
+        onUpdateLabel={(label) => onUpdate({ label })}
+        {...baseProps} />;
     }
 
     return null;

@@ -16,16 +16,19 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { ModalType } from "../../types";
 import { createNodeDefFromType } from "../../utils/nodeUtils";
+import { EditableText } from "../editable";
 
 interface LoopNodeProps extends NodeBodyProps {
   parentUUID: string;
   label: string;
+  onUpdateLabel: (label: string) => void,
 }
 
 export default function Loop({
   label,
   data,
   onUpdateData = () => {},
+  onUpdateLabel,
   currentNodeRunning,
 }: LoopNodeProps) {
   let [isCollapsed, setIsCollapsed] = useState<boolean>(false);
@@ -85,12 +88,17 @@ export default function Loop({
               onClick={() => setIsCollapsed((curState) => !curState)}
             >
               {isCollapsed ? (
-                <ChevronDownIcon className="w-4 text-gray" />
+                <ChevronDownIcon className="w-4 text-white" />
               ) : (
-                <ChevronUpIcon className="w-4 text-gray" />
+                <ChevronUpIcon className="w-4 text-white" />
               )}
             </button>
-            <div>{label}</div>
+            <div className="text-white">
+              <EditableText
+                data={label}
+                onChange={onUpdateLabel}
+              />
+            </div>
           </div>
           <div className="text-base flex flex-row gap-2">
             <div>{actions.length}</div>
