@@ -432,7 +432,7 @@ function App() {
                 <NodeComponent
                   {...node}
                   workflowValidation={validationResult}
-                  isRunning={node.uuid === currentNodeRunning}
+                  currentNodeRunning={currentNodeRunning ?? ""}
                   lastRun={nodeResults.get(node.uuid)}
                   nodeState={nodeStates.get(node.uuid)}
                   onStateChange={(state) => updateNodeState(node.uuid, state)}

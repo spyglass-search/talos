@@ -51,7 +51,6 @@ export interface BaseNodeProps {
   label: string;
   data: NodeDataTypes;
   nodeType: NodeType;
-  isRunning?: boolean;
   lastRun?: LastRunDetails;
   nodeState?: NodeState;
   workflowValidation?: WorkflowValidationResult;
@@ -264,7 +263,6 @@ export function NodeComponent({
   label,
   nodeType,
   data,
-  isRunning,
   lastRun,
   workflowValidation,
   nodeState,
@@ -273,6 +271,7 @@ export function NodeComponent({
   onStateChange = () => {},
   dragUpdate,
   getAuthToken,
+  currentNodeRunning,
 }: BaseNodeProps) {
   let scrollToRef = useRef(null);
 
@@ -282,6 +281,8 @@ export function NodeComponent({
   let [validationResult, setValidationResult] = useState<
     ValidationError | undefined
   >(undefined);
+
+  let isRunning = uuid === currentNodeRunning;
 
   useEffect(() => {
     if (nodeState) {
@@ -351,6 +352,7 @@ export function NodeComponent({
         parentUUID={uuid}
         label={label}
         onUpdateLabel={(label) => onUpdate({ label })}
+        currentNodeRunning={currentNodeRunning}
         {...baseProps} />;
     }
 

@@ -115,7 +115,7 @@ export default function Loop({
                   <NodeComponent
                     key={`node-${idx}`}
                     {...childNode}
-                    isRunning={childNode.uuid === currentNodeRunning}
+                    currentNodeRunning={currentNodeRunning ?? ""}
                     onDelete={() => onDeleteChild(childNode.uuid)}
                     onUpdate={(updates) =>
                       onUpdateChild(childNode.uuid, updates)
