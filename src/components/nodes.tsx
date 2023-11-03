@@ -27,6 +27,7 @@ import {
   CodeBracketIcon,
   DocumentTextIcon,
   ExclamationCircleIcon,
+  EyeSlashIcon,
   GlobeAltIcon,
   NoSymbolIcon,
   TableCellsIcon,
@@ -231,25 +232,26 @@ export function WorkflowResult({
         <pre className="text-xs p-4 rounded-lg overflow-auto">
           {content ? content : <span className="italic">Result is empty</span>}
         </pre>
+      </div>
+      <div className="card-actions p-2 place-content-center flex flex-row items-center">
         {hideButton && (
           <button
-            className="btn btn-block btn-neutral btn-sm"
+            className="btn btn-neutral btn-sm"
             onClick={() => onHide()}
           >
+            <EyeSlashIcon className="w-4 h-4" />
             Hide
           </button>
         )}
-      </div>
-      <div className="card-actions p-2 place-content-end">
         <button
-          className="btn disabled:btn-info"
+          className="btn btn-neutral disabled:btn-info btn-sm"
           disabled={isCopying}
           onClick={() => handleCopy()}
         >
           {isCopying ? (
             <span className="loading loading-spinner loading-sm"></span>
           ) : (
-            <ClipboardDocumentListIcon className="w-6 h-6" />
+            <ClipboardDocumentListIcon className="w-4 h-4" />
           )}
           Copy
         </button>
