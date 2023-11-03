@@ -222,22 +222,6 @@ function App() {
     setCachedNodeTypes(newCache);
 
     const newWorkflow = workflow.map((node) => {
-      if (node.parentNode) {
-        (node.data as ParentDataDef).actions = (
-          node.data as ParentDataDef
-        ).actions.flatMap((node) => {
-          if (node.uuid === uuid) {
-            return {
-              ...node,
-              label: updates.label ?? node.label,
-              data: updates.data ?? node.data,
-              mapping: updates.mapping ?? node.mapping,
-            };
-          } else {
-            return node;
-          }
-        });
-      }
       if (node.uuid === uuid) {
         return {
           ...node,

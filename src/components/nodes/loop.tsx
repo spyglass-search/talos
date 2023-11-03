@@ -7,7 +7,12 @@ import {
 } from "@heroicons/react/20/solid";
 import AddNodeModal from "../modal/AddNodeModal";
 import { NodeBodyProps, NodeComponent, ShowNodeResult } from "../nodes";
-import { ParentDataDef, NodeType, NodeDef } from "../../types/node";
+import {
+  ParentDataDef,
+  NodeType,
+  NodeDef,
+  NodeUpdates,
+} from "../../types/node";
 import { useEffect, useRef, useState } from "react";
 import { ModalType } from "../../types";
 import { createNodeDefFromType } from "../../utils/nodeUtils";
@@ -42,17 +47,32 @@ export default function Loop({
   };
 
   const onDeleteChild = (childUUID: string) => {
-    let updatedActions = [];
+    let actions = [];
     let loopData = data as ParentDataDef;
     for (var i = 0; i < loopData.actions.length; i++) {
       let node = loopData.actions[i];
       if (node.uuid !== childUUID) {
-        updatedActions.push(node);
+        actions.push(node);
       }
     }
-    onUpdateData({
-      actions: updatedActions
+    onUpdateData({ actions });
+  };
+
+  const onUpdateChild = (childUUID: string, updates: NodeUpdates) => {
+    let loopData = data as ParentDataDef;
+    const actions = loopData.actions.map((node) => {
+      if (node.uuid === childUUID) {
+        return {
+          ...node,
+          label: updates.label ?? node.label,
+          data: updates.data ?? node.data,
+          mapping: updates.mapping ?? node.mapping,
+        };
+      } else {
+        return node;
+      }
     });
+    onUpdateData({ actions });
   };
 
   return (
@@ -89,7 +109,9 @@ export default function Loop({
                     {...childNode}
                     isRunning={childNode.uuid === currentNodeRunning}
                     onDelete={() => onDeleteChild(childNode.uuid)}
-                    onUpdate={(updates) => {}}
+                    onUpdate={(updates) =>
+                      onUpdateChild(childNode.uuid, updates)
+                    }
                     dragUpdate={() => {}}
                   />
                   {idx < actions.length - 1 ? (
@@ -119,7 +141,9 @@ export default function Loop({
             </div>
           </div>
           <div className="card shadow-xl w-full md:w-[480px] lg:w-[640px] bg-primary">
-            <div className="card-body px-6 py-4 text-xl font-bold">End Loop</div>
+            <div className="card-body px-6 py-4 text-xl font-bold">
+              End Loop
+            </div>
           </div>
         </>
       )}
