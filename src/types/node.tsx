@@ -81,7 +81,6 @@ export type NodeDataResultTypes =
   | ExtractResponse
   | MultiNodeDataResult
   | SummaryDataDef
-  | TableDataResult
   | ObjectResult
   | any[];
 
@@ -109,11 +108,6 @@ export type MultiNodeDataResult = NodeResult[];
 
 export interface LoopNodeDataResult {
   loopResults: MultiNodeDataResult[];
-}
-
-export interface TableDataResult {
-  rows: any[];
-  headerRow: { [key: string]: string };
 }
 
 export interface ExtractResponse {
