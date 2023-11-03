@@ -26,7 +26,7 @@ export default function DataDestinationNode({
 
   let nodeData = data as DataNodeDef;
   let [userConns, setUserConns] = useState<UserConnection[]>([]);
-  let [connectionId, setConnectionId] = useState<number | null>(null);
+  let [connectionId, setConnectionId] = useState<string | null>(null);
   let [spreadsheetId, setSpreadsheetID] = useState<string | null>(null);
   let [sheetId, setSheetId] = useState<string | null>(null);
 
@@ -94,7 +94,7 @@ export default function DataDestinationNode({
         <select
           className="input join-item w-full placeholder:text-gray-700"
           onChange={(event) => {
-            let connectionId = Number.parseInt(event.target.value);
+            let connectionId = event.target.value;
             if (connectionId) {
               setConnectionId(connectionId);
               updateNodeData({
