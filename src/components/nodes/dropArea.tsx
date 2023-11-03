@@ -14,7 +14,7 @@ export function DropArea(props: React.PropsWithChildren<DropAreaProperties>) {
 
   return (
     <div
-      className={`${style} w-full md:w-[480px] lg:w-[640px] min-h-6`}
+      className={`${style} w-full md:w-[480px] lg:w-[640px] min-h-6 mx-auto`}
       onDragOver={(event) => {
         if (props.isValidDropSpot(props.dropAfter, props.uuid)) {
           event.preventDefault();

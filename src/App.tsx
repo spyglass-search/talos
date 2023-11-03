@@ -319,7 +319,7 @@ function App() {
 
   return (
     <main className="flex w-screen min-h-screen flex-col gap-8 items-center md:py-8">
-      <div className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
+      <div id="header" className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
         <div className="navbar-center flex flex-col lg:flex-row gap-2 place-content-center items-center w-full">
           <img
             src={`${process.env.PUBLIC_URL}/logo@2x.png`}
@@ -428,7 +428,7 @@ function App() {
         <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
-              <div key={`node-${idx}`} className="flex flex-col gap-4">
+              <div key={`node-${idx}`} className="flex flex-col gap-4 w-full">
                 <NodeComponent
                   {...node}
                   workflowValidation={validationResult}

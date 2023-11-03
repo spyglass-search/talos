@@ -79,8 +79,8 @@ export default function Loop({
   };
 
   return (
-    <div className="flex flex-col gap-4 rounded">
-      <div className="card shadow-xl w-full md:w-[480px] lg:w-[640px] bg-primary">
+    <div className="flex flex-col gap-4 rounded w-full">
+      <div className="card shadow-xl w-full md:w-[480px] lg:w-[640px] bg-primary mx-auto">
         <div className="card-body px-6 py-4 flex-row justify-between items-center">
           <div className="text-xl font-bold flex flex-row gap-4 items-center">
             <button
@@ -108,7 +108,7 @@ export default function Loop({
       </div>
       {!isCollapsed && (
         <>
-          <div className="items-center flex flex-col gap-4 z-0">
+          <div className="items-center flex flex-col gap-4 z-0 w-full">
             {actions.map((childNode, idx) => {
               return (
                 <div key={`loop-node-${idx}`} className="flex flex-col gap-4">
@@ -148,7 +148,7 @@ export default function Loop({
               </button>
             </div>
           </div>
-          <div className="card shadow-xl w-full md:w-[480px] lg:w-[640px] bg-primary">
+          <div className="card shadow-xl w-full md:w-[480px] lg:w-[640px] bg-primary mx-auto">
             <div className="card-body px-6 py-4 text-xl font-bold">
               End Loop
             </div>

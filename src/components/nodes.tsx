@@ -84,7 +84,7 @@ export interface NodeIconProps {
   className?: string;
 }
 
-const BASE_CARD_STYLE = "card shadow-xl w-full md:w-[480px] lg:w-[640px]";
+const BASE_CARD_STYLE = "card shadow-xl w-full md:w-[480px] lg:w-[640px] mx-auto";
 
 export function NodeIcon({ nodeType, subType, className }: NodeIconProps) {
   let icon = <TableCellsIcon className={className} />;
@@ -308,7 +308,18 @@ export function NodeComponent({
 
   useEffect(() => {
     if (isRunning && scrollToRef.current) {
-      (scrollToRef.current as HTMLElement).scrollIntoView();
+      // Get the top position of this element
+      let el = (scrollToRef.current as HTMLElement);
+      let topPost = el.getBoundingClientRect().top;
+      // Get height of the top bar and add some padding.
+      let headerEl = document.getElementById('#header');
+      let headerBottom = (headerEl?.getBoundingClientRect().bottom ?? 96) + 32;
+      // Scroll to the offset
+      let offset = topPost + (window.scrollY - headerBottom);
+      window.scrollTo({
+        top: offset,
+        behavior: 'smooth'
+      });
     }
   }, [isRunning]);
 
@@ -482,7 +493,7 @@ export function ShowNodeResult({
     );
   } else {
     return (
-      <div className="mx-auto flex flex-col w-fit items-center">
+      <div className="w-fit mx-auto">
         {result ? (
           <div className="btn" onClick={() => setShowResult(true)}>
             View Results
