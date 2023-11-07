@@ -353,6 +353,7 @@ export function NodeComponent({
       return <Loop
         parentUUID={uuid}
         label={label}
+        onDelete={() => onDelete(uuid)}
         onUpdateLabel={(label) => onUpdate({ label })}
         currentNodeRunning={currentNodeRunning}
         {...baseProps} />;

@@ -4,6 +4,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   PlusCircleIcon,
+  XMarkIcon,
 } from "@heroicons/react/20/solid";
 import AddNodeModal from "../modal/AddNodeModal";
 import { NodeBodyProps, NodeComponent, ShowNodeResult } from "../nodes";
@@ -22,14 +23,16 @@ interface LoopNodeProps extends NodeBodyProps {
   parentUUID: string;
   label: string;
   onUpdateLabel: (label: string) => void,
+  onDelete: () => void,
 }
 
 export default function Loop({
   label,
   data,
+  currentNodeRunning,
+  onDelete,
   onUpdateData = () => {},
   onUpdateLabel,
-  currentNodeRunning,
 }: LoopNodeProps) {
   let [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   let [actions, setActions] = useState<NodeDef[]>([]);
@@ -101,8 +104,16 @@ export default function Loop({
             </div>
           </div>
           <div className="text-base flex flex-row gap-2">
-            <div>{actions.length}</div>
-            <BoltIcon className="w-4" />
+            <div className="flex flex-row">
+              <div>{actions.length}</div>
+              <BoltIcon className="w-4" />
+            </div>
+            <button
+              className="btn btn-circle btn-xs btn-error btn-outline"
+              onClick={() => onDelete()}
+            >
+              <XMarkIcon className="w-4 text-gray" />
+            </button>
           </div>
         </div>
       </div>
