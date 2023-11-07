@@ -34,7 +34,6 @@ import {
   getValue,
   isExtractResult,
   isStringResult,
-  isTableResult,
 } from "../types/typeutils";
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 const API_TOKEN = process.env.REACT_APP_API_TOKEN;
@@ -120,7 +119,7 @@ function _buildGSheetsRequest(cdata: ConnectionDataDef): ObjectResult {
         // column headers.
         range: {
           start: 2,
-          numRows: 100,
+          numRows: cdata.numRows ?? 100,
         },
       },
     },
@@ -335,10 +334,10 @@ async function _handleLoopNode(
     } as LoopNodeDataResult;
 
     const data = input.data;
-    if (isTableResult(data)) {
-      let rowCount = data.rows.length;
+    if (Array.isArray(data)) {
+      let rowCount = data.length;
       for (let i = 0; i < rowCount; i++) {
-        const item = data.rows[i];
+        const item = data[i];
         const loopContext: LoopContext = {
           isInLoop: true,
           loopIndex: i,

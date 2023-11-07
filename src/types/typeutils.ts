@@ -20,7 +20,6 @@ import {
   PropertyType,
   StringContentResult,
   SummaryDataDef,
-  TableDataResult,
 } from "./node";
 
 export function isStringResult(
@@ -39,12 +38,6 @@ export function isExtractResult(
   result: NodeDataResultTypes,
 ): result is ExtractResponse {
   return Object.hasOwn(result, "extractedData");
-}
-
-export function isTableResult(
-  result: NodeDataResultTypes,
-): result is TableDataResult {
-  return Object.hasOwn(result, "rows");
 }
 
 export function isSummaryResult(
@@ -321,9 +314,9 @@ async function getObjectDefinition(
         );
 
         if (rowResponse.status === NodeResultStatus.Ok && rowResponse.data) {
-          let tableData = rowResponse.data as TableDataResult;
+          let tableData = rowResponse.data as object[];
           let properties: ObjectTypeDefinition = {};
-          for (const key in tableData.headerRow) {
+          for (const key in tableData[0]) {
             properties[key] = {
               type: PropertyType.String,
             };
@@ -385,7 +378,7 @@ function get_hubspot_type_definition(
   action: string,
   dataNode: ConnectionDataDef,
 ) {
-  if (action == "singleObject") {
+  if (action === "singleObject") {
     return {
       type: PropertyType.Object,
       properties: {
@@ -409,7 +402,7 @@ function get_hubspot_type_definition(
         },
       },
     };
-  } else if (action == "relatedObjects" || action === "all") {
+  } else if (action === "relatedObjects" || action === "all") {
     return {
       type: PropertyType.Array,
       items: {

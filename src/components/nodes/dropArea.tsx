@@ -7,33 +7,41 @@ export interface DropAreaProperties {
   nodeDropped: (after: boolean, dropUUID: string) => void;
 }
 
-export function DropArea(props: React.PropsWithChildren<DropAreaProperties>) {
-  const style = props.isValidDropSpot(props.dropAfter, props.uuid)
+export function DropArea({
+  isValidDropSpot,
+  dropAfter,
+  uuid,
+  setDragNDropAfter,
+  setDragOverUuid,
+  nodeDropped,
+  children
+}: React.PropsWithChildren<DropAreaProperties>) {
+  const style = isValidDropSpot(dropAfter, uuid)
     ? "border-t-4 border-solid border-base-content"
     : "";
 
   return (
     <div
-      className={`${style} w-full md:w-[480px] lg:w-[640px] min-h-6`}
+      className={`${style} w-full md:w-[480px] lg:w-[640px] min-h-6 mx-auto`}
       onDragOver={(event) => {
-        if (props.isValidDropSpot(props.dropAfter, props.uuid)) {
+        if (isValidDropSpot(dropAfter, uuid)) {
           event.preventDefault();
         }
 
-        props.setDragNDropAfter(props.dropAfter);
-        props.setDragOverUuid(props.uuid);
+        setDragNDropAfter(dropAfter);
+        setDragOverUuid(uuid);
       }}
       onDragLeave={(event) => {
         event.preventDefault();
-        props.setDragOverUuid(null);
+        setDragOverUuid(null);
       }}
       onDrop={(dropEvent) => {
         dropEvent.preventDefault();
-        props.nodeDropped(props.dropAfter, props.uuid);
-        props.setDragOverUuid(null);
+        nodeDropped(dropAfter, uuid);
+        setDragOverUuid(null);
       }}
     >
-      {props.children}
+      {children}
     </div>
   );
 }

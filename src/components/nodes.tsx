@@ -27,6 +27,7 @@ import {
   CodeBracketIcon,
   DocumentTextIcon,
   ExclamationCircleIcon,
+  EyeSlashIcon,
   GlobeAltIcon,
   NoSymbolIcon,
   TableCellsIcon,
@@ -51,23 +52,23 @@ export interface BaseNodeProps {
   label: string;
   data: NodeDataTypes;
   nodeType: NodeType;
-  isRunning?: boolean;
   lastRun?: LastRunDetails;
   nodeState?: NodeState;
   workflowValidation?: WorkflowValidationResult;
-  // Request node deletion
-  onDelete?: () => void;
+  onDelete?: (uuid: string) => void;
   // Request node update
   onUpdate?: (nodeUpdates: NodeUpdates) => void;
   onStateChange?: (nodeSate: NodeState) => void;
-  dragUpdate: (uuid: string | null) => void;
+  onDragUpdate?: (uuid: string | null) => void;
   getAuthToken?: () => Promise<string>;
+  currentNodeRunning?: string | null;
 }
 
 export interface NodeBodyProps {
   data: NodeDataTypes;
   onUpdateData?: (dataUpdates: NodeDataTypes) => void;
   getAuthToken?: () => Promise<string>;
+  currentNodeRunning?: string | null;
 }
 
 export interface NodeHeaderProps {
@@ -83,7 +84,7 @@ export interface NodeIconProps {
   className?: string;
 }
 
-const BASE_CARD_STYLE = "card shadow-xl w-full md:w-[480px] lg:w-[640px]";
+const BASE_CARD_STYLE = "card shadow-xl w-full md:w-[480px] lg:w-[640px] mx-auto";
 
 export function NodeIcon({ nodeType, subType, className }: NodeIconProps) {
   let icon = <TableCellsIcon className={className} />;
@@ -231,25 +232,26 @@ export function WorkflowResult({
         <pre className="text-xs p-4 rounded-lg overflow-auto">
           {content ? content : <span className="italic">Result is empty</span>}
         </pre>
+      </div>
+      <div className="card-actions p-2 place-content-center flex flex-row items-center">
         {hideButton && (
           <button
-            className="btn btn-block btn-neutral btn-sm"
+            className="btn btn-neutral btn-sm"
             onClick={() => onHide()}
           >
+            <EyeSlashIcon className="w-4 h-4" />
             Hide
           </button>
         )}
-      </div>
-      <div className="card-actions p-2 place-content-end">
         <button
-          className="btn disabled:btn-info"
+          className="btn btn-neutral btn-sm"
           disabled={isCopying}
           onClick={() => handleCopy()}
         >
           {isCopying ? (
             <span className="loading loading-spinner loading-sm"></span>
           ) : (
-            <ClipboardDocumentListIcon className="w-6 h-6" />
+            <ClipboardDocumentListIcon className="w-4 h-4" />
           )}
           Copy
         </button>
@@ -263,15 +265,15 @@ export function NodeComponent({
   label,
   nodeType,
   data,
-  isRunning,
   lastRun,
   workflowValidation,
   nodeState,
+  getAuthToken,
+  currentNodeRunning,
   onUpdate = () => {},
   onDelete = () => {},
   onStateChange = () => {},
-  dragUpdate,
-  getAuthToken,
+  onDragUpdate = () => {},
 }: BaseNodeProps) {
   let scrollToRef = useRef(null);
 
@@ -281,6 +283,8 @@ export function NodeComponent({
   let [validationResult, setValidationResult] = useState<
     ValidationError | undefined
   >(undefined);
+
+  let isRunning = uuid === currentNodeRunning;
 
   useEffect(() => {
     if (nodeState) {
@@ -307,7 +311,18 @@ export function NodeComponent({
 
   useEffect(() => {
     if (isRunning && scrollToRef.current) {
-      (scrollToRef.current as HTMLElement).scrollIntoView();
+      // Get the top position of this element
+      let el = (scrollToRef.current as HTMLElement);
+      let topPost = el.getBoundingClientRect().top;
+      // Get height of the top bar and add some padding.
+      let headerEl = document.getElementById('#header');
+      let headerBottom = (headerEl?.getBoundingClientRect().bottom ?? 96) + 32;
+      // Scroll to the offset
+      let offset = topPost + (window.scrollY - headerBottom);
+      window.scrollTo({
+        top: offset,
+        behavior: 'smooth'
+      });
     }
   }, [isRunning]);
 
@@ -335,7 +350,14 @@ export function NodeComponent({
     } else if (nodeType === NodeType.DataDestination) {
       return <DataDestinationNode {...baseProps} />;
     } else if (nodeType === NodeType.Loop) {
-      return <Loop {...baseProps} />;
+      return <Loop
+        parentUUID={uuid}
+        label={label}
+        onDelete={() => onDelete(uuid)}
+        onUpdateLabel={(label) => onUpdate({ label })}
+        currentNodeRunning={currentNodeRunning}
+        onDragUpdate={(uuid) => onDragUpdate(uuid)}
+        {...baseProps} />;
     }
 
     return null;
@@ -350,15 +372,20 @@ export function NodeComponent({
     }
   }
 
+  // Handle loop nodes specially
+  if (nodeType === NodeType.Loop) {
+    return renderNodeBody();
+  }
+
   return (
     <div
       ref={scrollToRef}
       className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}
       draggable={canDrag}
-      onDragStart={() => dragUpdate(uuid)}
+      onDragStart={() => onDragUpdate(uuid)}
       onDragEnd={() => {
         setCanDrag(false);
-        dragUpdate(null);
+        onDragUpdate(null);
       }}
     >
       <figure className="bg-base-100 p-2 border-inherit">
@@ -391,7 +418,7 @@ export function NodeComponent({
             </button>
             <button
               className="btn btn-circle btn-xs btn-error btn-outline"
-              onClick={() => onDelete()}
+              onClick={() => onDelete(uuid)}
             >
               <XMarkIcon className="w-4 text-gray" />
             </button>
@@ -472,7 +499,7 @@ export function ShowNodeResult({
     );
   } else {
     return (
-      <div className="mx-auto flex flex-col w-fit items-center">
+      <div className="w-fit mx-auto">
         {result ? (
           <div className="btn" onClick={() => setShowResult(true)}>
             View Results

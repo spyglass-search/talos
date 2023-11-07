@@ -222,22 +222,6 @@ function App() {
     setCachedNodeTypes(newCache);
 
     const newWorkflow = workflow.map((node) => {
-      if (node.parentNode) {
-        (node.data as ParentDataDef).actions = (
-          node.data as ParentDataDef
-        ).actions.flatMap((node) => {
-          if (node.uuid === uuid) {
-            return {
-              ...node,
-              label: updates.label ?? node.label,
-              data: updates.data ?? node.data,
-              mapping: updates.mapping ?? node.mapping,
-            };
-          } else {
-            return node;
-          }
-        });
-      }
       if (node.uuid === uuid) {
         return {
           ...node,
@@ -335,12 +319,12 @@ function App() {
 
   return (
     <main className="flex w-screen min-h-screen flex-col gap-8 items-center md:py-8">
-      <div className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
+      <div id="header" className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
         <div className="navbar-center flex flex-col lg:flex-row gap-2 place-content-center items-center w-full">
           <img
             src={`${process.env.PUBLIC_URL}/logo@2x.png`}
             className="w-14 ml-6"
-            alt="Spyglass Logo"
+            alt="logo"
           />
           <div className="divider divider-horizontal"></div>
           <div className="flex flex-row gap-2">
@@ -444,99 +428,37 @@ function App() {
         <div className="items-center flex flex-col gap-4 z-0">
           {workflow.map((node, idx) => {
             return (
-              <>
-                <div key={`node-${idx}`} className="flex flex-col gap-4">
-                  <NodeComponent
-                    {...node}
-                    workflowValidation={validationResult}
-                    isRunning={node.uuid === currentNodeRunning}
-                    lastRun={nodeResults.get(node.uuid)}
-                    nodeState={nodeStates.get(node.uuid)}
-                    onStateChange={(state) => updateNodeState(node.uuid, state)}
-                    onDelete={() => deleteWorkflowNode(node.uuid)}
-                    onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
-                    dragUpdate={(uuid) => setDraggedNode(uuid)}
-                  />
-                  <DropArea
-                    uuid={node.uuid}
-                    dropAfter={true}
-                    isValidDropSpot={isValidDropSpot}
-                    setDragOverUuid={setDragOverUuid}
-                    setDragNDropAfter={setDragNDropAfter}
-                    nodeDropped={nodeDropped}
-                  >
-                    <NodeDivider
-                      steps={workflow}
-                      childNode={node}
-                      dataTypes={workflowDataTypes}
-                      canConfigureMappings={canConfigureMappings}
-                      configureMappings={configureMappings}
-                      currentIndex={idx}
-                      nodeResults={nodeResults}
-                    ></NodeDivider>
-                  </DropArea>
-                </div>
-
-                {node.parentNode
-                  ? (node.data as ParentDataDef).actions.map(
-                      (childNode, childIdx) => {
-                        return (
-                          <div className="ml-16">
-                            {childIdx === 0 ? (
-                              <DropArea
-                                uuid={childNode.uuid}
-                                dropAfter={false}
-                                isValidDropSpot={isValidDropSpot}
-                                setDragOverUuid={setDragOverUuid}
-                                setDragNDropAfter={setDragNDropAfter}
-                                nodeDropped={nodeDropped}
-                              ></DropArea>
-                            ) : null}
-                            <NodeComponent
-                              key={`node-${idx}-${childIdx}`}
-                              {...childNode}
-                              workflowValidation={validationResult}
-                              nodeState={nodeStates.get(childNode.uuid)}
-                              onStateChange={(state) =>
-                                updateNodeState(childNode.uuid, state)
-                              }
-                              isRunning={childNode.uuid === currentNodeRunning}
-                              lastRun={nodeResults.get(childNode.uuid)}
-                              onDelete={() =>
-                                deleteWorkflowNode(childNode.uuid)
-                              }
-                              onUpdate={(updates) =>
-                                updateWorkflow(childNode.uuid, updates)
-                              }
-                              dragUpdate={(uuid) => setDraggedNode(uuid)}
-                            />
-                            <DropArea
-                              uuid={childNode.uuid}
-                              dropAfter={true}
-                              isValidDropSpot={isValidDropSpot}
-                              setDragOverUuid={setDragOverUuid}
-                              setDragNDropAfter={setDragNDropAfter}
-                              nodeDropped={nodeDropped}
-                            >
-                              <div className="mt-6">
-                                <NodeDivider
-                                  parentNode={node}
-                                  dataTypes={workflowDataTypes}
-                                  steps={(node.data as ParentDataDef).actions}
-                                  canConfigureMappings={canConfigureMappings}
-                                  childNode={childNode}
-                                  configureMappings={configureMappings}
-                                  currentIndex={childIdx}
-                                  nodeResults={nodeResults}
-                                ></NodeDivider>
-                              </div>
-                            </DropArea>
-                          </div>
-                        );
-                      },
-                    )
-                  : null}
-              </>
+              <div key={`node-${idx}`} className="flex flex-col gap-4 w-full">
+                <NodeComponent
+                  {...node}
+                  workflowValidation={validationResult}
+                  currentNodeRunning={currentNodeRunning ?? ""}
+                  lastRun={nodeResults.get(node.uuid)}
+                  nodeState={nodeStates.get(node.uuid)}
+                  onStateChange={(state) => updateNodeState(node.uuid, state)}
+                  onDelete={deleteWorkflowNode}
+                  onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
+                  onDragUpdate={(uuid) => setDraggedNode(uuid)}
+                />
+                <DropArea
+                  uuid={node.uuid}
+                  dropAfter={true}
+                  isValidDropSpot={isValidDropSpot}
+                  setDragOverUuid={setDragOverUuid}
+                  setDragNDropAfter={setDragNDropAfter}
+                  nodeDropped={nodeDropped}
+                >
+                  <NodeDivider
+                    steps={workflow}
+                    childNode={node}
+                    dataTypes={workflowDataTypes}
+                    canConfigureMappings={canConfigureMappings}
+                    configureMappings={configureMappings}
+                    currentIndex={idx}
+                    nodeResults={nodeResults}
+                  ></NodeDivider>
+                </DropArea>
+              </div>
             );
           })}
           <AddAction

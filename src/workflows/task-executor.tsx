@@ -15,7 +15,6 @@ import {
   ObjectResult,
   StringContentResult,
   SummaryDataDef,
-  TableDataResult,
 } from "../types/node";
 import {
   interval,
@@ -184,16 +183,9 @@ export async function executeGSheetsConnectionRequest(
     )
     .then((resp) => {
       let result = resp.data.result;
-      let header = {};
-      if (result.length > 0) {
-        header = result[0];
-      }
       return {
         status: NodeResultStatus.Ok,
-        data: {
-          rows: result,
-          headerRow: header,
-        } as TableDataResult,
+        data: result,
       };
     })
     .catch((err) => {
@@ -208,7 +200,7 @@ export async function executeGSheetsHeaderRequest(
   data: ConnectionDataDef,
   token?: string,
 ): Promise<NodeResult> {
-  console.debug(`connection request: ${data}`);
+  console.debug('connection request', data);
   // Do some light data validation
   if (!data.connectionId) {
     return {
@@ -241,7 +233,7 @@ export async function executeGSheetsHeaderRequest(
         spreadsheetId: data.spreadsheetId ?? "",
         sheetId: data.sheetId ?? "",
         range: {
-          start: 0,
+          start: 1,
           numRows: 1,
         },
       },
@@ -256,16 +248,9 @@ export async function executeGSheetsHeaderRequest(
     )
     .then((resp) => {
       let result = resp.data.result;
-      let header = {};
-      if (result.length > 0) {
-        header = result[0];
-      }
       return {
         status: NodeResultStatus.Ok,
-        data: {
-          rows: result,
-          headerRow: header,
-        } as TableDataResult,
+        data: result
       };
     })
     .catch((err) => {

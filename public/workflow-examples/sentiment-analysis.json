@@ -19,16 +19,13 @@
         "type": "object",
         "properties": {
           "sentiment": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "happy",
-                "satisfied",
-                "dissatisfied",
-                "angry"
-              ]
-            }
+            "type": "string",
+            "enum": [
+              "happy",
+              "satisfied",
+              "dissatisfied",
+              "angry"
+            ]
           },
           "complaints": {
             "type": "array",
