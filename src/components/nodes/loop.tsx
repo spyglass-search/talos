@@ -18,12 +18,14 @@ import { useEffect, useRef, useState } from "react";
 import { ModalType } from "../../types";
 import { createNodeDefFromType } from "../../utils/nodeUtils";
 import { EditableText } from "../editable";
+import { DropArea } from "./dropArea";
 
 interface LoopNodeProps extends NodeBodyProps {
   parentUUID: string;
   label: string;
   onUpdateLabel: (label: string) => void,
   onDelete: () => void,
+  onDragUpdate: (uuid: string) => void,
 }
 
 export default function Loop({
@@ -31,6 +33,7 @@ export default function Loop({
   data,
   currentNodeRunning,
   onDelete,
+  onDragUpdate,
   onUpdateData = () => {},
   onUpdateLabel,
 }: LoopNodeProps) {
@@ -131,7 +134,7 @@ export default function Loop({
                     onUpdate={(updates) =>
                       onUpdateChild(childNode.uuid, updates)
                     }
-                    dragUpdate={() => {}}
+                    onDragUpdate={() => onDragUpdate(childNode.uuid)}
                   />
                   {idx < actions.length - 1 ? (
                     <ShowNodeResult

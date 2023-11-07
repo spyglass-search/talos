@@ -59,7 +59,7 @@ export interface BaseNodeProps {
   // Request node update
   onUpdate?: (nodeUpdates: NodeUpdates) => void;
   onStateChange?: (nodeSate: NodeState) => void;
-  dragUpdate: (uuid: string | null) => void;
+  onDragUpdate?: (uuid: string | null) => void;
   getAuthToken?: () => Promise<string>;
   currentNodeRunning?: string | null;
 }
@@ -268,12 +268,12 @@ export function NodeComponent({
   lastRun,
   workflowValidation,
   nodeState,
+  getAuthToken,
+  currentNodeRunning,
   onUpdate = () => {},
   onDelete = () => {},
   onStateChange = () => {},
-  dragUpdate,
-  getAuthToken,
-  currentNodeRunning,
+  onDragUpdate = () => {},
 }: BaseNodeProps) {
   let scrollToRef = useRef(null);
 
@@ -356,6 +356,7 @@ export function NodeComponent({
         onDelete={() => onDelete(uuid)}
         onUpdateLabel={(label) => onUpdate({ label })}
         currentNodeRunning={currentNodeRunning}
+        onDragUpdate={(uuid) => onDragUpdate(uuid)}
         {...baseProps} />;
     }
 
@@ -381,10 +382,10 @@ export function NodeComponent({
       ref={scrollToRef}
       className={`${BASE_CARD_STYLE} bg-neutral border-2 ${borderColor}`}
       draggable={canDrag}
-      onDragStart={() => dragUpdate(uuid)}
+      onDragStart={() => onDragUpdate(uuid)}
       onDragEnd={() => {
         setCanDrag(false);
-        dragUpdate(null);
+        onDragUpdate(null);
       }}
     >
       <figure className="bg-base-100 p-2 border-inherit">

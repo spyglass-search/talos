@@ -438,7 +438,7 @@ function App() {
                   onStateChange={(state) => updateNodeState(node.uuid, state)}
                   onDelete={deleteWorkflowNode}
                   onUpdate={(updates) => updateWorkflow(node.uuid, updates)}
-                  dragUpdate={(uuid) => setDraggedNode(uuid)}
+                  onDragUpdate={(uuid) => setDraggedNode(uuid)}
                 />
                 <DropArea
                   uuid={node.uuid}
