@@ -378,7 +378,11 @@ export async function executeSummarizeTask(
     }
 
     console.log(`waiting for task "${taskId}" to finish`);
-    let taskResponse = await waitForTaskCompletion(taskId, cancelListener);
+    let taskResponse = await waitForTaskCompletion(
+      taskId,
+      cancelListener,
+      token,
+    );
 
     if (!taskResponse.result) {
       return {
@@ -406,13 +410,14 @@ export async function executeSummarizeTask(
 export function waitForTaskCompletion(
   taskUUID: string,
   cancelListener: Observable<boolean>,
+  token: string,
 ): Promise<ApiResponse<TaskResponse<SummaryResponse>>> {
   const finished = new Subject<boolean>();
   return lastValueFrom(
     interval(1000)
       .pipe(
         takeUntil(merge(cancelListener, finished)),
-        mergeMap(() => from(getTaskResult(taskUUID))),
+        mergeMap(() => from(getTaskResult(taskUUID, token))),
       )
       .pipe(
         tap((val) => {
@@ -430,7 +435,14 @@ export function waitForTaskCompletion(
 
 function getTaskResult(
   task_uuid: string,
+  token: string,
 ): Promise<ApiResponse<TaskResponse<SummaryResponse>>> {
+  let config: AxiosRequestConfig = {
+    ...API_CONFIG,
+  };
+
+  config.headers = { Authorization: `Bearer ${token}` };
+
   return axios
     .get<ApiResponse<TaskResponse<any>>>(
       `${API_ENDPOINT}/tasks/${task_uuid}`,
