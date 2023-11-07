@@ -23,9 +23,9 @@ import { DropArea } from "./dropArea";
 interface LoopNodeProps extends NodeBodyProps {
   parentUUID: string;
   label: string;
-  onUpdateLabel: (label: string) => void,
-  onDelete: () => void,
-  onDragUpdate: (uuid: string) => void,
+  onUpdateLabel: (label: string) => void;
+  onDelete: () => void;
+  onDragUpdate: (uuid: string) => void;
 }
 
 export default function Loop({
@@ -100,10 +100,7 @@ export default function Loop({
               )}
             </button>
             <div className="text-white">
-              <EditableText
-                data={label}
-                onChange={onUpdateLabel}
-              />
+              <EditableText data={label} onChange={onUpdateLabel} />
             </div>
           </div>
           <div className="text-base flex flex-row gap-2">

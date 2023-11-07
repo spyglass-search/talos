@@ -319,7 +319,10 @@ function App() {
 
   return (
     <main className="flex w-screen min-h-screen flex-col gap-8 items-center md:py-8">
-      <div id="header" className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4">
+      <div
+        id="header"
+        className="navbar md:w-fit mx-auto lg:fixed bg-base-200 p-4 rounded-lg z-10 shadow-lg pb-8 md:pb-4"
+      >
         <div className="navbar-center flex flex-col lg:flex-row gap-2 place-content-center items-center w-full">
           <img
             src={`${process.env.PUBLIC_URL}/logo@2x.png`}

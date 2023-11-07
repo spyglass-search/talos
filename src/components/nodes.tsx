@@ -84,7 +84,8 @@ export interface NodeIconProps {
   className?: string;
 }
 
-const BASE_CARD_STYLE = "card shadow-xl w-full md:w-[480px] lg:w-[640px] mx-auto";
+const BASE_CARD_STYLE =
+  "card shadow-xl w-full md:w-[480px] lg:w-[640px] mx-auto";
 
 export function NodeIcon({ nodeType, subType, className }: NodeIconProps) {
   let icon = <TableCellsIcon className={className} />;
@@ -235,10 +236,7 @@ export function WorkflowResult({
       </div>
       <div className="card-actions p-2 place-content-center flex flex-row items-center">
         {hideButton && (
-          <button
-            className="btn btn-neutral btn-sm"
-            onClick={() => onHide()}
-          >
+          <button className="btn btn-neutral btn-sm" onClick={() => onHide()}>
             <EyeSlashIcon className="w-4 h-4" />
             Hide
           </button>
@@ -312,16 +310,16 @@ export function NodeComponent({
   useEffect(() => {
     if (isRunning && scrollToRef.current) {
       // Get the top position of this element
-      let el = (scrollToRef.current as HTMLElement);
+      let el = scrollToRef.current as HTMLElement;
       let topPost = el.getBoundingClientRect().top;
       // Get height of the top bar and add some padding.
-      let headerEl = document.getElementById('#header');
+      let headerEl = document.getElementById("#header");
       let headerBottom = (headerEl?.getBoundingClientRect().bottom ?? 96) + 32;
       // Scroll to the offset
       let offset = topPost + (window.scrollY - headerBottom);
       window.scrollTo({
         top: offset,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [isRunning]);
@@ -350,14 +348,17 @@ export function NodeComponent({
     } else if (nodeType === NodeType.DataDestination) {
       return <DataDestinationNode {...baseProps} />;
     } else if (nodeType === NodeType.Loop) {
-      return <Loop
-        parentUUID={uuid}
-        label={label}
-        onDelete={() => onDelete(uuid)}
-        onUpdateLabel={(label) => onUpdate({ label })}
-        currentNodeRunning={currentNodeRunning}
-        onDragUpdate={(uuid) => onDragUpdate(uuid)}
-        {...baseProps} />;
+      return (
+        <Loop
+          parentUUID={uuid}
+          label={label}
+          onDelete={() => onDelete(uuid)}
+          onUpdateLabel={(label) => onUpdate({ label })}
+          currentNodeRunning={currentNodeRunning}
+          onDragUpdate={(uuid) => onDragUpdate(uuid)}
+          {...baseProps}
+        />
+      );
     }
 
     return null;

@@ -132,16 +132,10 @@ export function ConnectionDataNode({
         </select>
       </div>
       {connectionType === DataConnectionType.GSheets ? (
-        <GoogleSheetConfig
-          data={data}
-          updateNodeData={updateNodeData}
-        />
+        <GoogleSheetConfig data={data} updateNodeData={updateNodeData} />
       ) : null}
       {connectionType === DataConnectionType.Hubspot ? (
-        <HubspotConfig
-          data={data}
-          updateNodeData={updateNodeData}
-        />
+        <HubspotConfig data={data} updateNodeData={updateNodeData} />
       ) : null}
     </div>
   );

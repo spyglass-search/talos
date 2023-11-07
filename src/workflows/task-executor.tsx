@@ -200,7 +200,7 @@ export async function executeGSheetsHeaderRequest(
   data: ConnectionDataDef,
   token?: string,
 ): Promise<NodeResult> {
-  console.debug('connection request', data);
+  console.debug("connection request", data);
   // Do some light data validation
   if (!data.connectionId) {
     return {
@@ -250,7 +250,7 @@ export async function executeGSheetsHeaderRequest(
       let result = resp.data.result;
       return {
         status: NodeResultStatus.Ok,
-        data: result
+        data: result,
       };
     })
     .catch((err) => {

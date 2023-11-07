@@ -14,7 +14,7 @@ export function DropArea({
   setDragNDropAfter,
   setDragOverUuid,
   nodeDropped,
-  children
+  children,
 }: React.PropsWithChildren<DropAreaProperties>) {
   const style = isValidDropSpot(dropAfter, uuid)
     ? "border-t-4 border-solid border-base-content"
