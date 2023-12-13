@@ -513,7 +513,7 @@ function getTaskResult(
   return axios
     .get<ApiResponse<TaskResponse<any>>>(
       `${API_ENDPOINT}/tasks/${task_uuid}`,
-      API_CONFIG,
+      config,
     )
     .then((resp) => resp.data);
 }
