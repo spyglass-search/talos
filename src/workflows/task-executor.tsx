@@ -8,6 +8,7 @@ import {
   TaskResponse,
 } from "../types/spyglassApi";
 import {
+  AudioTranscriptionNodeDef,
   ConnectionDataDef,
   DataConnectionType,
   NodeResult,
@@ -15,6 +16,7 @@ import {
   ObjectResult,
   StringContentResult,
   SummaryDataDef,
+  TranscriptionResult,
 } from "../types/node";
 import {
   interval,
@@ -397,6 +399,71 @@ export async function executeSummarizeTask(
         summary: taskResponse.result.result?.paragraph,
         bulletSummary: taskResponse.result.result?.bullets,
       } as SummaryDataDef,
+    } as NodeResult;
+  } else {
+    let res = await lastValueFrom(of(response));
+    return {
+      status: NodeResultStatus.Error,
+      error: "error" in res ? res.error : JSON.stringify(res),
+    };
+  }
+}
+
+export async function executeAudioTask(
+  input: NodeResult | null,
+  audioConfig: AudioTranscriptionNodeDef,
+  controller: AbortController,
+  cancelListener: Observable<boolean>,
+  executeContext: WorkflowContext,
+): Promise<NodeResult> {
+  let config: AxiosRequestConfig = {
+    signal: controller.signal,
+    ...API_CONFIG,
+  };
+
+  const token = await executeContext.getAuthToken();
+  config.headers = { Authorization: `Bearer ${token}` };
+
+  let response: ApiResponse<string> | ApiError = await axios
+    .post<ApiResponse<string>>(
+      `${API_ENDPOINT}/action/transcribe`,
+      audioConfig.audioSource,
+      config,
+    )
+    .then((resp) => resp.data)
+    .catch((err) => {
+      return {
+        status: NodeResultStatus.Error,
+        error: err.toString(),
+      };
+    });
+
+  if (response.status.toLowerCase() === "ok" && "result" in response) {
+    let taskId: any = response.result;
+    if (taskId instanceof Object) {
+      taskId = taskId.taskId;
+    }
+
+    console.log(`waiting for task "${taskId}" to finish`);
+    let taskResponse = await waitForTaskCompletion(
+      taskId,
+      cancelListener,
+      token,
+    );
+
+    if (!taskResponse.result) {
+      return {
+        status: NodeResultStatus.Error,
+        error: "Invalid response",
+      };
+    }
+
+    console.error("Got response Data ", taskResponse);
+    return {
+      status: taskResponse.status,
+      data: {
+        transcription: taskResponse.result.result,
+      } as TranscriptionResult,
     } as NodeResult;
   } else {
     let res = await lastValueFrom(of(response));

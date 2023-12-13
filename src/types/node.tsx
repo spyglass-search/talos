@@ -84,6 +84,10 @@ export interface SummaryDataDef {
   bulletSummary: string;
 }
 
+export interface TranscriptionResult {
+  transcription: any;
+}
+
 export interface ParentDataDef {
   actions: NodeDef[];
 }
@@ -104,6 +108,7 @@ export type NodeDataResultTypes =
   | MultiNodeDataResult
   | SummaryDataDef
   | ObjectResult
+  | TranscriptionResult
   | any[];
 
 export enum OutputDataType {
