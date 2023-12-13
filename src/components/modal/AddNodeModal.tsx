@@ -35,6 +35,8 @@ function nodeTypeLabel(nType: NodeType, subType: DataNodeType | null): string {
       return "Connection";
     case NodeType.Loop:
       return "Loop";
+    case NodeType.AudioTranscription:
+      return "Transcription";
     default:
       return "Unknown";
   }
@@ -65,6 +67,7 @@ export default function AddNodeModal({
         { nodeType: NodeType.Extract, subType: null },
         { nodeType: NodeType.Summarize, subType: null },
         { nodeType: NodeType.Template, subType: null },
+        { nodeType: NodeType.AudioTranscription, subType: null },
       ],
     },
     {

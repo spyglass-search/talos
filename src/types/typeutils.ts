@@ -117,6 +117,8 @@ export function getInputType(node: NodeDef): InputDataType | undefined {
     return InputDataType.StringContent;
   } else if (node.nodeType === NodeType.Template) {
     return InputDataType.Object;
+  } else if (node.nodeType === NodeType.AudioTranscription) {
+    return InputDataType.None;
   }
 }
 
