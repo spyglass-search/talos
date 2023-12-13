@@ -481,7 +481,7 @@ export function waitForTaskCompletion(
 ): Promise<ApiResponse<TaskResponse<SummaryResponse>>> {
   const finished = new Subject<boolean>();
   return lastValueFrom(
-    interval(1000)
+    interval(3000)
       .pipe(
         takeUntil(merge(cancelListener, finished)),
         mergeMap(() => from(getTaskResult(taskUUID, token))),
