@@ -84,6 +84,11 @@ export interface SummaryDataDef {
   bulletSummary: string;
 }
 
+export interface SummaryResponse {
+  paragraph: string;
+  bullets: string;
+}
+
 export interface TranscriptionResult {
   transcription: any;
 }

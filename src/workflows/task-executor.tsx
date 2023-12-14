@@ -380,7 +380,7 @@ export async function executeSummarizeTask(
     }
 
     console.log(`waiting for task "${taskId}" to finish`);
-    let taskResponse = await waitForTaskCompletion(
+    let taskResponse = await waitForTaskCompletion<SummaryResponse>(
       taskId,
       cancelListener,
       token,
@@ -445,7 +445,7 @@ export async function executeAudioTask(
     }
 
     console.log(`waiting for task "${taskId}" to finish`);
-    let taskResponse = await waitForTaskCompletion(
+    let taskResponse = await waitForTaskCompletion<TranscriptionResult>(
       taskId,
       cancelListener,
       token,
@@ -462,7 +462,7 @@ export async function executeAudioTask(
     return {
       status: taskResponse.status,
       data: {
-        transcription: taskResponse.result.result,
+        transcription: taskResponse.result.result?.transcription,
       } as TranscriptionResult,
     } as NodeResult;
   } else {
@@ -474,17 +474,17 @@ export async function executeAudioTask(
   }
 }
 
-export function waitForTaskCompletion(
+export function waitForTaskCompletion<T>(
   taskUUID: string,
   cancelListener: Observable<boolean>,
   token: string,
-): Promise<ApiResponse<TaskResponse<SummaryResponse>>> {
+): Promise<ApiResponse<TaskResponse<T>>> {
   const finished = new Subject<boolean>();
   return lastValueFrom(
     interval(3000)
       .pipe(
         takeUntil(merge(cancelListener, finished)),
-        mergeMap(() => from(getTaskResult(taskUUID, token))),
+        mergeMap(() => from(getTaskResult<T>(taskUUID, token))),
       )
       .pipe(
         tap((val) => {
@@ -500,10 +500,10 @@ export function waitForTaskCompletion(
   );
 }
 
-function getTaskResult(
+function getTaskResult<T>(
   task_uuid: string,
   token: string,
-): Promise<ApiResponse<TaskResponse<SummaryResponse>>> {
+): Promise<ApiResponse<TaskResponse<T>>> {
   let config: AxiosRequestConfig = {
     ...API_CONFIG,
   };
