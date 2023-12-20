@@ -11,11 +11,32 @@ export enum NodeType {
   Template = "Template",
   Summarize = "Summarize",
   Loop = "Loop",
+  AudioTranscription = "AudioTranscription",
 }
 
 export interface ExtractNodeDef {
   query: string;
   schema: object;
+}
+
+export interface AudioTranscriptionNodeDef {
+  audioSource: AudioDataSource;
+}
+
+export interface AudioDataSource {
+  // new to make
+  data: URLDataSource;
+  sourceType: AudioDataSourceType;
+}
+
+export enum AudioDataSourceType {
+  S3 = "S3",
+  URL = "URL",
+}
+
+export interface URLDataSource {
+  url: string;
+  connection_id?: string;
 }
 
 export interface DataNodeDef {
@@ -63,6 +84,15 @@ export interface SummaryDataDef {
   bulletSummary: string;
 }
 
+export interface SummaryResponse {
+  paragraph: string;
+  bullets: string;
+}
+
+export interface TranscriptionResult {
+  transcription: any;
+}
+
 export interface ParentDataDef {
   actions: NodeDef[];
 }
@@ -73,7 +103,8 @@ export type NodeDataTypes =
   | TemplateNodeDef
   | SummaryDataDef
   | ParentDataDef
-  | DataDestinationDef;
+  | DataDestinationDef
+  | AudioTranscriptionNodeDef;
 
 export type NodeDataResultTypes =
   | StringContentResult
@@ -82,6 +113,7 @@ export type NodeDataResultTypes =
   | MultiNodeDataResult
   | SummaryDataDef
   | ObjectResult
+  | TranscriptionResult
   | any[];
 
 export enum OutputDataType {

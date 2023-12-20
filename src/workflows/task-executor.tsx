@@ -8,6 +8,7 @@ import {
   TaskResponse,
 } from "../types/spyglassApi";
 import {
+  AudioTranscriptionNodeDef,
   ConnectionDataDef,
   DataConnectionType,
   NodeResult,
@@ -15,6 +16,7 @@ import {
   ObjectResult,
   StringContentResult,
   SummaryDataDef,
+  TranscriptionResult,
 } from "../types/node";
 import {
   interval,
@@ -378,7 +380,7 @@ export async function executeSummarizeTask(
     }
 
     console.log(`waiting for task "${taskId}" to finish`);
-    let taskResponse = await waitForTaskCompletion(
+    let taskResponse = await waitForTaskCompletion<SummaryResponse>(
       taskId,
       cancelListener,
       token,
@@ -407,17 +409,82 @@ export async function executeSummarizeTask(
   }
 }
 
-export function waitForTaskCompletion(
+export async function executeAudioTask(
+  input: NodeResult | null,
+  audioConfig: AudioTranscriptionNodeDef,
+  controller: AbortController,
+  cancelListener: Observable<boolean>,
+  executeContext: WorkflowContext,
+): Promise<NodeResult> {
+  let config: AxiosRequestConfig = {
+    signal: controller.signal,
+    ...API_CONFIG,
+  };
+
+  const token = await executeContext.getAuthToken();
+  config.headers = { Authorization: `Bearer ${token}` };
+
+  let response: ApiResponse<string> | ApiError = await axios
+    .post<ApiResponse<string>>(
+      `${API_ENDPOINT}/action/transcribe`,
+      audioConfig.audioSource,
+      config,
+    )
+    .then((resp) => resp.data)
+    .catch((err) => {
+      return {
+        status: NodeResultStatus.Error,
+        error: err.toString(),
+      };
+    });
+
+  if (response.status.toLowerCase() === "ok" && "result" in response) {
+    let taskId: any = response.result;
+    if (taskId instanceof Object) {
+      taskId = taskId.taskId;
+    }
+
+    console.log(`waiting for task "${taskId}" to finish`);
+    let taskResponse = await waitForTaskCompletion<TranscriptionResult>(
+      taskId,
+      cancelListener,
+      token,
+    );
+
+    if (!taskResponse.result) {
+      return {
+        status: NodeResultStatus.Error,
+        error: "Invalid response",
+      };
+    }
+
+    console.error("Got response Data ", taskResponse);
+    return {
+      status: taskResponse.status,
+      data: {
+        transcription: taskResponse.result.result?.transcription,
+      } as TranscriptionResult,
+    } as NodeResult;
+  } else {
+    let res = await lastValueFrom(of(response));
+    return {
+      status: NodeResultStatus.Error,
+      error: "error" in res ? res.error : JSON.stringify(res),
+    };
+  }
+}
+
+export function waitForTaskCompletion<T>(
   taskUUID: string,
   cancelListener: Observable<boolean>,
   token: string,
-): Promise<ApiResponse<TaskResponse<SummaryResponse>>> {
+): Promise<ApiResponse<TaskResponse<T>>> {
   const finished = new Subject<boolean>();
   return lastValueFrom(
-    interval(1000)
+    interval(3000)
       .pipe(
         takeUntil(merge(cancelListener, finished)),
-        mergeMap(() => from(getTaskResult(taskUUID, token))),
+        mergeMap(() => from(getTaskResult<T>(taskUUID, token))),
       )
       .pipe(
         tap((val) => {
@@ -433,10 +500,10 @@ export function waitForTaskCompletion(
   );
 }
 
-function getTaskResult(
+function getTaskResult<T>(
   task_uuid: string,
   token: string,
-): Promise<ApiResponse<TaskResponse<SummaryResponse>>> {
+): Promise<ApiResponse<TaskResponse<T>>> {
   let config: AxiosRequestConfig = {
     ...API_CONFIG,
   };
@@ -446,7 +513,7 @@ function getTaskResult(
   return axios
     .get<ApiResponse<TaskResponse<any>>>(
       `${API_ENDPOINT}/tasks/${task_uuid}`,
-      API_CONFIG,
+      config,
     )
     .then((resp) => resp.data);
 }

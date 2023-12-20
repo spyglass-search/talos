@@ -29,6 +29,7 @@ import {
   ExclamationCircleIcon,
   EyeSlashIcon,
   GlobeAltIcon,
+  MicrophoneIcon,
   NoSymbolIcon,
   TableCellsIcon,
   XMarkIcon,
@@ -46,6 +47,7 @@ import {
   ValidationError,
   WorkflowValidationResult,
 } from "../utils/workflowValidator";
+import AudioTranscription from "./nodes/audioTranscription";
 
 export interface BaseNodeProps {
   uuid: string;
@@ -109,6 +111,8 @@ export function NodeIcon({ nodeType, subType, className }: NodeIconProps) {
     icon = <CircleStackIcon className={className} />;
   } else if (nodeType === NodeType.Loop) {
     icon = <ArrowPathIcon className={className} />;
+  } else if (nodeType === NodeType.AudioTranscription) {
+    icon = <MicrophoneIcon className={className} />;
   }
   return icon;
 }
@@ -359,6 +363,8 @@ export function NodeComponent({
           {...baseProps}
         />
       );
+    } else if (nodeType === NodeType.AudioTranscription) {
+      return <AudioTranscription {...baseProps}></AudioTranscription>;
     }
 
     return null;

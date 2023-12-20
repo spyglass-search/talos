@@ -9,6 +9,8 @@ import {
   SummaryDataDef,
   TemplateNodeDef,
   DataDestinationDef,
+  AudioTranscriptionNodeDef,
+  AudioDataSourceType,
 } from "../types/node";
 
 export function createNodeDefFromType(
@@ -28,6 +30,10 @@ export function createNodeDefFromType(
     nodeData = { actions: [] } as ParentDataDef;
   } else if (nodeType === NodeType.DataDestination) {
     nodeData = {} as DataDestinationDef;
+  } else if (nodeType === NodeType.AudioTranscription) {
+    nodeData = {
+      audioSource: { sourceType: AudioDataSourceType.URL, data: { url: "" } },
+    } as AudioTranscriptionNodeDef;
   } else {
     return undefined;
   }
@@ -65,6 +71,8 @@ export function getDefaultLabel(
     return "Expand Template";
   } else if (nodeType === NodeType.Loop) {
     return "Loop Over Each Value";
+  } else if (nodeType === NodeType.AudioTranscription) {
+    return "Audio Transcription";
   }
 
   return "Untitled Step";

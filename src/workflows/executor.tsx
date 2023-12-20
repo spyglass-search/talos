@@ -1,6 +1,7 @@
 import Handlebars from "handlebars";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import {
+  executeAudioTask,
   executeConnectionRequest,
   executeFetchUrl,
   executeParseFile,
@@ -8,6 +9,7 @@ import {
 } from "./task-executor";
 import { Subject } from "rxjs";
 import {
+  AudioTranscriptionNodeDef,
   ConnectionDataDef,
   DataConnectionType,
   DataNodeDef,
@@ -317,6 +319,24 @@ async function _handleSummarizeNode(
   return response;
 }
 
+async function _handleAudioTranscription(
+  node: NodeDef,
+  input: NodeResult | null,
+  executeContext: WorkflowContext,
+) {
+  const controller = new AbortController();
+  let subscription = cancelListener.subscribe(() => controller.abort());
+  let response = await executeAudioTask(
+    input,
+    node.data as AudioTranscriptionNodeDef,
+    controller,
+    cancelListener,
+    executeContext,
+  );
+  subscription.unsubscribe();
+  return response;
+}
+
 async function _handleLoopNode(
   node: NodeDef,
   input: NodeResult | null,
@@ -484,6 +504,8 @@ export async function executeNode(
     return _handleDestinationNode(node, input, executeContext);
   } else if (node.nodeType === NodeType.Loop) {
     result = _handleLoopNode(node, input, executeContext);
+  } else if (node.nodeType === NodeType.AudioTranscription) {
+    result = _handleAudioTranscription(node, input, executeContext);
   }
 
   if (result) {
