@@ -456,6 +456,11 @@ export async function executeAudioTask(
         status: NodeResultStatus.Error,
         error: "Invalid response",
       };
+    } else if (taskResponse.result.status === "Failed") {
+      return {
+        status: NodeResultStatus.Error,
+        error: taskResponse.result.error,
+      };
     }
 
     console.error("Got response Data ", taskResponse);
