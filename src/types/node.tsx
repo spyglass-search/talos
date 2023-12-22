@@ -90,7 +90,18 @@ export interface SummaryResponse {
 }
 
 export interface TranscriptionResult {
-  transcription: any;
+  transcription: TranscriptionResponse;
+}
+
+export interface TranscriptionResponse {
+  status: string;
+  utterances: Utterance[];
+  error: string;
+}
+
+export interface Utterance {
+  speaker: string;
+  text: string;
 }
 
 export interface ParentDataDef {

@@ -16,6 +16,7 @@ import {
   ObjectResult,
   StringContentResult,
   SummaryDataDef,
+  TranscriptionResponse,
   TranscriptionResult,
 } from "../types/node";
 import {
@@ -445,7 +446,7 @@ export async function executeAudioTask(
     }
 
     console.log(`waiting for task "${taskId}" to finish`);
-    let taskResponse = await waitForTaskCompletion<TranscriptionResult>(
+    let taskResponse = await waitForTaskCompletion<TranscriptionResponse>(
       taskId,
       cancelListener,
       token,
@@ -467,7 +468,7 @@ export async function executeAudioTask(
     return {
       status: taskResponse.status,
       data: {
-        transcription: taskResponse.result.result?.transcription,
+        transcription: taskResponse.result.result,
       } as TranscriptionResult,
     } as NodeResult;
   } else {
