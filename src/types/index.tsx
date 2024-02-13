@@ -1,4 +1,5 @@
 export type ModalType = {
-  showModal: () => void;
+  close: () => void;
   open: boolean;
+  showModal: () => void;
 };
